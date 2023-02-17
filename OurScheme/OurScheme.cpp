@@ -7,7 +7,7 @@ int main()
 {
     std::cout << "Hello World!\n";
 
-    std::cout << "我是王文彥"; 
+    std::cout << "我是遠端王文彥"; 
 } // main 
 
 // 執行程式: Ctrl + F5 或 [偵錯] > [啟動但不偵錯] 功能表
