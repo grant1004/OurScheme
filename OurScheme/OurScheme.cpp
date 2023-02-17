@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿ㄋ// OurScheme.cpp : 此檔案包含 'main' 函式。程式會於該處開始執行及結束執行。
+=======
+// OurScheme.cpp : 此檔案包含 'main' 函式。程式會於該處開始執行及結束執行。
+>>>>>>> 50ce4aa744fef41add7dcd4524c247cfd41b3daa
 //
 
 #include <iostream>
