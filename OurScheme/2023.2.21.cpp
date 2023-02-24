@@ -151,24 +151,28 @@ bool IsFloat( string str ) // 開頭可以是0嗎??
 
 bool IsSymbol( string str )
 {
-  if ( NOT IsInt(str) )
+  if ( str == " " ) 
+  {
+    cout << "Is White Space" ; 
+    return false ; 
+  } // if 
+  else if ( str == "\0" ) 
+  {
+    cout << "Is NULL" ; 
+    return false ; 
+  } // else if
+  else if (str.empty())
+  {
+    return false ; 
+  } // else if 
+  else if ( NOT IsInt(str) )
   {
     return true ; 
-  } // if 
+  } // else if 
   else if ( NOT IsFloat(str))
   {
     return true ;
   } // else if 
-  else if ( str == " " ) 
-  {
-    return false ; 
-  } // else if 
-  else if ( str == "\0" ) 
-  {
-    return false ; 
-  } // else if 
-  else if ( str.empty() )
-    return false ; 
 
   return false ; 
 } // IsSymbol 
@@ -182,6 +186,19 @@ bool IsSeparators(char ch)
 
   return false ;
 } // IsSeparators
+
+char GetNextChar() // skip white space to get char 
+{
+  char ch = getchar() ; 
+  while (IsWhiteSpace(ch))
+  {
+    ch = getchar() ; 
+  } // while 
+
+  if ( ch == EOF ) 
+
+  return EOF ; 
+} // GetNextChar()
 
 EXP * GetToken() {
 
@@ -377,7 +394,6 @@ EXP * GetToken() {
     if ( NOT b )
     {
       ch = getchar(); 
-
       gNowColumn ++ ; 
     } // if 
 
