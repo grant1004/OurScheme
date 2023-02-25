@@ -61,6 +61,12 @@ struct EXP {
 }; // struct EXP 
 
 // 2023/02/25 超級大肥肥新增這些程式碼
+
+
+
+/* PrintType( Type type ) 
+* 依造傳進去的 type 印出對應的 type 名稱 
+*/ 
 string PrintType ( Type type )
 {
   if ( type == LR_PAREN ) 
@@ -95,8 +101,12 @@ string PrintType ( Type type )
     return "QUOTE" ; 
 
   return "ERROR TYPE" ; 
-} // PrintType ( Type type )
+} // PrintType ( Type type ) 
 
+
+/* CheckWhiteSpace(char ch) 
+* 檢查 ch 是否為 white space 
+*/
 bool CheckWhiteSpace(char ch) // 判斷是否為white space, 如果是 return true, 不是 return false  
 {
 
@@ -112,6 +122,10 @@ bool CheckWhiteSpace(char ch) // 判斷是否為white space, 如果是 return true, 不是
   return false ;  
 } // IsWhileSpace( char ch )
 
+/* CheckDelimiter ( char ch )
+* 檢查 ch 是否為 Delimiter 
+* Delimiter : '('  ')'  '\''  WhiteSpace  
+*/
 bool CheckDelimiter ( char ch )
 {
   if ( CheckWhiteSpace ( ch ) )
@@ -126,6 +140,9 @@ bool CheckDelimiter ( char ch )
   return false ; 
 } // IsDelimiter ( char ch )
 
+/* IsStringStart ( char ch )
+* 檢查是否為 '\"'  
+*/
 bool IsStringStart ( char ch )
 {
   if ( ch == '\"' )
@@ -133,6 +150,9 @@ bool IsStringStart ( char ch )
   return false ; 
 } // IsStringStart ( char ch )
 
+/* IsComment ( char ch )
+*  檢查是否為 ';' 
+*/
 bool IsComment ( char ch )
 {
   if ( ch == ';' )
@@ -140,6 +160,9 @@ bool IsComment ( char ch )
   return false ; 
 } // IsComment ( char ch )
 
+/* IsInt( string token )
+*  INT : '3', '+3', '-3'
+*/ 
 bool IsInt( string token ) // 開頭可以是0嗎???
 {
 	
@@ -168,6 +191,9 @@ bool IsInt( string token ) // 開頭可以是0嗎???
   return true ; 
 } // IsInt(string str) 
 
+/* IsFloat( string token )
+*  FLOAT : '3.25', '.25', '+.25', '-.25', '+3.'
+*/
 bool IsFloat( string token ) // 開頭可以是0嗎??
 {
   bool cont = false ; // continue ; 
@@ -207,6 +233,10 @@ bool IsFloat( string token ) // 開頭可以是0嗎??
   return true ; 
 } // IsFloat
 
+/* IsSymbol( string token ) 
+*  只要不是 INT || FLOAT || '(' || ')' || DOT || STRING || NIL || T || QUOTE 
+*  剩下都當作SYMBOL
+*/
 bool IsSymbol( string token )
 {
   if ( token == " " ) 
@@ -231,6 +261,9 @@ bool IsSymbol( string token )
   return false ; 
 } // IsSymbol 
 
+/* IsString ( string token ) 
+*  開頭是否是 "  
+*/
 bool IsString ( string token )
 {
   if ( token[0] == '\"' ) 
@@ -238,6 +271,16 @@ bool IsString ( string token )
   return false ; 
 } // IsString 
 
+
+/* IsDelimiter( string token, Type & type ) 
+*  檢查是Delimiter 並設定他的type 
+*  ( --> LEFT_PAREN 
+*  ) --> RIGHT_PAREN
+*  . --> DOT 
+*  ' --> QUOTE 
+*  #f nil --> NIL 
+*  #t t --> T 
+*/ 
 bool IsDelimiter( string token, Type & type )
 {
 
@@ -275,6 +318,9 @@ bool IsDelimiter( string token, Type & type )
 	return false ; 
 } // IsDelimiter( char ch )
 
+/* IsEOF ( char ch ) 
+*  是否為 EOF 
+*/
 bool IsEOF ( char ch )
 {
   if ( ch == -1 || ch == EOF )
@@ -282,6 +328,9 @@ bool IsEOF ( char ch )
   return false ; 
 } // IsEOF
 
+/* IdentifyType ( string token ) 
+*  分辨 token 是什麼 type 
+*/ 
 Type IdentifyType ( string token )
 {
   Type type = NONE ; 
@@ -313,6 +362,10 @@ Type IdentifyType ( string token )
 
 } // IdentifyType ( string token )
 
+/* GetString ( ) 
+*  把整個 string 讀出來，直到 ('\n') 或是另一個 ('\"')
+*  如果讀到 '\n' 沒有讀到 '\"' 那就是 error  <----------------------------------------- 這裡還沒完成喔 
+*/
 string GetString ( )
 {
   string str = "\0" ; 
@@ -353,6 +406,9 @@ string GetString ( )
   return str ; 
 } // GetString ()
 
+/* SkipComment ( ) 
+* 把 ; 後面的全部讀掉 
+*/ 
 void SkipComment ( )
 {
   char ch = '\0' ;
@@ -363,6 +419,9 @@ void SkipComment ( )
 
 } // SkipCommnet() 
 
+/* GetFirstChar ( ) 
+*  跳過空白讀到第一個字元
+*/ 
 char GetFirstChar ( ) // skip white space to get First char 
 {
   char ch = getchar() ; 
@@ -379,6 +438,9 @@ char GetFirstChar ( ) // skip white space to get First char
   return ch ; 
 } // GetNextChar()
 
+/* GetToken ( ) 
+* 切下token 並判斷牠的 type  
+*/ 
 EXP * GetToken ( ) {
 
   // 切割遇到的第一個token 並判斷牠的type 
