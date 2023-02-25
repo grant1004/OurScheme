@@ -10,7 +10,7 @@
 using namespace std ;
 
 bool gIsEOF = false ;  
-
+bool gExit = false ; 
 int gNowColumn = 1 ;
 int gNowRow = 1 ; 
  
@@ -18,6 +18,8 @@ int gNowRow = 1 ;
 
 enum Type 
 {
+  LR_PAREN , // '()'  
+
   LEFT_PAREN, // '('
 
   RIGHT_PAREN, // ')'
@@ -34,17 +36,17 @@ enum Type
 
   T, // 't' or '#t'
 
-  ADD, // '+'
- 
-  SUB, // '-'
-  
-  MULT, // '*'
-  
-  DIV, // '/'
-
   DOT, // '.' 
 
   QUOTE, // '\'' 單引號
+
+  ADD, // '+'
+
+  SUB, // '-'
+
+  MULT, // '*'
+
+  DIV, // '/'
 
   NONE 
 }; // Type 
@@ -58,7 +60,44 @@ struct EXP {
 
 }; // struct EXP 
 
-bool IsWhiteSpace(char ch) // 判斷是否為white space, 如果是 return true, 不是 return false  
+// 2023/02/25 超級大肥肥新增這些程式碼
+string PrintType ( Type type )
+{
+  if ( type == LR_PAREN ) 
+    return "LP_PAREN";  // '()'  
+  else if ( type == LEFT_PAREN ) 
+    return "(" ; // '('
+  else if ( type == RIGHT_PAREN ) 
+    return ")" ; // ')'
+  else if ( type == SYMBOL )
+    return "SYMBOL" ;  // other token
+  else if ( type == INT )
+    return "INT" ; 
+  else if ( type == FLOAT )
+    return "FLOAT" ; 
+  else if ( type == STRING )
+    return "STRING" ; 
+  else if ( type == NIL )
+    return "NIL" ;
+  else if ( type == T )
+    return "T" ; 
+  else if ( type == ADD )
+    return "ADD" ; 
+  else if ( type == SUB ) 
+    return "SUB" ; 
+  else if ( type == MULT )
+    return "MULT" ; 
+  else if ( type == DIV )
+    return "DIV" ; 
+  else if ( type == DOT )
+    return "DOT" ; 
+  else if ( type == QUOTE )
+    return "QUOTE" ; 
+
+  return "ERROR TYPE" ; 
+} // PrintType ( Type type )
+
+bool CheckWhiteSpace(char ch) // 判斷是否為white space, 如果是 return true, 不是 return false  
 {
 
   if ( ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' ) 
@@ -73,27 +112,46 @@ bool IsWhiteSpace(char ch) // 判斷是否為white space, 如果是 return true, 不是 re
   return false ;  
 } // IsWhileSpace( char ch )
 
-bool IsEOF(char ch)
+bool CheckDelimiter ( char ch )
 {
-  if ( ch == -1 )
+  if ( CheckWhiteSpace ( ch ) )
   {
     return true ; 
   } // if 
+  else if ( ch == '(' || ch == ')' || ch == '\'' ) 
+  {
+    return true ; 
+  } // else if 
 
   return false ; 
-} // IsEOF 
+} // IsDelimiter ( char ch )
 
-bool IsInt( string str ) // 開頭可以是0嗎???
+bool IsStringStart ( char ch )
 {
+  if ( ch == '\"' )
+    return true ; 
+  return false ; 
+} // IsStringStart ( char ch )
+
+bool IsComment ( char ch )
+{
+  if ( ch == ';' )
+    return true ;
+  return false ; 
+} // IsComment ( char ch )
+
+bool IsInt( string token ) // 開頭可以是0嗎???
+{
+	
   bool cont = false ; // continue ; 
-  for ( int i = 0 ; i < str.size() ; i ++ ) 
+  for ( int i = 0 ; i < token.size() ; i ++ ) 
   {
-    if ( i == 0 && ( str[i] == '+' || str[i] == '-' ) )
+    if ( i == 0 && ( token[i] == '+' || token[i] == '-' ) )
     {
       cont = true ; 
     } // if 
-    else if ( str[i] == '0' || str[i] == '1' || str[i] == '2' || str[i] == '3' || str[i] == '4' || 
-              str[i] == '5' || str[i] == '6' || str[i] == '7' || str[i] == '8' || str[i] == '9' )
+    else if ( token[i] == '0' || token[i] == '1' || token[i] == '2' || token[i] == '3' || token[i] == '4' || 
+              token[i] == '5' || token[i] == '6' || token[i] == '7' || token[i] == '8' || token[i] == '9' )
     {
       cont = true ; 
     } // if
@@ -104,30 +162,30 @@ bool IsInt( string str ) // 開頭可以是0嗎???
 
   } // for 
 
-  if (str.empty())
+  if (token.empty())
     return false ;
 
   return true ; 
 } // IsInt(string str) 
 
-bool IsFloat( string str ) // 開頭可以是0嗎??
+bool IsFloat( string token ) // 開頭可以是0嗎??
 {
   bool cont = false ; // continue ; 
   int numOfDot = 0 ; 
 
-  for ( int i = 0 ; i < str.size() ; i ++ ) 
+  for ( int i = 0 ; i < token.size() ; i ++ ) 
   {
-    if (str[i] == '.')
+    if (token[i] == '.')
     {
       numOfDot ++ ; 
     } // if 
 
-    if ( ( str[0] == '+' || str[0] == '-' || str[0] == '.' ) && i == 0 ) 
+    if ( ( token[0] == '+' || token[0] == '-' || token[0] == '.' ) && i == 0 ) 
     {
       cont = true ; 
     } // if 
-    else if ( str[i] == '.' || str[i] == '0' || str[i] == '1' || str[i] == '2' || str[i] == '3' || str[i] == '4' ||
-              str[i] == '5' || str[i] == '6' || str[i] == '7' || str[i] == '8' || str[i] == '9' )
+    else if ( token[i] == '.' || token[i] == '0' || token[i] == '1' || token[i] == '2' || token[i] == '3' || token[i] == '4' ||
+              token[i] == '5' || token[i] == '6' || token[i] == '7' || token[i] == '8' || token[i] == '9' )
     {
       cont = true ; 
     } // if
@@ -143,314 +201,255 @@ bool IsFloat( string str ) // 開頭可以是0嗎??
     return false ; 
   } // if 
 
-  if (str.empty())
+  if (token.empty())
     return false ; 
 
   return true ; 
 } // IsFloat
 
-bool IsSymbol( string str )
+bool IsSymbol( string token )
 {
-  if ( str == " " ) 
+  if ( token == " " ) 
   {
     cout << "Is White Space" ; 
     return false ; 
   } // if 
-  else if ( str == "\0" ) 
+  else if ( token == "\0" ) 
   {
     cout << "Is NULL" ; 
     return false ; 
   } // else if
-  else if (str.empty())
+  else if (token.empty())
   {
     return false ; 
   } // else if 
-  else if ( NOT IsInt(str) )
+  else if ( NOT IsInt(token) && NOT IsFloat(token) )
   {
     return true ; 
-  } // else if 
-  else if ( NOT IsFloat(str))
-  {
-    return true ;
   } // else if 
 
   return false ; 
 } // IsSymbol 
 
-bool IsSeparators(char ch)
+bool IsString ( string token )
 {
-  if ('(' || ')')
-  {
+  if ( token[0] == '\"' ) 
     return true ; 
-  } // if 
+  return false ; 
+} // IsString 
 
-  return false ;
-} // IsSeparators
-
-char GetNextChar() // skip white space to get char 
+bool IsDelimiter( string token, Type & type )
 {
-  char ch = getchar() ; 
-  while (IsWhiteSpace(ch))
+
+  if ( token == "(" )
+  {
+    type = LEFT_PAREN ; 
+    return true ;
+  } // if 
+  else if ( token == ")" )
+  {
+    type = RIGHT_PAREN ; 
+    return true ;
+  } // else if 
+  else if ( token == "." )
+  {
+    type = DOT ; 
+    return true ;
+  } // else if 
+  else if ( token == "#f" || token == "nil" || token == "()" ) 
+  {
+    type = NIL; 
+    return true ;
+  } // else if 
+  else if ( token == "t" || token == "#t" )
+  {
+    type = T ; 
+    return true ; 
+  } // else if 
+  else if ( token == "\'" )
+  {
+    type = QUOTE ; 
+    return true ; 
+  } // else if 
+
+	return false ; 
+} // IsDelimiter( char ch )
+
+bool IsEOF ( char ch )
+{
+  if ( ch == -1 || ch == EOF )
+    return true ;
+  return false ; 
+} // IsEOF
+
+Type IdentifyType ( string token )
+{
+  Type type = NONE ; 
+
+  if ( token == "\0" )
+  {
+    return NONE ; 
+  } // if 
+  else if ( IsDelimiter ( token, type ) )
+  {
+    return type ; 
+  } // else if 
+  else if ( IsString ( token ) )
+  {
+    return STRING ; 
+  } // else if 
+  else if ( IsInt ( token ) )
+  {
+    return INT ; 
+  } // else if 
+  else if ( IsFloat ( token ) )
+  {
+    return FLOAT ; 
+  } // else if 
+  else if ( IsSymbol ( token ) )
+  {
+    return SYMBOL ;
+  } // else if 
+
+} // IdentifyType ( string token )
+
+string GetString ( )
+{
+  string str = "\0" ; 
+  str += '\"' ;
+  char ch = '\0';
+  bool valid = true ; 
+  while ( valid )
   {
     ch = getchar() ; 
+    //cout << ch ; 
+    if ( ch == '\\' ) // 跳脫字元 \"
+    {
+      // 遇到跳脫字元要把 \ 刪掉，並留下下一個字元 
+      // EX:  '\"' --> '"', '\\"' --> '\"' 
+      char peek = cin.peek() ; 
+      ch = getchar() ; 
+      if ( ch == 'n' )
+      {
+        ch = '\n' ; 
+      } // if 
+      else if ( ch == 't' )
+      {
+        ch = '\t' ; 
+      } // else if 
+      valid = true ; 
+    } // if 
+    else if ( ch == '\"' )
+    {
+      valid = false ; 
+    } // else if 
+    else if ( ch == '\n' )
+    {
+      valid = false ; 
+    } // else if  
+    str += ch ;
+  } // while 
+
+  return str ; 
+} // GetString ()
+
+void SkipComment ( )
+{
+  char ch = '\0' ;
+  while ( ch != '\n' )
+  {
+    ch = getchar( ) ;
+  } // while 
+
+} // SkipCommnet() 
+
+char GetFirstChar ( ) // skip white space to get First char 
+{
+  char ch = getchar() ; 
+  while ( CheckWhiteSpace(ch) == true )
+  {
+    ch = getchar() ;  
   } // while 
 
   if ( ch == EOF ) 
-
-  return EOF ; 
+  {
+    return EOF ; 
+  } // if 
+  
+  return ch ; 
 } // GetNextChar()
 
-EXP * GetToken() {
+EXP * GetToken ( ) {
 
-  /*
-  *  separators : whitespace, '(', ')', '\'', '\"' 
-  *  判斷 token TYPE
-  *  
-  */
+  // 切割遇到的第一個token 並判斷牠的type 
 
-  EXP *gg = new EXP() ;
+  EXP * gg = new EXP() ;
   gg->token = "\0" ; 
   gg->column = 0 ; 
   gg->row = 0 ; 
   gg->type = NONE ;
   gg->next = NULL ; 
 
-  char ch = getchar(); 
-  char peek = '\0'; 
-   
-  bool b = false ;  // break 
-  while ( NOT b && NOT IsWhiteSpace( ch ) && NOT IsEOF( ch )  ) // 不是空白就一直讀
+  char ch = GetFirstChar() ;
+  char peek = '\0' ;  
+  bool valid = true ;
+
+  if ( IsComment ( ch ) )
   {
+    SkipComment() ; 
+    ch = GetFirstChar() ;
+    valid = true ; 
+  } // if 
+
+  if ( CheckDelimiter ( ch ) )
+  {
+    gg->token += ch ; 
+    valid = false ; 
+  } // if 
+  else if ( IsStringStart ( ch ) )
+  {
+    gg->token = GetString() ; 
+    valid = false ; 
+  } // else if 
+  else if ( IsEOF ( ch ) )
+  {
+    gg->token = "\0" ;
+    valid = false ; 
+  } // else if 
+
+  while ( valid )  
+  { 
+    gg->token += ch ; 
+    ch = getchar() ; 
+    gNowColumn ++ ;  
+    if ( CheckDelimiter ( ch ) )
+    {
+      valid = false ; 
+    } // if
     peek = cin.peek() ; 
-    
-    if (IsSeparators(peek) && gg->token != "\0")
+    if ( CheckDelimiter ( peek ) && valid )
     {
-      b = true ; 
+      gg->token += ch ;
+      
+      valid = false ; 
     } // if 
-    else if ( ch == '(' && peek == ')' ) // nil 
-    {
-      gg->token = "nil" ; 
-      gg->type = NIL ; 
-      gg->row = gNowRow ;  
-      gg->column = gNowColumn ; 
-      gg->next = NULL ;
-      return gg ; 
-    } // else if  
-    else if ( ch == '(' && IsWhiteSpace( peek ) && gg->token == "\0" ) // 左括號
-    {
-      gg->token = ch ; 
-      gg->type = LEFT_PAREN ;
-      gg->row = gNowRow ; 
-      gg->column = gNowColumn ; 
-      gg->next = NULL ; 
-      return gg ; 
-    } // else if 
-    else if ( ch == ')' && IsWhiteSpace( peek ) && gg->token == "\0" ) // 右括號
-    {
-      gg->token = ch ;
-      gg->type = RIGHT_PAREN ; 
-      gg->row = gNowRow ;
-      gg->column = gNowColumn ;
-      gg->next = NULL ;
-      return gg ; 
-    } // else if
-    else if ( ch == '+' && IsWhiteSpace( peek ) ) // ADD
-    {
-      gg->token = ch ;
-      gg->type = ADD ;
-      gg->column = gNowColumn ;
-      gg->row = gNowRow ;
-      gg->next = NULL ;
-      return gg ; 
-    } // else if
-    else if ( ch == '-' && IsWhiteSpace(peek) ) // SUB
-    {
-      gg->token = ch ;
-      gg->type = SUB ;
-      gg->row = gNowRow ;
-      gg->column = gNowColumn ;
-      gg->next = NULL ;
-      return gg ; 
-    } // else if
-    else if ( ch == '*' ) // MULT
-    {
-      gg->token = ch ;
-      gg->type = MULT ;
-      gg->column = gNowColumn ;
-      gg->row = gNowRow ;
-      gg->next = NULL ;
-      return gg ; 
-    } // else if
-    else if ( ch == '/' ) // DIV
-    {
-      gg->token = ch ;
-      gg->type = DIV ;
-      gg->column = gNowColumn ;
-      gg->row = gNowRow ;
-      gg->next = NULL ;
-      return gg ; 
-    } // else if
-    else if ( ch == '.' && IsWhiteSpace(peek) && gg->token == "\0" ) // DOT
-    {
-      gg->token = ch;
-      gg->type = DOT;
-      gg->column = gNowColumn;
-      gg->row = gNowRow ;
-      gg->next = NULL;
-      return gg ; 
-    } // else if
-    else if ( ch == ';' ) // comment 
-    {
-      while ( ch != '\n' ) // skip comment 
-      {
-        ch = getchar(); 
-      } // while 
-      gNowRow++; 
-      // now ch == '\n' 
-    } // else if 
-    else if ( ch == '\'' )
-    {
-      gg->token = "quote";
-      gg->type = QUOTE;
-      gg->column = gNowColumn;
-      gg->row = gNowRow ;
-      gg->next = NULL;
-      return gg ; 
-    } // else if 
-    else if (ch == '\"') // STRING 
-    {
-      // 讀到換行或是下一個 '\"' 
-      bool getString = false ;
-      bool cont = false ; // continue 
-      while ( ch != '\n' && NOT getString ) 
-      {
-        cont = false ; 
-        if ( ch == '\\' ) // 跳脫字元 \n \t \' \" 
-        { 
-          peek = cin.peek() ;
-          cout << "Peek : " << peek; 
-          if ( peek == '\'' || peek == '\"' || peek == '\\' )
-          {
-            ch = getchar() ; // get ' " \ 
-            gg->token += ch ; 
-            ch = getchar() ; // get next char 
-            cont = true ; 
-          } // if
-          else if (peek == 'n')
-          {
-            ch = getchar() ; // get n 
-            gg->token += '\n' ; 
-            ch = getchar() ; // get next char 
-            cont = true ; 
-          } // else if 
-          else if (peek == 't')
-          {
-            ch = getchar() ; // get t
-            gg->token += '\t' ; 
-            ch = getchar() ; // get next char 
-            cont = true ; 
-          } // else if 
-
-        } // if 
-
-        if ( cont == false )
-        {
-          gg->token += ch ; 
-          
-          ch = getchar() ; 
-
-          if ( ch == '\"' )
-          {
-            gg->token += ch ; 
-            getString = true ; 
-          } // if  
-        } // if (cont == false)
-      } // while ( ch != '\n' && NOT getString ) 
-
-      if ( getString )
-      {
-        gg->column = gNowColumn ; 
-        gg->row = gNowRow ; 
-        gg->type = STRING ; 
-        gg->next = NULL ; 
-        return gg ; 
-      } // if 
-      else if ( NOT getString )
-      {
-        gg->token = "ERROR Not a String" ; 
-        gg->row = gNowRow ; 
-        gg->column = gNowColumn ; 
-        gg->type = NONE ; 
-        gg->next = NULL ; 
-        return gg ; 
-      } // else if
-    } // else  if (ch == '\"') // STRING 
-    else // other char 
-    {
-      gg->token += ch ; 
-    } // else other char 
-
-
-    if ( NOT b )
-    {
-      ch = getchar(); 
-      gNowColumn ++ ; 
-    } // if 
-
-
   } // while 
 
-  if ( gg->token == "#f" || gg->token == "nil" ) // NIL 
+
+  gg->type = IdentifyType ( gg -> token ) ; 
+
+  if ( gg->token == "\0" && gg->type == NONE ) // EOF 
   {
-    gg->token = "nil" ; 
-    gg->type = NIL ; 
-    gg->row = gNowRow ;  
-    gg->column = gNowColumn ; 
-    gg->next = NULL ;
-    return gg ; 
+    gIsEOF = true ;  
   } // if 
-  else if ( gg->token == "#t" || gg->token == "t" ) // T
-  {
-    gg->token = "#t" ;
-    gg->type = T ;
-    gg->row = gNowRow ;
-    gg->column = gNowColumn ;
-    gg->next = NULL ;
-    return gg ;
-  } // else if 
-  else if ( IsInt( gg->token ) )
-  {
-    gg->type = INT ;
-    gg->row = gNowRow ;
-    gg->column = gNowColumn ;
-    gg->next = NULL ;
-    return gg ;
-
-  } // else if 
-  else if ( IsFloat( gg->token ) )
-  {
-    gg->type = FLOAT ;
-    gg->row = gNowRow ;
-    gg->column = gNowColumn ;
-    gg->next = NULL ;
-    return gg ;
-
-  } // else if 
-  else if ( IsSymbol( gg->token ) )
-  {
-    gg->type = SYMBOL ; 
-    gg->row = gNowRow ;
-    gg->column = gNowColumn ;
-    gg->next = NULL ;
-    return gg ;
-
-  } // else if 
-
-  cout << "Get token Lose Something Type : " << gg->token ; 
 
   return gg ; 
   
 } // getToken() 
+
+//==================================================
+
+
 
 int main() {
 
@@ -465,14 +464,9 @@ int main() {
 
   input = GetToken() ; // 讀取第一個 token 
 
-  while ( input->token != "(exit)" || gIsEOF == false ) {
-
-    if (input->token == "\0")
-    {
-      cout << "NULL" ;
-    } // if 
-    cout << "> " << input->token << ", Type :" << input->type << endl << endl;
-
+  while ( NOT gExit && NOT gIsEOF ) 
+  {
+    cout << "> " << input->token  << "  --> " << PrintType( input->type ) << endl << endl;
     input = GetToken() ; // 讀取下一個 token  
     
   } // while 
@@ -482,6 +476,8 @@ int main() {
   } // if  ( gIsEOF == true ) 
   
   cout << endl << "Thanks for using OurScheme!" ;
+
+
   
 } // main() 
 
