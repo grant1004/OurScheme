@@ -102,6 +102,8 @@ string PrintType ( Type type )
     return "DOT" ; 
   else if ( type == QUOTE )
     return "QUOTE" ; 
+  else if ( type == NONE ) 
+    return "NONE" ; 
 
   return "ERROR TYPE" ; 
 } // PrintType ( Type type ) 
@@ -521,7 +523,6 @@ bool IsATOM( EXP * temp ){
     return false ;
 } // IsATOM()
 
-
 bool S_EXP( EXP * &temp ) { 
 /*
 <S-exp> ::= <ATOM> 
@@ -623,6 +624,19 @@ void test() {
 
 // Q: 如果gettoken結束 回傳的是甚麼東西??
  
+ 
+void PrintS_EXP( EXP * sExp ) 
+{
+  EXP * now = sExp ;    
+  while( now != NULL ) 
+  {
+    cout << now->token << " " ; 
+    now = now -> next ; 
+  } // while 
+} // PrintS_EXP( EXP * sExp ) 
+
+
+
 int main() { // exit未完成 
   bool first = false ;
   EXP *input ;
@@ -630,56 +644,87 @@ int main() { // exit未完成
 
   cout << "Welcome to OurScheme!" << endl ;
 
-  input = GetToken() ; // 讀取第一個 token 
   
+  
+  
+  
+  bool ALL_EXP_DONE = false ; 
+  
+  while ( NOT ALL_EXP_DONE ) 
+  { 
 
-  while ( input->token != "exit" && NOT gExit && NOT gIsEOF ) 
-  {
-    delete head ; // initialize
-    head = new EXP() ;
-    temp = head ;   
-     
-    while ( gNumOfParen != 0 || first == false ) {
-      first = true ;
-      temp->next = input ;
-      temp = temp->next ;
-      cout << "> " << input->token  << "  --> " << PrintType( input->type ) << endl ;
-      if ( input->token == "(" ) 
-        gNumOfParen++ ;
-      else if ( input->token == ")" ) 
-        gNumOfParen-- ;
-       
-//      cout << "gNumOfParen: " << gNumOfParen << endl ; 
-//    cout << "> " << input->token << endl ;
+    bool readEXP = true ;
+    bool start = true ; 
+    EXP * s_exp = new EXP() ; 
+    EXP * nextToken = s_exp ; 
+    EXP * now = s_exp ; 
+    int parnum = 0 ; 
+    
+    while ( readEXP )
+    {
       
-      input = GetToken() ; // 讀取下一個 token    
+      nextToken = GetToken() ; 
+      if ( start ) 
+      {
+        start = false ; 
+        s_exp -> token = nextToken -> token ; 
+        s_exp -> type = nextToken -> type ;
+        s_exp -> column = nextToken -> column ;
+        s_exp -> row = nextToken -> row ;         
+        
+      } // if 
+      else 
+      {
+        now -> next = nextToken ; 
+        now = now -> next ; 
+      } // else 
+        
+      cout << nextToken -> token << " --> " << PrintType(nextToken -> type) << endl ; 
       
+      if ( nextToken->type == LEFT_PAREN ) 
+      { 
+        parnum ++ ; 
+        // cout << "Left Paren :" << parnum << endl ; 
+      } // if       
+      else if ( nextToken->type == RIGHT_PAREN ) 
+      {
+        parnum -- ; 
+        // cout << "Right Paren :" << parnum << endl ; 
+      } // else if 
+      
+      if ( parnum == 0 ) 
+      {
+        if ( s_exp -> type != NONE ) 
+        {
+          cout << ">>> Exp Done. s_Exp = " ; 
+          PrintS_EXP( s_exp ) ;
+          cout << " Syntax : " ;
+          if ( S_EXP( s_exp) )
+          {
+            cout << "Correct ! " ; 
+          } // if             
+          else 
+          {
+            cout << "NOT Correct ! " ; 
+          } // if             
+          cout << endl << endl ; 
+        } // if 
+        else 
+        {
+          cout << ">>> ALL s_exp Read Done " ; 
+        } // else 
+        readEXP = false ; 
+      } // if 
 
-    } // while
+      
+    } // while ( readEXP ) 
     
-    temp->next = NULL ;
-    first = false ; 
-
-    cout << endl << "S_EXP start" << endl ;
-    bool correct = S_EXP(head->next) ;
+    if ( s_exp -> type == NONE ) 
+      ALL_EXP_DONE = true ;
     
-    if ( correct == true )
-      cout << "correct!" << endl ;
-    else 
-      cout << "ERROR!" << endl ;
-    
-         
-  } // while 
+  } // while ( ALL_EXP ) 
   
-
-  
-  if ( gIsEOF == true ) {
-    cout << "ERROR(no more input:END-OF-FILE encountered)" ;
-  } // if  ( gIsEOF == true ) 
-  
-  cout << endl << "Thanks for using OurScheme!" ;
-
-
+  // PrintS_EXP( s_exp ) ; 
   
 } // main() 
 
