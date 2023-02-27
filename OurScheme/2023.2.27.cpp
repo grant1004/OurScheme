@@ -566,7 +566,7 @@ void PrintS_EXP( EXP * sExp )
 
 
 
-int main() { // exit未完成 
+int main() { // exit未完成 這是用 Pointer的版本
   bool first = false ;
   bool readEXP = true ;
   bool start = true ; 
