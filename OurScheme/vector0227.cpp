@@ -11,10 +11,10 @@ using namespace std ;
 
 bool gIsEOF = false ;  
 bool gExit = false ; 
-int gNowColumn = 1 ;
+int gNowColumn = 0 ;
 int gNowRow = 1 ; 
 int gNumOfParen = 0 ;
-
+bool gEndLine = false ;
 
 #define NOT ! 
 
@@ -113,9 +113,11 @@ bool CheckWhiteSpace(char ch) // 判斷是否為white space, 如果是 return true, 不是
 
   if ( ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' ) 
   {
-    if (ch == '\n')
-    {
-      gNowRow++; 
+    if ( gEndLine == true && ch == '\n' ) 
+    { 
+      // cout << "END LINE" << endl ; 
+      gNowRow ++ ; 
+      gNowColumn = 0 ; 
     } // if 
     return true ; 
   } // if 
@@ -129,11 +131,8 @@ bool CheckWhiteSpace(char ch) // 判斷是否為white space, 如果是 return true, 不是
 */
 bool CheckDelimiter ( char ch )
 {
-  if ( CheckWhiteSpace ( ch ) )
-  {
-    return true ; 
-  } // if 
-  else if ( ch == '(' || ch == ')' || ch == '\'' ) 
+  if ( ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' || 
+       ch == '(' || ch == ')'  || ch == '\'' || ch == ';' ) 
   {
     return true ; 
   } // else if 
@@ -376,6 +375,7 @@ string GetString ( )
   while ( valid )
   {
     ch = getchar() ; 
+    gNowColumn ++ ; 
     //cout << ch ; 
     if ( ch == '\\' ) // 跳脫字元 \"
     {
@@ -383,6 +383,7 @@ string GetString ( )
       // EX:  '\"' --> '"', '\\"' --> '\"' 
       char peek = cin.peek() ; 
       ch = getchar() ; 
+      gNowColumn ++ ; 
       if ( ch == 'n' )
       {
         ch = '\n' ; 
@@ -417,7 +418,13 @@ void SkipComment ( )
   {
     ch = getchar( ) ;
   } // while 
-
+  
+  if ( gEndLine == true ) 
+  {
+    gNowRow ++ ; 
+  } // if 
+  
+  gNowColumn = 0 ; 
 } // SkipCommnet() 
 
 /* GetFirstChar ( ) 
@@ -426,9 +433,11 @@ void SkipComment ( )
 char GetFirstChar ( ) // skip white space to get First char 
 {
   char ch = getchar() ; 
+  gNowColumn ++ ;     
   while ( CheckWhiteSpace(ch) == true )
   {
-    ch = getchar() ;  
+    ch = getchar() ;
+    gNowColumn ++ ;     
   } // while 
 
   if ( ch == EOF ) 
@@ -438,7 +447,7 @@ char GetFirstChar ( ) // skip white space to get First char
   
   return ch ; 
 } // GetNextChar()
-
+ 
 /* GetToken ( ) 
 * 切下token 並判斷牠的 type  
 */ 
@@ -450,16 +459,28 @@ EXP GetToken ( ) {
 
   char ch = GetFirstChar() ;
   char peek = '\0' ;  
-  bool valid = true ;
-
-  if ( IsComment ( ch ) )
+  bool valid = true ; // true : 不是 delimiter string EOF， false : 代表可能是 delimiter string EOF 
+  
+  bool skipComment = false ; 
+  
+  while ( NOT skipComment ) // 當還沒跳完全部註解，就進去while，如果全部跳過了才往下走
   {
-    SkipComment() ; 
-    ch = GetFirstChar() ;
-    valid = true ; 
-  } // if 
+    if ( IsComment ( ch ) )
+    {
+      SkipComment() ; 
+      ch = GetFirstChar() ;
+      valid = true ; 
+    } // if 
+    else 
+    {
+      skipComment = true ; 
+    } // else 
+  } // while 
+  
+  gg.column = gNowColumn ; 
+  gg.row = gNowRow ; 
 
-  if ( CheckDelimiter ( ch ) )
+  if ( CheckDelimiter ( ch ) == true )
   {
     gg.token += ch ; 
     valid = false ; 
@@ -479,15 +500,16 @@ EXP GetToken ( ) {
   { 
     gg.token += ch ; 
     peek = cin.peek() ; 
-    gNowColumn ++ ;  
     if ( CheckDelimiter ( peek ) )
     {
       valid = false ; 
     } // if
     
     if ( valid )
+    {
       ch = getchar() ; 
-
+      gNowColumn ++ ; 
+    } // if 
 
   } // while 
 
@@ -528,8 +550,6 @@ bool S_EXP( EXP * &temp ) {
 // (1 . (2 . (3 . 4)))
 // (1 2 3)
 
-//  cout << endl << "temp->token: " << temp->token << endl ;
-//  system("pause") ;
   
 
     
@@ -547,14 +567,13 @@ void PrintS_EXP( vector<EXP> s_exp )
 {
 
   for ( int i = 0 ; i < s_exp.size() ; i ++ ) 
-    cout << s_exp.at( i ).token << endl ; 
+    cout << s_exp.at( i ).token << " Column : "<< s_exp.at( i ).column << " Row : "<< s_exp.at( i ).row << endl ; 
 
 } // PrintS_EXP( EXP * sExp ) 
 
 int main() { // 這是用vector的版本
-  bool first = false ;
+
   bool readEXP = true ;
-  bool start = true ; 
   int parnum = 0 ; 
   cout << "Welcome to OurScheme!" << endl ;
   
@@ -568,14 +587,17 @@ int main() { // 這是用vector的版本
   { 
  
     readEXP = true ;
-    start = true ;  
     parnum = 0 ; 
+    gNowColumn = 0 ; 
+    gNowRow = 1 ;  
     s_exp.clear() ; 
+    gEndLine = false ; // false : 不要計算換行 ; true : 開始計算換行 
     while ( readEXP )
     {
+
       nextToken = GetToken() ; 
-      s_exp.push_back( nextToken ) ; 
-      // cout << nextToken -> token << " --> " << PrintType(nextToken -> type) << endl ; 
+      gEndLine = true ; 
+      s_exp.push_back( nextToken ) ;  
       
       if ( nextToken.type == LEFT_PAREN ) 
       { 
@@ -588,14 +610,14 @@ int main() { // 這是用vector的版本
         // cout << "Right Paren :" << parnum << endl ; 
       } // else if 
       
-      if ( parnum == 0 ) 
+      if ( parnum == 0 ) // 這條指令結束 
       {
-        if ( nextToken.type != NONE ) // 還沒讀到 EOF 
+        if ( nextToken.type != NONE ) // 還沒讀到 EOF，還有其他指令還沒讀
         {
           PrintS_EXP( s_exp ) ;     
           cout << endl << "EXP DONE" << endl << "================================" << endl ; 
         } // if 
-        else // nextToken == NONE 代表讀到 EOF 了 
+        else // nextToken == NONE 代表讀到 EOF 了，沒有任何指令了 
         {
           cout << ">>> ALL s_exp Read Done " << endl ; 
         } // else 
@@ -609,7 +631,7 @@ int main() { // 這是用vector的版本
     {
       ALL_EXP_DONE = true ;
     } // if 沒有 (exit) 
-    else if ( s_exp.at( 0 ).token == "("  && s_exp.at( 0 ).token == "(" && s_exp.at( 0 ).token == ")" )
+    else if ( s_exp.at( 0 ).token == "("  && s_exp.at( 0 ).token == "exit" && s_exp.at( 0 ).token == ")" )
     {
       ALL_EXP_DONE = true ;
     } // else if 
