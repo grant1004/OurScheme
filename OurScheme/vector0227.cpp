@@ -558,7 +558,9 @@ bool S_EXP( EXP * &temp ) {
 } // S_EXP()
 
 int paren_num = 0 ; 
+
 int tab = 2 ; 
+
 void printTab( int numOfTab ) 
 {
   for ( int i = 0 ; i < numOfTab ; i ++ ) 
@@ -574,181 +576,14 @@ void PrintS_EXP( vector<EXP> s_exp )
 } // PrintS_EXP( EXP * sExp ) 
 
 int emptyNum = 0 ; 
+
 bool returnToEmpty = false ; 
+
 void InsertNode( EXP * root, EXP * node ) 
 {
-  /*
-  左括號 往右邊跑 ( listPtr 方向 ) 
-  其他一律往左邊跑 ( next 方向 )   
-  */
-   
-  if ( root -> type == EMPTYPTR ) 
-  {
-    
-    emptyNum ++ ; 
-    cout << "Touch EMPTY : " << emptyNum << endl ; 
-  } // if 
   
-  
-  
-  
-  if ( node -> type == LEFT_PAREN ) // 現在進來的是左括
-  {
-    
-    if ( root -> type == RIGHT_PAREN ) 
-    {
-      returnToEmpty = true ; 
-      cout << "1現在是 : " << PrintType(root -> type) << " 觸底了 回到上一個EMPTYPTR" << endl ; 
-      return ; 
-    } // if
-    
-    if ( root->type == EMPTYPTR && root -> listPtr == NULL ) 
-    {
-      root->listPtr = node ; 
-      cout << "現在在EMPTY，他的右邊沒東西，所以在EMPTY右邊插入一個左括號" << endl ; 
-    } // if 
-    else if ( root->type == EMPTYPTR && root -> listPtr != NULL && emptyNum < gNumOfParen ) 
-    {
-      cout << "現在在EMPTY，但是右邊有東西，而且這不是他要的位置( emptyNum :" << emptyNum << " gNumOfParen : " << gNumOfParen << " ) " ; 
-      cout << " ，所以要往右邊跑遞迴，右邊的東西是一個 : " << PrintType(root->listPtr->type) << endl ; 
-      InsertNode( root->listPtr, node ) ;  
-    } // else if 
-    else if ( root->type == EMPTYPTR && root -> listPtr != NULL && emptyNum >= gNumOfParen ) 
-    {
-      cout << "現在在EMPTY，但是右邊有東西，但是這是他要的位置( emptyNum :" << emptyNum << " gNumOfParen : " << gNumOfParen << " )" ; 
-      cout << "，所以要往左邊新增一個EMPTY，" ;
-      if ( root -> next == NULL ) 
-      {
-        cout << "左邊沒東西可以直接生一個EMPTY" << endl  ;
-        EXP * empty = new EXP() ; 
-        empty -> token = "\"EMPTY\"" ; 
-        empty -> type = EMPTYPTR ; 
-        empty -> row = 0 ; 
-        empty -> column = 0 ; 
-        empty -> next = NULL ; 
-        empty -> listPtr = NULL ; 
-        root->next = empty ;
-        InsertNode( root->next, node ) ; 
-      } // if 
-      else 
-      {
-        cout << "，左邊有東西了，要先找到NULL" << endl  ;
-        InsertNode( root->next, node ) ;
-      } // else 
-      
-    } // else if 
-    else if ( root->type != EMPTYPTR && root -> next == NULL)  
-    {
-      EXP * empty = new EXP() ; 
-      empty -> token = "\"EMPTY\"" ; 
-      empty -> type = EMPTYPTR ; 
-      empty -> row = 0 ; 
-      empty -> column = 0 ; 
-      empty -> next = NULL ; 
-      empty -> listPtr = NULL ; 
-      root->next = empty ;
-      cout << "現在不是EMPTY，現在root是 \""<< root->token << "\"，所以要新增一個EMPTY放在左邊，然後傳EMPTY進去遞迴" << endl ;
-      InsertNode( root->next, node ) ; 
-    } // else if 
-    else if ( root->type != EMPTYPTR && root -> next != NULL )  
-    {
-      cout << "現在不是EMPTY，現在root是 \""<< root->token << "\"，然後她的next不是NULL，所以要往下找到NULL" << endl ;
-      InsertNode( root->next, node ) ;
-    } // else if 
-    
-    cout << "2" << "  emptyNum:" << emptyNum << " gNumOfParen:" << gNumOfParen <<  endl ; 
-  
-  } // if 
-  else  // node 不是  (
-  {
-    
-    if ( root -> type == RIGHT_PAREN ) 
-    {
-      returnToEmpty = true ; 
-      cout << "2現在是 : " << PrintType(root -> type) << " 觸底了 回到上一個EMPTYPTR" << endl ; 
-      return ; 
-    } // if 
-    
-    if ( root->type != EMPTYPTR ) 
-    {
-      
-      if ( root->next != NULL )
-      {
-        cout << "現在不是EMPTY，現在的root是 \""<< root->token << "\"，所以要往左邊做遞迴 把root->next 傳進去" << endl ;
-        InsertNode( root->next, node ) ;
-        
-      } // if
-      else if (  root->next == NULL )
-      {
-        cout << "現在不是EMPTY，現在的root是 \""<< root->token << "\"，然後root->next 是空的，所以把node和root->next 接起來" << endl ;
-        root->next = node ; 
-        
-      } // else if 
-    } // if 
-    else if ( root->type == EMPTYPTR && emptyNum < gNumOfParen )
-    {
-      cout << "現在是EMPTY， 然後emptyNum:" << emptyNum << " gNumOfParen:" << gNumOfParen << "  還沒到想要的EMPTY位置，所以要繼續找"<< endl ; 
-      InsertNode( root->listPtr, node ) ; 
-    } // else if 
-    else if ( root->type == EMPTYPTR && emptyNum >= gNumOfParen )
-    {
-
-        cout << "現在是EMPTY， 然後emptyNum:" << emptyNum << " gNumOfParen:" << gNumOfParen << "  到想要的EMPTY位置了，所以要先移到右邊的左括號"<< endl ; 
-        InsertNode( root->listPtr, node ) ; 
-      
-    } // else if 
-    else if ( root -> next == NULL ) 
-    {
-      cout << "emptyNum:" << emptyNum << " gNumOfParen:" << gNumOfParen ; 
-      cout << " 找到想要放的位置ㄌ，把 " << node->token << " 放進去 "<< endl ;
-      root -> next = node ; 
-    } // if 
-    else // != NULL 
-    {
-      cout << "emptyNum:" << emptyNum << " gNumOfParen:" << gNumOfParen ; 
-      cout << "還沒找到 繼續找"<< endl ;
-      InsertNode( root -> next, node ) ; 
-    } // else 
- 
-    cout << "3 :" << PrintType(root->type) << "  emptyNum:" << emptyNum << " gNumOfParen:" << gNumOfParen <<  endl ; 
-  } // else 
-    
-  
-  
-  
-  if ( root -> type != EMPTYPTR && returnToEmpty ) 
-  {
-    cout << "1反彈 現在的root : " << root -> token << "  emptyNum:" << emptyNum << " gNumOfParen:" << gNumOfParen << endl ;   
-    return ; 
-  } // if 
-
-  
-  if ( root->type == EMPTYPTR && emptyNum >= gNumOfParen && returnToEmpty == true ) 
-  { 
-    returnToEmpty = false ; 
-    cout << "現在是EMPTY， 然後emptyNum:" << emptyNum << " gNumOfParen:" << gNumOfParen << "  到想要的EMPTY位置了，但是右邊結束了，所以要往左邊跑 "<< endl ; 
-    if ( root->next == NULL ) 
-    {
-      cout << "但是如果左邊是NULL，就直接放進去" << endl ; 
-      root->next = node ; 
-    } // if 
-    else 
-    {
-      cout << "但是如果左邊不是NULL，就遞迴root -> next " << endl ; 
-      InsertNode( root->next, node ) ;
-    } // else 
-    
-  } // if
-  else if ( root->type == EMPTYPTR && emptyNum < gNumOfParen && returnToEmpty == true ) 
-  {
-    returnToEmpty = false ;
-    cout << "現在是EMPTY， 然後emptyNum:" << emptyNum << " gNumOfParen:" << gNumOfParen << "  還沒到想要的EMPTY位置了，但是右邊結束了，所以要往左邊跑 "<< endl ;
-    InsertNode( root->next, node ) ;
-  } // else 
   
 } // InsertNode( EXP * node ) 
-
-EXP * root = new EXP() ; 
 
 void preOrderTraversal(EXP* focusNode) 
 {
@@ -783,36 +618,6 @@ EXP * NewNode( EXP data ) // 建立一個node 儲存EXP資料
 
 void BuildTree( vector<EXP> s_exp ) 
 {
-  gNumOfParen = 0 ; 
-  root -> token = "\"EMPTY\""  ; 
-  root -> type = EMPTYPTR ; 
-  root -> next = NULL ; 
-  root -> listPtr = NULL ; 
-  for( int i = 0 ; i < s_exp.size() ; i ++ ) 
-  {
-    
-    emptyNum = 0 ; 
-    
-    EXP * node = NewNode( s_exp.at( i )  ) ; 
-    
-    cout << endl ; 
-    if ( node -> type == LEFT_PAREN ) 
-    {  
-      // cout << "ADD LEFT" << endl ; 
-      gNumOfParen ++ ; 
-    } // if 
-  
-    
-    cout << "\""<< node->token << "\" " << PrintType(node -> type) << "   " ; 
-    
-    InsertNode( root, node ) ; 
-    
-    if ( node -> type == RIGHT_PAREN ) 
-    {
-      // cout << "ADD RIGHT" << endl ; 
-      gNumOfParen -- ; 
-    } // else if 
-  } // for 
    
 } // BuildTree( vector<EXP> s_exp ) 
 
