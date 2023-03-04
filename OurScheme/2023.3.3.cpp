@@ -560,6 +560,7 @@ bool S_EXP( EXP * &temp ) {
 // (12 (    . 3))
 // (1 . (2 . (3 . 4)))
 // (1 2 3)
+
   while ( temp->next != NULL || temp->listPtr != NULL ) {
     cout << endl << "temp->token: " << temp->token << endl ;
     system("pause") ;
@@ -712,7 +713,7 @@ void preOrderTraversal(EXP* focusNode) {
 
 void buildTree( vector<EXP> s_exp, int &i ) {
   EXP * temp = NULL ;
-   // (1(2(3)))
+   // (1(2)
   while ( i < s_exp.size() ) {
 //    cout << endl << "s_exp.at(i).token: "       << s_exp.at(i).token << endl ;
 //    if( temp != NULL )
@@ -780,6 +781,42 @@ void buildTree( vector<EXP> s_exp, int &i ) {
   
 }
 
+string rounding( string str ) { // 计翴+彼き 
+
+  stringstream ss ;
+  ss << fixed << setprecision( 3 ) << atof( str.c_str() ) ;
+  
+  return ss.str() ;
+  
+} // rounding()
+
+void fixToken( vector<EXP> & s_exp ) { // () ⊿矪瞶 
+/*
+float计翴
+彼き
+t or #t ╰参ㄓ琌 #t
+nil or () or #f ╰参ㄓ琌nil
+*/ 
+  int i = 0 ;
+  while ( i < s_exp.size() ) {
+    if ( s_exp.at(i).type == FLOAT ) {
+      s_exp.at(i).token = rounding( s_exp.at(i).token ) ;
+    }
+    else if ( s_exp.at(i).token == "t" ) {
+      s_exp.at(i).token = "#t" ;
+    }
+    else if ( s_exp.at(i).token == "#f" ) {
+      s_exp.at(i).token = "nil" ;
+    }
+    i++ ;
+  }
+} // fixToken()
+
+void test(vector<EXP> s_exp){
+  for ( int i = 0; i < s_exp.size(); i++){
+    cout << s_exp[i].token << endl ;
+  }
+}
 
 int main() { // 硂琌ノvectorセ
 
@@ -839,6 +876,9 @@ int main() { // 硂琌ノvectorセ
       
       
     } // while ( readEXP )
+    
+    fixToken(s_exp) ; // タtoken 
+//    test(s_exp) ;
     delete root ;  
     root = NULL ;
     i = 0 ;
@@ -848,7 +888,7 @@ int main() { // 硂琌ノvectorセ
     cout << endl << "check syntax START" << endl ;
     
     isTrue = true ;
-    S_EXP( root ) ;
+//    S_EXP( root ) ;
     if ( isTrue == true ) {
       cout << "Correct!" << endl ;
     }
