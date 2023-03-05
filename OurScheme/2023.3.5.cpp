@@ -24,7 +24,7 @@ enum Type
 
   RIGHT_PAREN, // ')'
 
-  LEFT_RIGHT_PAREN, // '()'
+  LEFT_RIGHT_PAREN, // '()' -> NIL 
   
   SYMBOL, // other token
 
@@ -64,6 +64,8 @@ struct EXP {
   EXP* pre_next ;
   EXP* listPtr ;
   EXP* pre_listPtr ;
+  int dotCnt ;
+  int quoteCnt ;
 
 }; // struct EXP 
 
@@ -544,7 +546,8 @@ bool IsATOM( EXP * temp )
 } // IsATOM()
 
 int gnum = 0 ;
-bool dotExist = false ;
+int gAfterDotCnt = 0 ;
+int gAfterQuoteCnt = 0 ;  
 bool S_EXP( EXP * &temp ) {
 
 /*
@@ -562,9 +565,11 @@ DOT 5
 */
 
 /*
-
+  int dotCnt ;
+  int quoteCnt ;
 (1(a.b)()(123).(234 . 678) .( 123 ) ) ERROR
 ( 1 ( a . b . c ) ( 123 . 456 .678 ) . ( abc a .c ) ) ERROR
+( 1 . 2 4 5 6 ) 
 */
 
   if ( temp != NULL )
@@ -578,9 +583,8 @@ DOT 5
     gnum = 8888 ;
     return true ;
   }
-  else if ( temp->type == RIGHT_PAREN && ( gnum == 1 || gnum == 2 ) ) {
+  else if ( temp->type == RIGHT_PAREN && ( gnum == 1 || gnum == 2 ) ) { 
     cout << "bb" << endl ;
-    dotExist = false ;
     gnum = 2 ; // list
     while( temp->type != LEFT_PAREN ) { // 走回去 
       temp = temp->pre_next ; 
@@ -599,44 +603,103 @@ DOT 5
     gnum = 1 ;
     return true ;
   }
-  else if ( IsATOM(temp) == true ) {
-    cout << "ee" << endl ;
-    gnum = 1 ;
-    temp = temp->next ;
-    S_EXP( temp ) ;
-  }
-  else if ( temp->type == EMPTYPTR ) {
-    cout << "ff" << endl ;
-    gnum = 2 ;
-    dotExist = false ;
-    temp = temp->listPtr->next ;
-    S_EXP( temp ) ;
+  else if ( IsATOM(temp) == true ) { ////////
+    cout << "gg" << endl ;
+    if ( temp->pre_next != NULL && temp->pre_next->dotCnt != 0 ) {
+      cout << "ee" << endl ;
+      temp->dotCnt = temp->pre_next->dotCnt+1 ;
+      return false ;
+    }
+    else if ( temp->pre_next != NULL && temp->pre_next->quoteCnt != 0 ) {
+      cout << "ff" << endl ;
+      temp->quoteCnt = temp->pre_next->quoteCnt+1 ;
+      return false ;
+    }
+    else {
+      if ( gnum == 5 ) { // 前面是DOT 
+        cout << "hh" << endl ;
+        gAfterDotCnt++ ;
+        temp->dotCnt = gAfterDotCnt ;
+      }
+      else if ( gnum == 4 ) { // QUOTE
+        cout << "ii" << endl ;
+        gAfterQuoteCnt++ ;
+        temp->quoteCnt = gAfterQuoteCnt ;
+      }
+      cout << "jj" << endl ;
+      gnum = 1 ;
+      temp = temp->next ;
+      S_EXP( temp ) ;
+    }
 
   }
-  else if ( temp->type == DOT &&  ( temp->pre_next->type == EMPTYPTR || gnum == 1 ) && dotExist == false ) { 
+  else if ( temp->type == EMPTYPTR ) { ////////
+    cout << "kk" << endl ;
+    if ( temp->pre_next != NULL && temp->pre_next->dotCnt != 0 ) {
+      cout << "mm" << endl ;
+      temp->dotCnt = temp->pre_next->dotCnt+1 ;
+      return false ;
+    }
+    else if ( temp->pre_next != NULL && temp->pre_next->quoteCnt != 0 ) {
+      cout << "nn" << endl ;
+      temp->quoteCnt = temp->pre_next->quoteCnt+1 ;
+      return false ;
+    }
+    else {
+      if ( gnum == 5 ) { // DOT
+        cout << "pp" << endl ;
+        gAfterDotCnt++ ;
+        temp->dotCnt = gAfterDotCnt ;
+        
+      }
+      else if ( gnum == 4 ) { // QUOTE
+        cout << "qq" << endl ;
+        gAfterQuoteCnt++ ;
+        temp->quoteCnt = gAfterQuoteCnt ;
+      }
+      cout << "oo" << endl ;
+      gnum = 2 ;
+      gAfterDotCnt = 0 ;
+      gAfterQuoteCnt = 0 ;
+      temp = temp->listPtr->next ;
+      S_EXP( temp ) ;
+    } // else
+
+  }
+  else if ( temp->type == DOT &&  ( temp->pre_next->type == EMPTYPTR || gnum == 1 ) && gnum != 5 ) {  ///
+    cout << "rr" << endl ;
     EXP * forward = temp->pre_next ;
     while( forward != NULL && forward->type != DOT ){
       forward = forward->pre_next ;
     }
     if ( forward == NULL ) {
-      cout << "gg" << endl ;
+      cout << "ss" << endl ;
       gnum = 5 ;
-      dotExist = true ;
+      gAfterDotCnt = 0 ;
       temp = temp->next ;
       S_EXP( temp ) ;
     }
     else {
+      cout << "tt" << endl ;
       return false ;
     }
 
   }
   else if ( temp->type == DOT ) {
-    cout << "hh" << endl ;
+    cout << "uu" << endl ;
     gnum = -1 ;
     return false ;
   }
+  else if ( temp->type == QUOTE ) { ////////////
+
+    cout << "vv" << endl ;
+    gAfterQuoteCnt = 0 ;
+    gnum = 4 ;
+    temp = temp->next ;
+    S_EXP( temp ) ;
+  }
   else {
-    cout << "ii" << endl ;
+    cout << "ww" << endl ;
     gnum = -1 ;
     return false ;
   }
@@ -671,6 +734,8 @@ EXP *getValue( vector<EXP> vec, int &i ) {
   ptr -> pre_next = NULL ;
   ptr -> listPtr = NULL ;
   ptr -> pre_listPtr = NULL ;
+  ptr -> quoteCnt = 0 ;
+  ptr -> dotCnt = 0 ;
   i++ ;
   return ptr ;
   
@@ -764,7 +829,6 @@ string rounding( string str ) { // 小數點後四位+四捨五入
   
 } // rounding()
 
-
 void fixToken( vector<EXP> & s_exp ) { // () 沒處理 
 /*
 float小數點三位
@@ -844,19 +908,18 @@ int main() { // +3 -> 3
       
       if ( parnum == 0 ) // 這條指令結束 
       {
-        
         if ( nextToken.type == QUOTE )
         {
           cout << "This is QUOTE" << endl ; 
           readEXP = true ;
-        } // else if
+        } // if 
         else if ( nextToken.type != NONE ) // 還沒讀到 EOF，還有其他指令還沒讀
         {
           
           PrintS_EXP( s_exp ) ;     
           fixToken(s_exp) ; // 更正token 
-      //    test(s_exp) ;
-      //    system("pause") ;
+          test(s_exp) ;
+          system("pause") ;
           delete root ;  
           root = NULL ;
           i = 0 ;
@@ -866,7 +929,6 @@ int main() { // +3 -> 3
           cout << endl << "check syntax START" << endl ;
           
           gnum = 0 ;
-          dotExist = false ;
           bool isTrue = S_EXP( root ) ;
           if ( isTrue == true ) {
             cout << "Correct!" << endl ;
