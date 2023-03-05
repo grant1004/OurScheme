@@ -764,6 +764,7 @@ string rounding( string str ) { // 小數點後四位+四捨五入
   
 } // rounding()
 
+
 void fixToken( vector<EXP> & s_exp ) { // () 沒處理 
 /*
 float小數點三位
