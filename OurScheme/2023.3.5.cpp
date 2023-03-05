@@ -563,10 +563,8 @@ DOT 5
 
 /*
 
-()) -> (Hi there ! How are you ?)
-
-((1 2 3) . (4 . (5 . nil)))
-
+(1(a.b)()(123).(234 . 678) .( 123 ) ) ERROR
+( 1 ( a . b . c ) ( 123 . 456 .678 ) . ( abc a .c ) ) ERROR
 */
 
   if ( temp != NULL )
@@ -615,12 +613,22 @@ DOT 5
     S_EXP( temp ) ;
 
   }
-  else if ( temp->type == DOT &&  ( temp->pre_next->type == EMPTYPTR || gnum == 1 ) && dotExist == false ) { /////
-    cout << "gg" << endl ;
-    gnum = 5 ;
-    dotExist = true ;
-    temp = temp->next ;
-    S_EXP( temp ) ;
+  else if ( temp->type == DOT &&  ( temp->pre_next->type == EMPTYPTR || gnum == 1 ) && dotExist == false ) { 
+    EXP * forward = temp->pre_next ;
+    while( forward != NULL && forward->type != DOT ){
+      forward = forward->pre_next ;
+    }
+    if ( forward == NULL ) {
+      cout << "gg" << endl ;
+      gnum = 5 ;
+      dotExist = true ;
+      temp = temp->next ;
+      S_EXP( temp ) ;
+    }
+    else {
+      return false ;
+    }
+
   }
   else if ( temp->type == DOT ) {
     cout << "hh" << endl ;
