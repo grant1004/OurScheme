@@ -844,8 +844,15 @@ int main() { // +3 -> 3
       
       if ( parnum == 0 ) // 這條指令結束 
       {
-        if ( nextToken.type != NONE ) // 還沒讀到 EOF，還有其他指令還沒讀
+        
+        if ( nextToken.type == QUOTE )
         {
+          cout << "This is QUOTE" << endl ; 
+          readEXP = true ;
+        } // else if
+        else if ( nextToken.type != NONE ) // 還沒讀到 EOF，還有其他指令還沒讀
+        {
+          
           PrintS_EXP( s_exp ) ;     
           fixToken(s_exp) ; // 更正token 
       //    test(s_exp) ;
@@ -869,12 +876,14 @@ int main() { // +3 -> 3
           }
           /////IRIS
           cout << endl << "EXP DONE" << endl << "================================" << endl ; 
+          readEXP = false ;
         } // if 
         else // nextToken == NONE 代表讀到 EOF 了，沒有任何指令了 
         {
           cout << ">>> ALL s_exp Read Done " << endl ; 
+          readEXP = false ;
         } // else 
-        readEXP = false ; 
+         
       } // if 
       else if ( parnum < 0 )
       {
