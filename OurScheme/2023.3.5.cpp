@@ -785,6 +785,7 @@ DOT 5
     }
     else {
       cout << "tt" << endl ;
+      throw MyException( SYNERR_RIGHTPAREN, *temp ) ;
       return false ;
     }
 
@@ -792,6 +793,7 @@ DOT 5
   else if ( temp->type == DOT ) {
     cout << "uu" << endl ;
     gnum = -1 ;
+    throw MyException( SYNERR_ATOM_PAR, *temp ) ;
     return false ;
   }
   else if ( temp->type == QUOTE ) { ////////////
@@ -805,6 +807,7 @@ DOT 5
   else {
     cout << "ww" << endl ;
     gnum = -1 ;
+    throw MyException( SYNERR_ATOM_PAR, *temp ) ;
     return false ;
   }
     
@@ -1046,13 +1049,8 @@ int main() { // +3 -> 3
           try 
           {
             gnum = 0 ;
-            bool isTrue = S_EXP( root ) ;
-            if ( isTrue == true ) {
-              cout << "Correct!" << endl ;
-            }
-            else{
-              cout << "ERROR!" << endl ;
-            }
+            S_EXP( root ) ;
+
           } // try 
           catch ( MyException exp )
           {
@@ -1061,7 +1059,7 @@ int main() { // +3 -> 3
           
           /////IRIS
           
-          cout << endl << "EXP DONE" << endl << "================================" << endl ; 
+          cout << endl << "================================EXP DONE================================" << endl ; 
           readEXP = false ;
         } // if 
         else if ( nextToken.type == NONE ) // nextToken == NONE 代表讀到 EOF 了，沒有任何指令了 
@@ -1069,6 +1067,7 @@ int main() { // +3 -> 3
           cout << ">>> ALL s_exp Read Done " << endl ; 
           readEXP = false ;
         } // else if 
+        
          
       } // if 
       else if ( parnum < 0 )
