@@ -744,8 +744,8 @@ EXP *getValue( vector<EXP> vec, int &i ) {
 void preOrderTraversal(EXP* focusNode) {
   if (focusNode != NULL) {
     std::cout << focusNode->token << " ";
-    preOrderTraversal(focusNode->next);
     preOrderTraversal(focusNode->listPtr);
+    preOrderTraversal(focusNode->next);
   }
 }
 
