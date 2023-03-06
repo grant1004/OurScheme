@@ -6,6 +6,9 @@
 # include <vector>
 # include <sstream>
 # include <iomanip>
+# include <exception> 
+# include <sstream>
+
 
 using namespace std ;
 
@@ -52,8 +55,11 @@ enum Type
   
   EMPTYPTR, // BuildTree() 空的   
 
-  NONE 
+  NONE, // EOF
+  
+  ERROR // ERROR
 }; // Type 
+
 
 struct EXP {
   string token ;
@@ -68,6 +74,70 @@ struct EXP {
   int quoteCnt ;
 
 }; // struct EXP 
+
+
+
+
+enum ExceptionType 
+{ 
+  NOTHING,           // 沒有ERROR 
+  SYNERR_ATOM_PAR,   // 語法錯誤 ( 下一個token應該要接 ATOM 或是 '(' )   ERROR (unexpected token) : atom or '(' expected when token at Line 1 Column 1 is >>)<<  
+  SYNERR_RIGHTPAREN, // 語法錯誤 (  應該要接右括號卻沒有右括號  ) ERROR (unexpected token) : ')' expected when token at Line X Column Y is >>...<< 
+  STRERR,            // String Error 少一個雙引號 '\"' ERROR (no closing quote) : END-OF-LINE encountered at line 1, column 19   
+};
+
+class MyException
+{  
+  string ErrMsg  ;
+   
+  public : 
+    const char* what() const throw()
+    {
+      return ErrMsg.c_str() ;       
+    } // what() 
+    
+    MyException()
+    {
+      ErrMsg = "This is an empty Exception.\n" ; 
+    } // MyException()
+    
+    MyException( ExceptionType ErrType, int line, int column ) 
+    {
+      stringstream ss ;
+      if ( ErrType == STRERR ) // String Error
+      {
+        ss << "ERROR (no closing quote) : "
+           << "END-OF-LINE encountered at line " 
+           << line
+           << ", column "
+           << column ; 
+        ErrMsg = ss.str() ;   
+      } // if 
+    } // MyException() 
+    
+    MyException( ExceptionType ErrType, EXP token) 
+    {
+      stringstream ss ;
+      if ( ErrType == SYNERR_ATOM_PAR ) // ( 下一個token應該要接 ATOM 或是 '(' )
+      {
+        ss << "ERROR (unexpected token) : "
+           << "atom or '(' expected when token at "
+           << "Line " << token.row  
+           << " Column " << token.column << " is >>" << token.token << "<<" ;  
+        ErrMsg = ss.str() ;
+      } // else 
+      else if ( ErrType == SYNERR_RIGHTPAREN ) // (  應該要接右括號卻沒有右括號  )
+      {
+        ss << "ERROR (unexpected token) : "
+           << "')' expected when token at "
+           << "Line " << token.row  
+           << " Column " << token.column << " is >>" << token.token << "<<" ;  
+        ErrMsg = ss.str() ;
+      } // else 
+    } // MyException()
+} ; 
+
+
 
 // 2023/02/25 超級大肥肥新增這些程式碼
 
@@ -116,7 +186,7 @@ string PrintType ( Type type )
 /* CheckWhiteSpace(char ch) 
 * 檢查 ch 是否為 white space 
 */
-bool CheckWhiteSpace(char ch) // 判斷是否為white space, 如果是 return true, 不是 return false  
+bool CheckWhiteSpace(char ch)  
 {
 
   if ( ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' ) 
@@ -140,7 +210,7 @@ bool CheckWhiteSpace(char ch) // 判斷是否為white space, 如果是 return true, 不是
 bool CheckDelimiter ( char ch )
 {
   if ( ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' || 
-       ch == '(' || ch == ')'  || ch == '\'' || ch == ';' ) 
+       ch == '(' || ch == ')'  || ch == '\'' || ch == ';' || ch == '\"') 
   {
     return true ; 
   } // else if 
@@ -372,7 +442,7 @@ Type IdentifyType ( string token )
 
 /* GetString ( ) 
 *  把整個 string 讀出來，直到 ('\n') 或是另一個 ('\"')
-*  如果讀到 '\n' 沒有讀到 '\"' 那就是 error  <----------------------------------------- 這裡還沒完成喔 
+*  如果讀到 '\n' 沒有讀到 '\"' 那就是 error  
 */
 string GetString ( )
 {
@@ -410,8 +480,17 @@ string GetString ( )
     {
       valid = false ; 
     } // else if  
+    else if ( ch == -1 )
+    {
+      valid = false ; 
+    }
     str += ch ;
   } // while 
+  
+  if ( ch == '\n' || ch == -1 )
+  {
+    throw MyException( STRERR, gNowRow, gNowColumn ) ;   
+  } // if  
 
   return str ; 
 } // GetString ()
@@ -441,11 +520,27 @@ void SkipComment ( )
 char GetFirstChar ( ) // skip white space to get First char 
 {
   char ch = getchar() ; 
-  gNowColumn ++ ;     
+  if ( ch == '\n' ) 
+  {
+    gNowColumn = 0 ;     
+  } // if 
+  else 
+  {
+    gNowColumn ++ ;     
+  } // else 
+  
   while ( CheckWhiteSpace(ch) == true )
   {
     ch = getchar() ;
-    gNowColumn ++ ;     
+    if ( ch == '\n' )
+    {
+      gNowColumn =  0 ; 
+    } // if 
+    else 
+    {
+      gNowColumn ++ ;     
+    } // else 
+    
   } // while 
 
   if ( ch == EOF ) 
@@ -489,16 +584,17 @@ EXP GetToken ( )
   gg.column = gNowColumn ; 
   gg.row = gNowRow ; 
 
-  if ( CheckDelimiter ( ch ) == true )
-  {
-    gg.token += ch ; 
-    valid = false ; 
-  } // if 
-  else if ( IsStringStart ( ch ) )
+  
+  if ( IsStringStart ( ch ) )
   {
     gg.token = GetString() ; 
     valid = false ; 
   } // else if 
+  else if ( CheckDelimiter ( ch ) == true )
+  {
+    gg.token += ch ; 
+    valid = false ; 
+  } // if 
   else if ( IsEOF ( ch ) )
   {
     gg.token = "\0" ;
@@ -572,6 +668,9 @@ DOT 5
 ( 1 . 2 4 5 6 ) 
 */
 
+
+// 每個 return false 是什麼意思呢 ??  
+
   if ( temp != NULL )
     cout << endl << "temp->token: " << temp->token << endl ;
   cout << "gnum: " << gnum << endl ; 
@@ -596,6 +695,7 @@ DOT 5
   else if ( temp->type == RIGHT_PAREN ) {
     cout << "cc" << endl ;
     gnum = -1 ;
+    throw MyException( SYNERR_ATOM_PAR, *temp ) ; 
     return false ;
   }
   else if ( IsATOM(temp) == true && gnum == 0 ) {
@@ -608,11 +708,13 @@ DOT 5
     if ( temp->pre_next != NULL && temp->pre_next->dotCnt != 0 ) {
       cout << "ee" << endl ;
       temp->dotCnt = temp->pre_next->dotCnt+1 ;
+      throw MyException( SYNERR_RIGHTPAREN, *temp ) ;
       return false ;
     }
     else if ( temp->pre_next != NULL && temp->pre_next->quoteCnt != 0 ) {
       cout << "ff" << endl ;
       temp->quoteCnt = temp->pre_next->quoteCnt+1 ;
+      throw MyException( SYNERR_ATOM_PAR, *temp ) ;
       return false ;
     }
     else {
@@ -638,11 +740,13 @@ DOT 5
     if ( temp->pre_next != NULL && temp->pre_next->dotCnt != 0 ) {
       cout << "mm" << endl ;
       temp->dotCnt = temp->pre_next->dotCnt+1 ;
+      throw MyException( SYNERR_RIGHTPAREN, *temp ) ;
       return false ;
     }
     else if ( temp->pre_next != NULL && temp->pre_next->quoteCnt != 0 ) {
       cout << "nn" << endl ;
       temp->quoteCnt = temp->pre_next->quoteCnt+1 ;
+      throw MyException( SYNERR_ATOM_PAR, *temp ) ;
       return false ;
     }
     else {
@@ -718,10 +822,9 @@ void PrintS_EXP( vector<EXP> s_exp )
 {
 
   for ( int i = 0 ; i < s_exp.size() ; i ++ ) 
-    cout << s_exp.at( i ).token << " Column : "<< s_exp.at( i ).column << " Row : "<< s_exp.at( i ).row << endl ; 
+    cout << s_exp.at( i ).token << " " << PrintType( s_exp.at(i).type ) << "  Column : "<< s_exp.at( i ).column << " Row : "<< s_exp.at( i ).row << endl ; 
 
 } // PrintS_EXP( EXP * sExp ) 
-
 
 
 EXP *getValue( vector<EXP> vec, int &i ) {
@@ -830,13 +933,13 @@ string rounding( string str ) { // 小數點後四位+四捨五入
 } // rounding()
 
 void fixToken( vector<EXP> & s_exp ) { // () 沒處理 
-/*
-float小數點三位
-四捨五入
-t or #t 系統印出來的是 #t
-nil or () or #f 系統印出來的是nil
-()
-*/ 
+  /*
+  float小數點三位
+  四捨五入
+  t or #t 系統印出來的是 #t
+  nil or () or #f 系統印出來的是nil
+  ()
+  */ 
   int i = 0 ;
   while ( i < s_exp.size() ) {
     if ( s_exp.at(i).type == FLOAT ) {
@@ -887,14 +990,26 @@ int main() { // +3 -> 3
     gNowRow = 1 ;  
     s_exp.clear() ; 
     gEndLine = false ; // false : 不要計算換行 ; true : 開始計算換行 
+    
+    cout << "> " ; 
     while ( readEXP )
     {
+      
+      try 
+      {
+        nextToken = GetToken() ; 
 
-      nextToken = GetToken() ; 
+      } // try 
+      catch ( MyException exp ) // string Error  
+      {
+        cout << exp.what() << endl ; 
+        readEXP = false ; 
+        nextToken.token = "ERROR" ;
+        nextToken.type = ERROR ; 
+      } // catch 
+      
       gEndLine = true ; 
       s_exp.push_back( nextToken ) ;  
-      
-      
       if ( nextToken.type == LEFT_PAREN ) 
       { 
         parnum ++ ; 
@@ -910,16 +1025,16 @@ int main() { // +3 -> 3
       {
         if ( nextToken.type == QUOTE )
         {
-          cout << "This is QUOTE" << endl ; 
+//          cout << "This is QUOTE" << endl ; 
           readEXP = true ;
         } // if 
-        else if ( nextToken.type != NONE ) // 還沒讀到 EOF，還有其他指令還沒讀
+        else if ( nextToken.type != NONE && nextToken.type != ERROR) // 還沒讀到 EOF，還有其他指令還沒讀
         {
           
           PrintS_EXP( s_exp ) ;     
           fixToken(s_exp) ; // 更正token 
-          test(s_exp) ;
-          system("pause") ;
+//          test(s_exp) ;
+//          system("pause") ;
           delete root ;  
           root = NULL ;
           i = 0 ;
@@ -928,46 +1043,65 @@ int main() { // +3 -> 3
           preOrderTraversal(root) ;
           cout << endl << "check syntax START" << endl ;
           
-          gnum = 0 ;
-          bool isTrue = S_EXP( root ) ;
-          if ( isTrue == true ) {
-            cout << "Correct!" << endl ;
-          }
-          else{
-            cout << "ERROR!" << endl ;
-          }
+          try 
+          {
+            gnum = 0 ;
+            bool isTrue = S_EXP( root ) ;
+            if ( isTrue == true ) {
+              cout << "Correct!" << endl ;
+            }
+            else{
+              cout << "ERROR!" << endl ;
+            }
+          } // try 
+          catch ( MyException exp )
+          {
+            cout << exp.what() << endl ; 
+          } // catch 
+          
           /////IRIS
+          
           cout << endl << "EXP DONE" << endl << "================================" << endl ; 
           readEXP = false ;
         } // if 
-        else // nextToken == NONE 代表讀到 EOF 了，沒有任何指令了 
+        else if ( nextToken.type == NONE ) // nextToken == NONE 代表讀到 EOF 了，沒有任何指令了 
         {
           cout << ">>> ALL s_exp Read Done " << endl ; 
           readEXP = false ;
-        } // else 
+        } // else if 
          
       } // if 
       else if ( parnum < 0 )
       {
-        cout << endl << "ERROR > 多了一個右括號" << endl ;
-        readEXP = false ; 
+        try 
+        {
+          throw MyException( SYNERR_ATOM_PAR, nextToken ) ; 
+        } // try 
+        catch ( MyException exp )
+        { readEXP = false ; 
+          cout << exp.what() << endl ; 
+        } // catch 
+        
       } // else if 
       
       
+      
     } // while ( readEXP )
-    
 
-    
-                                                                                                                         
+         
     if ( nextToken.type == NONE ) // 讀到 EOF
     {
       ALL_EXP_DONE = true ;
     } // if 沒有 (exit) 
-    else if ( s_exp.at( 0 ).token == "("  && s_exp.at( 0 ).token == "exit" && s_exp.at( 0 ).token == ")" )
+    else if ( s_exp.at( 0 ).token == "("  && s_exp.at( 1 ).token == "exit" && s_exp.at( 2 ).token == ")" )
     {
       ALL_EXP_DONE = true ;
     } // else if 
     
   } // while ( ALL_EXP ) 
+  
+  
+  printf( "\nThanks for using OurScheme!" );
+  return 0;
     
 } // main()     
