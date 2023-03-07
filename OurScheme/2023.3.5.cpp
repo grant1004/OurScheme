@@ -813,19 +813,72 @@ DOT 5
     
 } // S_EXP()
 
-int paren_num = 0 ; 
-int tab = 2 ; 
 void printTab( int numOfTab ) 
 {
   for ( int i = 0 ; i < numOfTab ; i ++ ) 
-    cout << "  " ;  
+    cout << " " ;  
 } // printTab( int numOfTab ) 
 
 void PrintS_EXP( vector<EXP> s_exp ) 
 {
+  int tab = 0 ; 
+  for ( int i = 0 ; i < s_exp.size ( ) ; i++ )
+  {
+    if ( s_exp.at ( i ).type == LEFT_PAREN )
+    {
+      try
+      {
+        if ( s_exp.at ( i - 1 ).type == LEFT_PAREN )
+        {
+          printTab( 0 ); 
+        } // if 
+        else
+        {
+          printTab( tab ); 
+        } // else  
+      } // try 
+      catch ( exception ex )
+      {
+        printTab( 0 ) ; 
+      } // catch 
+      
 
-  for ( int i = 0 ; i < s_exp.size() ; i ++ ) 
-    cout << s_exp.at( i ).token << " " << PrintType( s_exp.at(i).type ) << "  Column : "<< s_exp.at( i ).column << " Row : "<< s_exp.at( i ).row << endl ; 
+      cout << "(" << " " ;
+      tab += 2 ; 
+    } // if 
+    else if ( s_exp.at ( i ).type == QUOTE )
+    {
+      printTab( tab ) ;
+      cout << "quote" << endl ; 
+    } // else if 
+    else if ( s_exp.at ( i ).type == RIGHT_PAREN )
+    {
+      tab -= 2 ; 
+      printTab( tab ) ;
+      cout << ")" << endl ; 
+    } // else if 
+    else
+    {
+      try
+      {
+        if ( s_exp.at ( i - 1 ).type == LEFT_PAREN )
+        {
+          printTab( 0 ); 
+        } // if 
+        else
+        {
+          printTab( tab ); 
+        } // else 
+      } // try 
+      catch ( exception ex ) 
+      {
+        printTab( 0 );
+      } // catch 
+      
+      
+      cout << s_exp.at( i ).token << endl ; 
+    } // else 
+  } // for 
 
 } // PrintS_EXP( EXP * sExp ) 
 
@@ -947,19 +1000,19 @@ void fixToken( vector<EXP> & s_exp ) { // () 沒處理
   while ( i < s_exp.size() ) {
     if ( s_exp.at(i).type == FLOAT ) {
       s_exp.at(i).token = rounding( s_exp.at(i).token ) ;
-    }
+    } // if 
     else if ( s_exp.at(i).token == "t" ) {
       s_exp.at(i).token = "#t" ;
-    }
+    } // else if 
     else if ( s_exp.at(i).token == "#f" ) {
       s_exp.at(i).token = "nil" ;
-    }
+    } // else if 
     else if ( s_exp.at(i).type == LEFT_PAREN && i+1 < s_exp.size() && s_exp.at(i+1).type == RIGHT_PAREN ) {
-      s_exp.at(i).token = "()" ;
+      s_exp.at(i).token = "nil" ;
       s_exp.at(i).type = LEFT_RIGHT_PAREN ;
       s_exp.erase( s_exp.begin()+i+1 ) ;
-      
-    }
+    } // else if 
+
     i++ ;
   }
 } // fixToken()
@@ -1034,8 +1087,8 @@ int main() { // +3 -> 3
         else if ( nextToken.type != NONE && nextToken.type != ERROR) // 還沒讀到 EOF，還有其他指令還沒讀
         {
           
-          PrintS_EXP( s_exp ) ;     
           fixToken(s_exp) ; // 更正token 
+          PrintS_EXP( s_exp ) ;     
 //          test(s_exp) ;
 //          system("pause") ;
           delete root ;  
@@ -1068,7 +1121,6 @@ int main() { // +3 -> 3
           readEXP = false ;
         } // else if 
         
-         
       } // if 
       else if ( parnum < 0 )
       {
