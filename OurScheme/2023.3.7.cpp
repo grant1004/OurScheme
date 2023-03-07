@@ -26,8 +26,6 @@ enum Type
   LEFT_PAREN, // '('
 
   RIGHT_PAREN, // ')'
-
-  LEFT_RIGHT_PAREN, // '()' -> NIL 
   
   SYMBOL, // other token
 
@@ -634,7 +632,7 @@ EXP GetToken ( )
 
 bool IsATOM( EXP * temp )
 { 
-  if ( temp->type == SYMBOL || temp->type == INT  || temp->type == FLOAT  || temp->type == STRING  || temp->type == NIL || temp->type == T || temp->type == LEFT_RIGHT_PAREN )
+  if ( temp->type == SYMBOL || temp->type == INT  || temp->type == FLOAT  || temp->type == STRING  || temp->type == NIL || temp->type == T )
     return true ;
   else
     return false ;
@@ -669,14 +667,14 @@ DOT 5
 
 // 每個 return false 是什麼意思呢 ??  
 
-  if ( temp != NULL )
-    cout << endl << "temp->token: " << temp->token << endl ;
-  cout << "gnum: " << gnum << endl ; 
+//  if ( temp != NULL )
+//    cout << endl << "temp->token: " << temp->token << endl ;
+//  cout << "gnum: " << gnum << endl ; 
 //  system("pause") ;
   
   
   if ( temp == NULL && gnum == 2 ) {
-    cout << "aa" << endl ;
+//    cout << "aa" << endl ;
     gnum = 8888 ;
     return true ;
   }
@@ -684,7 +682,7 @@ DOT 5
     return true ;
   }
   else if ( temp->type == RIGHT_PAREN && ( gnum == 1 || gnum == 2 ) ) { 
-    cout << "bb" << endl ;
+//    cout << "bb" << endl ;
     gnum = 2 ; // list
     while( temp->type != LEFT_PAREN ) { // 走回去 
       temp = temp->pre_next ; 
@@ -694,42 +692,42 @@ DOT 5
     
   }
   else if ( temp->type == RIGHT_PAREN ) {
-    cout << "cc" << endl ;
+//    cout << "cc" << endl ;
     gnum = -1 ;
     throw MyException( SYNERR_ATOM_PAR, *temp ) ; 
     return false ; // temp 應該是s_EXP 
   }
   else if ( IsATOM(temp) == true && gnum == 0 && temp->next == NULL && temp->listPtr == NULL ) {
-    cout << "dd" << endl ;
+//    cout << "dd" << endl ;
     gnum = 1 ;
     return true ;
   }
   else if ( IsATOM(temp) == true ) { ////////
-    cout << "gg" << endl ;
+//    cout << "gg" << endl ;
     if ( temp->pre_next != NULL && temp->pre_next->dotCnt != 0 ) {
-      cout << "ee" << endl ;
+//      cout << "ee" << endl ;
       temp->dotCnt = temp->pre_next->dotCnt+1 ;
       throw MyException( SYNERR_RIGHTPAREN, *temp ) ;
       return false ; // 應該是右括號 ex: . 3 3 
     }
     else if ( temp->pre_next != NULL && temp->pre_next->quoteCnt != 0 ) {
-      cout << "ff" << endl ;
+//      cout << "ff" << endl ;
       temp->quoteCnt = temp->pre_next->quoteCnt+1 ;
       throw MyException( SYNERR_ATOM_PAR, *temp ) ;
       return false ; // 沒有這種ERROR 寫錯了 
     }
     else {
       if ( gnum == 5 ) { // 前面是DOT 
-        cout << "hh" << endl ;
+//        cout << "hh" << endl ;
         gAfterDotCnt++ ;
         temp->dotCnt = gAfterDotCnt ;
       }
       else if ( gnum == 4 ) { // QUOTE
-        cout << "ii" << endl ;
+//        cout << "ii" << endl ;
         gAfterQuoteCnt++ ;
         temp->quoteCnt = gAfterQuoteCnt ;
       }
-      cout << "jj" << endl ;
+//      cout << "jj" << endl ;
       gnum = 1 ;
       temp = temp->next ;
       S_EXP( temp ) ;
@@ -737,32 +735,32 @@ DOT 5
 
   }
   else if ( temp->type == EMPTYPTR ) { ////////
-    cout << "kk" << endl ;
+//    cout << "kk" << endl ;
     if ( temp->pre_next != NULL && temp->pre_next->dotCnt != 0 ) {
-      cout << "mm" << endl ;
+//      cout << "mm" << endl ;
       temp->dotCnt = temp->pre_next->dotCnt+1 ;
       throw MyException( SYNERR_RIGHTPAREN, *temp ) ;
       return false ; // 應該是右括號 ex: . (1) (1)  
     }
     else if ( temp->pre_next != NULL && temp->pre_next->quoteCnt != 0 ) {
-      cout << "nn" << endl ;
+//      cout << "nn" << endl ;
       temp->quoteCnt = temp->pre_next->quoteCnt+1 ;
       throw MyException( SYNERR_ATOM_PAR, *temp ) ;
       return false ; // 沒有這種ERROR 寫錯了 
     }
     else {
       if ( gnum == 5 ) { // DOT
-        cout << "pp" << endl ;
+//        cout << "pp" << endl ;
         gAfterDotCnt++ ;
         temp->dotCnt = gAfterDotCnt ;
         
       }
       else if ( gnum == 4 ) { // QUOTE
-        cout << "qq" << endl ;
+//        cout << "qq" << endl ;
         gAfterQuoteCnt++ ;
         temp->quoteCnt = gAfterQuoteCnt ;
       }
-      cout << "oo" << endl ;
+//      cout << "oo" << endl ;
       gnum = 2 ;
       gAfterDotCnt = 0 ;
       gAfterQuoteCnt = 0 ;
@@ -776,41 +774,41 @@ DOT 5
     return false ; // ex: .
   }
   else if ( temp->type == DOT &&  ( ( temp->pre_next != NULL && temp->pre_next->type == EMPTYPTR ) || gnum == 1 ) && gnum != 5 ) {  ///
-    cout << "rr" << endl ;
+//    cout << "rr" << endl ;
     EXP * forward = temp->pre_next ;
     while( forward != NULL && forward->type != DOT ){
       forward = forward->pre_next ;
     }
     if ( forward == NULL ) {
-      cout << "ss" << endl ;
+//      cout << "ss" << endl ;
       gnum = 5 ;
       gAfterDotCnt = 0 ;
       temp = temp->next ;
       S_EXP( temp ) ;
     }
     else {
-      cout << "tt" << endl ;
+//      cout << "tt" << endl ;
       throw MyException( SYNERR_RIGHTPAREN, *temp ) ;
       return false ; // ex: (1 . 3 . 3 ) // 出現第二個.了 
     }
 
   }
   else if ( temp->type == DOT ) {  
-    cout << "uu" << endl ;
+//    cout << "uu" << endl ;
     gnum = -1 ;
     throw MyException( SYNERR_ATOM_PAR, *temp ) ;
     return false ; // 忘記這是甚麼ERROR了，先放著 
   }
   else if ( temp->type == QUOTE ) { ////////////
 
-    cout << "vv" << endl ;
+//    cout << "vv" << endl ;
     gAfterQuoteCnt = 0 ;
     gnum = 4 ;
     temp = temp->next ;
     S_EXP( temp ) ;
   }
   else {
-    cout << "ww" << endl ;
+//    cout << "ww" << endl ;
     gnum = -1 ;
     throw MyException( SYNERR_ATOM_PAR, *temp ) ;
     return false ; // 沒有這種東西 
@@ -820,11 +818,11 @@ DOT 5
 
 int paren_num = 0 ; 
 int tab = 2 ; 
-void printTab( int numOfTab ) 
+void PrintTab( int numOfTab ) 
 {
   for ( int i = 0 ; i < numOfTab ; i ++ ) 
     cout << " " ;  
-} // printTab( int numOfTab ) 
+} // PrintTab( int numOfTab ) 
 
 void PrintS_EXP( vector<EXP> s_exp ) 
 {
@@ -837,16 +835,16 @@ void PrintS_EXP( vector<EXP> s_exp )
       {
         if ( s_exp.at ( i - 1 ).type == LEFT_PAREN )
         {
-          printTab( 0 ); 
+          PrintTab( 0 ); 
         } // if 
         else
         {
-          printTab( tab ); 
+          PrintTab( tab ); 
         } // else  
       } // try 
       catch ( exception ex )
       {
-        printTab( 0 ) ; 
+        PrintTab( 0 ) ; 
       } // catch 
       
 
@@ -855,13 +853,13 @@ void PrintS_EXP( vector<EXP> s_exp )
     } // if 
     else if ( s_exp.at ( i ).type == QUOTE )
     {
-      printTab( tab ) ;
+      PrintTab( tab ) ;
       cout << "quote" << endl ; 
     } // else if 
     else if ( s_exp.at ( i ).type == RIGHT_PAREN )
     {
       tab -= 2 ; 
-      printTab( tab ) ;
+      PrintTab( tab ) ;
       cout << ")" << endl ; 
     } // else if 
     else
@@ -870,16 +868,16 @@ void PrintS_EXP( vector<EXP> s_exp )
       {
         if ( s_exp.at ( i - 1 ).type == LEFT_PAREN )
         {
-          printTab( 0 ); 
+          PrintTab( 0 ); 
         } // if 
         else
         {
-          printTab( tab ); 
+          PrintTab( tab ); 
         } // else 
       } // try 
       catch ( exception ex ) 
       {
-        printTab( 0 );
+        PrintTab( 0 );
       } // catch 
       
       
@@ -891,7 +889,7 @@ void PrintS_EXP( vector<EXP> s_exp )
 
 
 
-EXP *getValue( vector<EXP> vec, int &i ) {
+EXP *GetValue( vector<EXP> vec, int &i ) {
   EXP * ptr = new EXP() ;
   ptr -> token = vec.at(i).token ; 
   ptr -> type = vec.at(i).type ;
@@ -906,7 +904,7 @@ EXP *getValue( vector<EXP> vec, int &i ) {
   i++ ;
   return ptr ;
   
-} // getValue()
+} // GetValue()
 
 void preOrderTraversal(EXP* focusNode) {
   if (focusNode != NULL) {
@@ -927,7 +925,7 @@ void buildTree( vector<EXP> s_exp, int &i ) {
 //    preOrderTraversal(root) ;  
       
     if ( s_exp.at(i).type == RIGHT_PAREN ) {
-      temp->next = getValue(s_exp, i) ; 
+      temp->next = GetValue(s_exp, i) ; 
       temp->next->pre_next = temp ;
       
       
@@ -943,7 +941,7 @@ void buildTree( vector<EXP> s_exp, int &i ) {
         root->type = EMPTYPTR ;
         root->token = "XXEMPTYXX" ;
         root->next = NULL ;
-        root->listPtr = getValue(s_exp, i) ;
+        root->listPtr = GetValue(s_exp, i) ;
         root->listPtr->pre_listPtr = root ; 
         temp = root->listPtr ;
       }
@@ -955,7 +953,7 @@ void buildTree( vector<EXP> s_exp, int &i ) {
         temp->next->next = NULL ;
         temp = temp->next ;
         
-        temp->listPtr = getValue(s_exp, i) ;
+        temp->listPtr = GetValue(s_exp, i) ;
         temp->listPtr->pre_listPtr = temp ;
         temp = temp->listPtr ;
                
@@ -965,11 +963,11 @@ void buildTree( vector<EXP> s_exp, int &i ) {
     }
     else {
       if ( root == NULL ) {
-        root = getValue(s_exp, i) ; 
+        root = GetValue(s_exp, i) ; 
         temp = root ;
       }
       else {
-        temp->next = getValue(s_exp, i) ; 
+        temp->next = GetValue(s_exp, i) ; 
         temp->next->pre_next = temp ;
         temp = temp->next ;        
       }
@@ -987,16 +985,16 @@ void buildTree( vector<EXP> s_exp, int &i ) {
   
 }
 
-string rounding( string str ) { // 小數點後四位+四捨五入 
+string Rounding( string str ) { // 小數點後四位+四捨五入 
 
   stringstream ss ;
   ss << fixed << setprecision( 3 ) << atof( str.c_str() ) ;
   
   return ss.str() ;
   
-} // rounding()
+} // Rounding()
 
-void fixToken( vector<EXP> & s_exp ) { // () 沒處理 
+void FixToken( vector<EXP> & s_exp ) {
   /*
   float小數點三位
   四捨五入
@@ -1007,7 +1005,7 @@ void fixToken( vector<EXP> & s_exp ) { // () 沒處理
   int i = 0 ;
   while ( i < s_exp.size() ) {
     if ( s_exp.at(i).type == FLOAT ) {
-      s_exp.at(i).token = rounding( s_exp.at(i).token ) ;
+      s_exp.at(i).token = Rounding( s_exp.at(i).token ) ;
     }
     else if ( s_exp.at(i).token == "t" ) {
       s_exp.at(i).token = "#t" ;
@@ -1016,18 +1014,84 @@ void fixToken( vector<EXP> & s_exp ) { // () 沒處理
       s_exp.at(i).token = "nil" ;
     }
     else if ( s_exp.at(i).type == LEFT_PAREN && i+1 < s_exp.size() && s_exp.at(i+1).type == RIGHT_PAREN ) {
-      s_exp.at(i).token = "()" ;
-      s_exp.at(i).type = LEFT_RIGHT_PAREN ;
+      s_exp.at(i).token = "nil" ;
+      s_exp.at(i).type = NIL ;
       s_exp.erase( s_exp.begin()+i+1 ) ;
       
     }
     i++ ;
   }
-} // fixToken()
+} // FixToken()
+
+void FixQuote( vector<EXP> & s_exp ) { // '(1 '4) , '(1), (1 '2 4 5)
+  int i = 0 ;
+  EXP temp ;
+  int parnum = 0 ;
+  while ( i < s_exp.size() ) {
+    
+    if ( s_exp.at(i).token == "\'" && i+1 < s_exp.size() && s_exp.at(i+1).type == LEFT_PAREN ) { // '(
+      
+      s_exp.at(i).token = "((" ;
+      s_exp.at(i).type = LEFT_PAREN ;
+      
+      temp.token = "quote" ;
+      temp.type = QUOTE ;
+      s_exp.insert( s_exp.begin()+i+1, temp ) ;
+      i = i + 2 ;
+      
+      parnum = 0 ;
+      int k = i ;
+      
+      while ( k < s_exp.size() ) {
+        if ( s_exp.at(k).type == LEFT_PAREN ) {
+          parnum++ ;
+        }
+        else if ( s_exp.at(k).type == RIGHT_PAREN ) {
+          parnum-- ;
+        }
+        
+        if ( parnum == 0 ) { // 遇到正確的右括號 
+          temp.token = "))" ;
+          temp.type = RIGHT_PAREN ;
+          s_exp.insert( s_exp.begin()+k+1, temp) ;
+          k = s_exp.size() ; // 出迴圈 
+        }
+
+        k++ ;
+      } // while
+      i = -1 ;
+    }
+    else if ( s_exp.at(i).token == "\'" && i+1 < s_exp.size() && ( s_exp.at(i+1).type == SYMBOL || s_exp.at(i+1).type == INT || 
+                                                                   s_exp.at(i+1).type == FLOAT || s_exp.at(i+1).type == STRING ||
+                                                                   s_exp.at(i+1).type == NIL || s_exp.at(i+1).type == T ) ) { // 'ATOM
+      s_exp.at(i).token = "((" ;
+      s_exp.at(i).type = LEFT_PAREN ;
+      
+      temp.token = "quote" ;
+      temp.type = QUOTE ;
+      s_exp.insert( s_exp.begin()+i+1, temp ) ;
+      
+      i = i + 2 ; // ATOM
+      temp.token = "))" ;
+      temp.type = RIGHT_PAREN ;
+      s_exp.insert( s_exp.begin()+i+1, temp) ;
+      
+      i = -1 ;
+    }
+    i++ ;
+  }
+} // FixQuote()
+
 
 void test(vector<EXP> s_exp){
   for ( int i = 0; i < s_exp.size(); i++){
     cout << s_exp[i].token << "," << PrintType(s_exp[i].type) << endl ;
+  }
+}
+
+void tt(vector<EXP> s_exp){
+  for ( int i = 0; i < s_exp.size(); i++ ){
+    cout << s_exp[i].token << " " ;
   }
 }
 
@@ -1095,11 +1159,17 @@ int main() { // +3 -> 3
         else if ( nextToken.type != NONE && nextToken.type != ERROR) // 還沒讀到 EOF，還有其他指令還沒讀
         {
           
-          fixToken(s_exp) ; // 更正token 
+          FixToken(s_exp) ; // 更正token 
           PrintS_EXP( s_exp ) ;     
 
 //          test(s_exp) ;
 //          system("pause") ;
+          
+          FixQuote(s_exp) ;
+          tt(s_exp) ;
+          system("pause") ;
+          
+          
           delete root ;  
           root = NULL ;
           i = 0 ;
@@ -1172,4 +1242,4 @@ int main() { // +3 -> 3
   printf( "\nThanks for using OurScheme!" );
   return 0;
     
-} // main()     
+} // main()  
