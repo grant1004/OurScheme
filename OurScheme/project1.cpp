@@ -213,7 +213,7 @@ bool CheckWhiteSpace( char ch )
     if ( gEndLine == true && ch == '\n' ) 
     { 
       // cout << "END LINE" << endl ; 
-      gNowRow ++ ; 
+      // gNowRow ++ ; 
       gNowColumn = 0 ; 
     } // if 
     
@@ -571,11 +571,12 @@ void SkipComment()
     ch = getchar( ) ;
   } // while 
   
+  /*
   if ( gEndLine == true ) 
   {
     gNowRow ++ ; 
   } // if 
-  
+  */ 
   gNowColumn = 0 ; 
 } // SkipComment() 
 
