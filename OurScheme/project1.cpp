@@ -1183,9 +1183,10 @@ int main() { // +3 -> 3
     gNowColumn = 0 ; 
     gNowRow = 1 ;  
     s_exp.clear() ; 
+    hasErr = false ;
     gEndLine = false ; // false : 不要計算換行 ; true : 開始計算換行 
     
-    cout << "> " ; 
+    cout << endl << "> " ; 
     while ( readEXP )
     {
       
@@ -1200,6 +1201,7 @@ int main() { // +3 -> 3
         readEXP = false ; 
         nextToken.token = "ERROR" ;
         nextToken.type = ERROR ; 
+        hasErr = true ; 
       } // catch 
       
       gEndLine = true ; 
@@ -1243,6 +1245,7 @@ int main() { // +3 -> 3
           catch ( MyException exp )
           {
             cout << exp.What() << endl ; 
+            hasErr = true ; 
           } // catch 
 
           FixQuote( s_exp ) ;
@@ -1252,13 +1255,12 @@ int main() { // +3 -> 3
             PrintS_EXP( s_exp ) ;   
           } // if 
               
-          cout << endl ; 
 
           readEXP = false ;
         } // if 
         else if ( nextToken.type == NONE ) // nextToken == NONE 代表讀到 EOF 了，沒有任何指令了 
         {
-          cout << "ERROR (no more input) : END-OF-FILE encountered" << endl ; 
+          cout << "ERROR (no more input) : END-OF-FILE encountered" ; 
           readEXP = false ;
         } // else if 
         
@@ -1293,7 +1295,7 @@ int main() { // +3 -> 3
     
   } // while ( ALL_EXP ) 
   
-  printf( "Thanks for using OurScheme!" ) ;
+  printf( "\nThanks for using OurScheme!" ) ;
 
   return 0;
     
