@@ -18,6 +18,7 @@ bool gIsEOF = false ;
 bool gExit = false ; 
 int gNowColumn = 0 ;
 int gNowRow = 1 ; 
+int gLastRow = 1 ; 
 int gNumOfParen = 0 ;
 bool gEndLine = false ;
 
@@ -123,10 +124,11 @@ class MyException
     stringstream ss ;
     if ( ErrType == STRERR ) // String Error
     {
+      gNowRow ++ ; 
       ss << "ERROR (no closing quote) : "
-         << "END-OF-LINE encountered at line " 
+         << "END-OF-LINE encountered at Line "
          << line
-         << ", column "
+         << " Column "
          << column ; 
       mErrMsg = ss.str() ;   
     } // if 
@@ -155,10 +157,9 @@ class MyException
 } ; 
 
 
-
-
 EXP * gRoot = NULL ;
 EXP * gHead = NULL ;
+
 /* 
   PrintType( Type type ) 
   依造傳進去的 type 印出對應的 type 名稱 
@@ -210,10 +211,8 @@ bool CheckWhiteSpace( char ch )
 
   if ( ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' ) 
   {
-    if ( gEndLine == true && ch == '\n' ) 
+    if ( ch == '\n' ) 
     { 
-      // cout << "END LINE" << endl ; 
-      // gNowRow ++ ; 
       gNowColumn = 0 ; 
     } // if 
     
@@ -536,6 +535,7 @@ string GetString()
     } // if 
     else if ( ch == '\"' )
     {
+
       valid = false ; 
     } // else if 
     else if ( ch == '\n' )
@@ -550,10 +550,27 @@ string GetString()
     str += ch ;
   } // while 
   
-  if ( ch == '\n' || ch == -1 )
+  int line = 0 ; 
+  if ( gNowRow == gLastRow )
   {
-    throw MyException( STRERR, gNowRow, gNowColumn ) ;   
+    line = 1 ; 
+  } // if 
+  else
+  {
+    line = gNowRow - gLastRow ; 
+  } // else 
+
+  if ( ch == '\n' )
+  {
+
+    throw MyException( STRERR, line, gNowColumn ) ;
+      
   } // if  
+  else if ( ch == -1 )
+  {
+    throw MyException( STRERR, line, gNowColumn ) ; 
+
+  } // else if   
 
   return str ; 
 } // GetString()
@@ -566,50 +583,39 @@ string GetString()
 void SkipComment()
 {
   char ch = '\0' ;
-  while ( ch != '\n' )
+  do
   {
-    ch = getchar( ) ;
-  } // while 
-  
-  /*
-  if ( gEndLine == true ) 
-  {
-    gNowRow ++ ; 
-  } // if 
-  */ 
+    ch = getchar() ;
+  } while ( ch != '\n' ) ; 
+
+  gNowRow ++ ; 
   gNowColumn = 0 ; 
 } // SkipComment() 
 
 /* 
-  GetFirstChar ( ) 
+   GetFirstChar ( ) 
 *  跳過空白讀到第一個字元
 */ 
 
 char GetFirstChar() // skip white space to get First char 
 {
-  char ch = getchar() ; 
-  if ( ch == '\n' ) 
+  char ch = '\0' ;
+
+  do
   {
-    gNowColumn = 0 ;     
-  } // if 
-  else 
-  {
-    gNowColumn ++ ;     
-  } // else 
-  
-  while ( CheckWhiteSpace( ch ) == true )
-  {
-    ch = getchar() ;
+    ch = getchar() ; 
+
     if ( ch == '\n' )
     {
-      gNowColumn =  0 ; 
+      gNowColumn = 0 ;
+      gNowRow ++ ; 
     } // if 
-    else 
+    else
     {
-      gNowColumn ++ ;     
+      gNowColumn ++ ;
     } // else 
-    
-  } // while 
+
+  } while ( CheckWhiteSpace( ch ) == true ) ; 
 
   if ( ch == EOF ) 
   {
@@ -651,9 +657,18 @@ EXP GetToken()
     } // else 
   } // while 
   
-  gg.column = gNowColumn ; 
-  gg.row = gNowRow ; 
+  gg.column = gNowColumn ;
 
+  // cout << endl << "NOW : " << gNowRow << ", Last : " << gLastRow << ", " ;
+
+  if ( ( gNowRow - gLastRow ) == 0 ) // on same line 
+  {
+    gg.row = 1 ; 
+  } // if 
+  else
+  {
+    gg.row = gNowRow - gLastRow ;
+  } // else 
   
   if ( IsStringStart( ch ) )
   {
@@ -888,9 +903,69 @@ void PrintTab( int numOfTab )
     cout << " " ;  
 } // PrintTab() 
 
+void PrintVec( vector<EXP> vec )
+{
+  cout << "VEC : " ; 
+  for ( int i = 0 ; i < vec.size() ; i ++ )
+    cout << vec.at( i ).token << " " ; 
+  cout << endl ; 
+} // PrintVec()
+
+void DeleteDotParen( vector<EXP> & s_exp )
+{
+  int parnum = 0 ;
+  for ( int i = 0 ; i < s_exp.size() ; i++ )
+  {
+    if ( s_exp.at( i ).type == DOT )
+    {
+      if ( s_exp.at( i + 1 ).type == LEFT_PAREN ) // . ( 
+      { 
+        parnum ++ ;
+        for ( int r = i+1 ; r < s_exp.size( ) ; r++ ) // i = '.'  i+1 = '('
+        {
+          if ( s_exp.at( r ).type == LEFT_PAREN )
+          {
+            parnum ++ ; 
+          } // if 
+          else if ( s_exp.at( r ).type == RIGHT_PAREN )
+          {
+            parnum -- ; 
+            if ( parnum == 1 )
+            {
+
+              s_exp.erase( s_exp.begin() + r ) ; 
+
+            } // if 
+          } // else if 
+
+        } // for
+
+        s_exp.erase( s_exp.begin() + i ) ; // delete '.' 
+        s_exp.erase( s_exp.begin() + i ) ; // delete '('
+
+      } // if 
+      else if ( s_exp.at( i + 1 ).type == NIL ) // . nil 
+      {
+        s_exp.erase( s_exp.begin()+i ) ; 
+        s_exp.erase( s_exp.begin()+i ) ; 
+      } // else if 
+
+    } // if 
+     
+  } // for
+
+  // PrintVec( s_exp ) ;  
+
+} // DeleteDotParen()
+
 void PrintS_EXP( vector<EXP> s_exp ) 
 {
   int tab = 0 ; 
+  int parnum = 0 ;  
+  DeleteDotParen( s_exp ) ; 
+
+  // (1 . (2 . (3 . 4))) --> ( 1 2 3 . 4 ) 
+  // cout << "Line : " << s_exp.at( 0 ).row << " " ; 
   if ( s_exp.at( 0 ).token == "("  && s_exp.at( 1 ).token == "exit" && s_exp.at( 2 ).token == ")" )
   {
     
@@ -899,8 +974,10 @@ void PrintS_EXP( vector<EXP> s_exp )
   {
     for ( int i = 0 ; i < s_exp.size() ; i++ )
     {
+
       if ( s_exp.at( i ).type == LEFT_PAREN )
       {
+        parnum ++ ; 
         try
         {
           if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
@@ -923,11 +1000,27 @@ void PrintS_EXP( vector<EXP> s_exp )
       } // if 
       else if ( s_exp.at( i ).type == QUOTE )
       {
-        PrintTab( tab ) ;
+        try
+        {
+          if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
+          {
+            PrintTab( 0 ); 
+          } // if 
+          else
+          {
+            PrintTab( tab ); 
+          } // else 
+        } // try 
+        catch ( exception ex ) 
+        {
+          PrintTab( 0 );
+        } // catch 
         cout << "quote" << endl ; 
       } // else if 
       else if ( s_exp.at( i ).type == RIGHT_PAREN )
       {
+        parnum -- ;
+        
         tab -= 2 ; 
         PrintTab( tab ) ;
         cout << ")" << endl ; 
@@ -955,7 +1048,6 @@ void PrintS_EXP( vector<EXP> s_exp )
       } // else 
     } // for 
   } // else 
-  
 
 } // PrintS_EXP() 
 
@@ -1167,7 +1259,7 @@ int main() { // +3 -> 3
   int parnum = 0 ; 
   int i = 0 ;
   bool syntaxIsTrue ;
-  cout << "Welcome to OurScheme!" << endl << endl ;
+  cout << "Welcome to OurScheme!" << endl  ;
   
   bool aLL_EXP_DONE = false ; 
   bool hasErr = false ; 
@@ -1182,7 +1274,6 @@ int main() { // +3 -> 3
     readEXP = true ;
     parnum = 0 ; 
     gNowColumn = 0 ; 
-    gNowRow = 1 ;  
     s_exp.clear() ; 
     hasErr = false ;
     gEndLine = false ; // false : 不要計算換行 ; true : 開始計算換行 
@@ -1190,11 +1281,10 @@ int main() { // +3 -> 3
     cout << endl << "> " ; 
     while ( readEXP )
     {
-      
       try 
       {
         nextToken = GetToken() ; 
-
+         
       } // try 
       catch ( MyException exp ) // string Error  
       {
@@ -1204,8 +1294,8 @@ int main() { // +3 -> 3
         nextToken.type = ERROR ; 
         hasErr = true ; 
       } // catch 
-      
-      gEndLine = true ; 
+
+      gEndLine = true ;
       s_exp.push_back( nextToken ) ;  
       if ( nextToken.type == LEFT_PAREN ) 
       { 
@@ -1246,6 +1336,13 @@ int main() { // +3 -> 3
           catch ( MyException exp )
           {
             cout << exp.What() << endl ; 
+            char t = '\0' ; 
+            do 
+            {
+              t = getchar() ; 
+            } while ( t != '\n' ) ; 
+            gNowRow ++ ; 
+            gNowColumn = 0 ; 
             hasErr = true ; 
           } // catch 
 
@@ -1253,6 +1350,7 @@ int main() { // +3 -> 3
           
           if ( NOT hasErr )
           {
+            gLastRow = gNowRow ;
             PrintS_EXP( s_exp ) ;   
           } // if 
               
@@ -1276,15 +1374,22 @@ int main() { // +3 -> 3
         catch ( MyException exp )
         { readEXP = false ; 
           cout << exp.What() << endl ; 
+          char t = '\0' ; 
+          do 
+          {
+            t = getchar() ; 
+          } while ( t != '\n' ) ; 
+          gNowColumn = 0 ;
+          gNowRow ++ ; 
         } // catch 
         
       } // else if 
       
-      
-      
+
     } // while ( readEXP )
 
-         
+
+    DeleteDotParen( s_exp ) ; 
     if ( nextToken.type == NONE ) // 讀到 EOF
     {
       aLL_EXP_DONE = true ;
