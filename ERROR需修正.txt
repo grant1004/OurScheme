@@ -1,0 +1,49 @@
+(((1 . -+2) 
+    . (("You need to handle >>\\<<"."You also need to handle >>\"<<") 
+       . 
+       ((exit) . 6)
+      )
+   ) 
+   . (7 . 8)
+  )
+
+正確: 
+> ( ( ( 1
+      .
+      -+2
+    )
+    ( "You need to handle >>\<<"
+      .
+      "You also need to handle >>"<<"
+    )
+    ( exit
+    )
+    .
+    6
+  )
+  7
+  .
+  8
+)
+
+我們:
+> ( ( ( 1
+      .
+      -+2
+    )
+    ( "You need to handle >>\<<"
+      .
+      "You also need to handle >>"<<"
+    )
+    ( exit
+    )
+    .
+    6
+  )
+  7
+  .
+  8
+
+
+-----------------------------------------------------------------
+.會掛掉
