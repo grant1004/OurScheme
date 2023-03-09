@@ -128,6 +128,8 @@ Thanks for using OurScheme!<<
 
 你的程式的輸出是>>Welcome to OurScheme!
 
+> 1
+
 > ";;;;;;;;;;;;;;;;;;;;;;;;;;;; Test 2 : Simple, with error"
 
 > v
@@ -142,7 +144,8 @@ Thanks for using OurScheme!<<
 
 > "   ( 1 2.54 3 . -4. 5 6 Hi there . 7 . nil ) "
 
-> ERROR (no closing quote) : END-OF-LINE encountered at line 1, column 56
+> ERROR (no closing quote) : END-OF-LINE encountered at Line 19 Column 56
+
 > This
 
 > is
@@ -165,7 +168,7 @@ Thanks for using OurScheme!<<
 
 > 325
 
-> 0
+> -
 
 > 325.000
 
@@ -183,22 +186,15 @@ Thanks for using OurScheme!<<
 
 > #g
 
-> ERROR (unexpected token) : atom or '(' expected when token at Line 1 Column 2 is >>.<<
-.
+> ERROR (unexpected token) : atom or '(' expected when token at Line 33 Column 2 is >>.<<
 
 > #t
 
-> ERROR (unexpected token) : atom or '(' expected when token at Line 3 Column 1 is >>)<<
-( 525
-  .
-)
+> ERROR (unexpected token) : atom or '(' expected when token at Line 39 Column 1 is >>)<<
 
 > 20
 
-> ERROR (unexpected token) : atom or '(' expected when token at Line 1 Column 2 is >>.<<
-.
-
-> 30
+> ERROR (unexpected token) : atom or '(' expected when token at Line 40 Column 2 is >>.<<
 
 > nil
 
@@ -206,6 +202,6 @@ Thanks for using OurScheme!<<
 
 > nil
 
-> ERROR (unexpected token) : atom or '(' expected when token at Line 1 Column 4 is >>)<<
-> ERROR (no more input) : END-OF-FILE encountered
+> ERROR (unexpected token) : atom or '(' expected when token at Line 47 Column 4 is >>)<<
+ERROR (no more input) : END-OF-FILE encountered
 Thanks for using OurScheme!<<
