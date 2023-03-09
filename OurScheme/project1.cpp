@@ -608,7 +608,12 @@ void SkipComment()
   do
   {
     ch = getchar() ;
-  } while ( ch != '\n' ) ; 
+  } while ( ch != '\n' && ch != -1 && ch != EOF ) ; 
+
+  if ( ch == -1 || ch == EOF )
+  {
+    throw EofException() ; 
+  } // if 
 
   gNowRow ++ ; 
   // cout << endl << "  COMMENT ADD LINE  " << gNowRow ;  
@@ -1344,6 +1349,7 @@ int main() {
         } // else if
         else if ( nextToken.type == DOT )
         {
+
           // cout << "DOT" ; 
           if ( myStack.empty() ) 
           {
