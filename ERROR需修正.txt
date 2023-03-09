@@ -1,0 +1,240 @@
+(((1 . -+2) 
+    . (("You need to handle >>\\<<"."You also need to handle >>\"<<") 
+       . 
+       ((exit) . 6)
+      )
+   ) 
+   . (7 . 8)
+  )
+
+正確: 
+> ( ( ( 1
+      .
+      -+2
+    )
+    ( "You need to handle >>\<<"
+      .
+      "You also need to handle >>"<<"
+    )
+    ( exit
+    )
+    .
+    6
+  )
+  7
+  .
+  8
+)
+
+我們:
+> ( ( ( 1
+      .
+      -+2
+    )
+    ( "You need to handle >>\<<"
+      .
+      "You also need to handle >>"<<"
+    )
+    ( exit
+    )
+    .
+    6
+  )
+  7
+  .
+  8
+ 
+
+------------------------------------------------------------------------------------
+(The sun shines bright(
+    in(the old Kentucky's home)T's summer
+    (the larkies are gay).nil)-of-the-world)
+正確:
+> ( The
+  sun
+  shines
+  bright
+  ( in
+    ( the
+      old
+      Kentucky
+      ( quote
+        s
+      )
+      home
+    )
+    T
+    ( quote
+      s
+    )
+    summer
+    ( the
+      larkies
+      are
+      gay
+    )
+    .nil
+  )
+  -of-the-world
+)
+
+------------------------------------------------------------------------------------
+
+(The sun shines bright(
+    in(the old Kentucky's home)T's summer
+    (the larkies are gay). nil)-of-the-world)
+
+正確:
+> ( The
+  sun
+  shines
+  bright
+  ( in
+    ( the
+      old
+      Kentucky
+      ( quote
+        s
+      )
+      home
+    )
+    T
+    ( quote
+      s
+    )
+    summer
+    ( the
+      larkies
+      are
+      gay
+    )
+  )
+  -of-the-world
+)
+
+-----------------------------------------------------------------------------------
+''(''('(cons 'a b)))
+正確:
+> ( quote
+  ( quote
+    ( ( quote
+        ( quote
+          ( ( quote
+              ( cons
+                ( quote
+                  a
+                )
+                b
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+)
+
+-----------------------------------------------------------------
+
+''(''('(cons 'a b) (c ())) (d e))
+正確:
+> ( quote
+  ( quote
+    ( ( quote
+        ( quote
+          ( ( quote
+              ( cons
+                ( quote
+                  a
+                )
+                b
+              )
+            )
+            ( c
+              nil
+            )
+          )
+        )
+      )
+      ( d
+        e
+      )
+    )
+  )
+)
+
+-----------------------------------------------------------------
+
+''(''('(cons'a b)(c'()))(d e))
+正確:
+> ( quote
+  ( quote
+    ( ( quote
+        ( quote
+          ( ( quote
+              ( cons
+                ( quote
+                  a
+                )
+                b
+              )
+            )
+            ( c
+              ( quote
+                nil
+              )
+            )
+          )
+        )
+      )
+      ( d
+        e
+      )
+    )
+  )
+)
+
+-----------------------------------------------------------------
+'
+   '
+    ( '
+       '
+        ( '
+           ( cons'a'b )
+          ( c'(exit) )
+        )
+      ( d e )
+    )
+正確:
+> ( quote
+  ( quote
+    ( ( quote
+        ( quote
+          ( ( quote
+              ( cons
+                ( quote
+                  a
+                )
+                ( quote
+                  b
+                )
+              )
+            )
+            ( c
+              ( quote
+                ( exit
+                )
+              )
+            )
+          )
+        )
+      )
+      ( d
+        e
+      )
+    )
+  )
+)
+
+-----------------------------------------------------------------
+結尾也怪怪的
