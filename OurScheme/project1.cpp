@@ -1343,6 +1343,11 @@ int main() {
         
         } // if 
 
+        if ( nextToken.type == RIGHT_PAREN && s_exp.back ( ).type == DOT )
+        {
+          throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
+        } // if 
+
         s_exp.push_back( nextToken ) ; 
 
         if ( nextToken.type == LEFT_PAREN )
@@ -1385,7 +1390,6 @@ int main() {
             } // if  
             
           } // else if 
-          
         } // else if
         else if ( nextToken.type == DOT )
         {
@@ -1413,9 +1417,15 @@ int main() {
           } // else 
  
           
-        } // else if 
-        
-
+        } // else if  
+        else
+        {
+          if ( NOT dotStack.empty() && CountInVec( myStack, DOT ) == dotStack.size( ) && 
+               dotStack.back().leftParNum == CountInVec( myStack, LEFT_PAREN ) )
+          {
+            dotStack.back().isCheck = true ; 
+          } // if
+        } // else 
         // cout << " NO Exception" << endl ; 
         if ( myStack.empty() )
         {  
