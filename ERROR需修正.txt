@@ -1,49 +1,31 @@
-(((1 . -+2) 
-    . (("You need to handle >>\\<<"."You also need to handle >>\"<<") 
+1 ; utestNum 
+
+(((1 . 2)
+    3.5
+    . ((.875 4.)
+       5
        . 
-       ((exit) . 6)
+       ("5 . 6 . 7 ".0)
+       (7. 8 . ())
       )
    ) 
-   . (7 . 8)
+   . (7. 8 . ())
   )
+  
+  
+正確>>
+> ERROR (unexpected token) : ')' expected when token at Line 8 Column 8 is >>(<<
 
-正確: 
-> ( ( ( 1
-      .
-      -+2
-    )
-    ( "You need to handle >>\<<"
-      .
-      "You also need to handle >>"<<"
-    )
-    ( exit
-    )
-    .
-    6
-  )
-  7
-  .
-  8
-)
+> ERROR (unexpected token) : atom or '(' expected when token at Line 1 Column 7 is >>)<<
 
-我們:
-> ( ( ( 1
-      .
-      -+2
-    )
-    ( "You need to handle >>\<<"
-      .
-      "You also need to handle >>"<<"
-    )
-    ( exit
-    )
-    .
-    6
-  )
-  7
-  .
-  8
+> ERROR (unexpected token) : atom or '(' expected when token at Line 1 Column 4 is >>)<<
+
+> ERROR (unexpected token) : atom or '(' expected when token at Line 1 Column 4 is >>.<<
+
+> ERROR (unexpected token) : atom or '(' expected when token at Line 1 Column 3 is >>)<<
+
+我們的>>
+> ERROR (unexpected token) : ')' expected when token at Line 8 Column 8 is >>(<<
 
 
------------------------------------------------------------------
-.會掛掉
+代表他把後面的指令讀完了
