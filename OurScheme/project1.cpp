@@ -10,6 +10,7 @@
 # include <sstream>
 # include <stdio.h>
 # include <stdlib.h>
+# include <stack>
 
 
 using namespace std ;
@@ -97,13 +98,44 @@ enum ExceptionType
   
   SYNERR_ATOM_PAR,   
   
-  SYNERR_RIGHTPAREN, 
-  
-  STRERR      
+  SYNERR_RIGHTPAREN,     
   
 }; // Enum ExceptionType 
 
-class MyException
+class SyntaxErrorException
+{
+  string mErrMsg  ;
+
+  public : 
+  const char* What()
+  {
+    return mErrMsg.c_str() ;       
+  } // What() 
+
+  SyntaxErrorException( ExceptionType ErrType, EXP token ) 
+  {
+    stringstream ss ;
+    if ( ErrType == SYNERR_ATOM_PAR ) // ( 下一個token應該要接 ATOM 或是 '(' )
+    {
+      ss << "ERROR (unexpected token) : "
+        << "atom or '(' expected when token at "
+        << "Line " << token.row  
+        << " Column " << token.column << " is >>" << token.token << "<<" ;  
+      mErrMsg = ss.str() ;
+    } // if 
+    else if ( ErrType == SYNERR_RIGHTPAREN ) // (  應該要接右括號卻沒有右括號  )
+    {
+      ss << "ERROR (unexpected token) : "
+        << "')' expected when token at "
+        << "Line " << token.row  
+        << " Column " << token.column << " is >>" << token.token << "<<" ;  
+      mErrMsg = ss.str() ;
+    } // else if
+  } // MyException()
+
+}; // SyntaxErrorException
+
+class NotAStringException
 {  
   string mErrMsg  ;
    
@@ -113,12 +145,7 @@ class MyException
     return mErrMsg.c_str() ;       
   } // What() 
   
-  MyException()
-  {
-    mErrMsg = "This is an empty Exception.\n" ; 
-  } // MyException()
-  
-  MyException( ExceptionType ErrType, int line, int column ) 
+  NotAStringException( int line, int column ) 
   {
     stringstream ss ;
     if ( ErrType == STRERR ) // String Error
@@ -132,29 +159,27 @@ class MyException
       mErrMsg = ss.str() ;   
     } // if 
   } // MyException() 
-  
-  MyException( ExceptionType ErrType, EXP token ) 
-  {
-    stringstream ss ;
-    if ( ErrType == SYNERR_ATOM_PAR ) // ( 下一個token應該要接 ATOM 或是 '(' )
-    {
-      ss << "ERROR (unexpected token) : "
-         << "atom or '(' expected when token at "
-         << "Line " << token.row  
-         << " Column " << token.column << " is >>" << token.token << "<<" ;  
-      mErrMsg = ss.str() ;
-    } // if 
-    else if ( ErrType == SYNERR_RIGHTPAREN ) // (  應該要接右括號卻沒有右括號  )
-    {
-      ss << "ERROR (unexpected token) : "
-         << "')' expected when token at "
-         << "Line " << token.row  
-         << " Column " << token.column << " is >>" << token.token << "<<" ;  
-      mErrMsg = ss.str() ;
-    } // else if
-  } // MyException()
+
 } ; 
 
+class EofException // read EOF 
+{
+  string mErrMsg  ;
+
+  public : 
+  const char* What()
+  {
+    return mErrMsg.c_str() ;       
+  } // What() 
+
+  NotAStringException( ) 
+  {
+    stringstream ss ;
+    ss << "ERROR (no more input) : END-OF-FILE encountered" ;
+    mErrMsg = ss.str() ;   
+  } // MyException() 
+
+}; // EofException
 
 EXP * gRoot = NULL ;
 EXP * gHead = NULL ;
@@ -707,7 +732,8 @@ EXP GetToken()
 
   if ( gg.token == "\0" && gg.type == NONE ) // EOF 
   {
-    gIsEOF = true ;  
+    gIsEOF = true ;
+    throw EofException() ; 
   } // if 
 
   return gg ; 
@@ -809,6 +835,7 @@ DOT 5
     if ( temp->pre_next != NULL && temp->pre_next->dotCnt != 0 ) {
       //      cout << "mm" << endl ;
       temp->dotCnt = temp->pre_next->dotCnt+1 ;
+      temp = temp->listPtr ; 
       throw MyException( SYNERR_RIGHTPAREN, *temp ) ;
       return false ; // 應該是右括號 ex: . (1) (1)  
     } // if
@@ -942,23 +969,20 @@ void DeleteDotParen( vector<EXP> & s_exp )
 
 } // DeleteDotParen()
 
-void PrintS_EXP( vector<EXP> s_exp ) 
+bool PrintS_EXP( vector<EXP> s_exp ) 
 {
   int tab = 0 ; 
   int parnum = 0 ;  
-  DeleteDotParen( s_exp ) ; 
-
   // (1 . (2 . (3 . 4))) --> ( 1 2 3 . 4 ) 
-  // cout << "Line : " << s_exp.at( 0 ).row << " " ; 
   if ( s_exp.at( 0 ).token == "("  && s_exp.at( 1 ).token == "exit" && s_exp.at( 2 ).token == ")" )
   {
-    
+    return true ; 
   } // if 
   else 
   {
     for ( int i = 0 ; i < s_exp.size() ; i++ )
     {
-
+      cout << "Line : " << s_exp.at( i ).row << " " ; 
       if ( s_exp.at( i ).type == LEFT_PAREN )
       {
         parnum ++ ; 
@@ -1033,6 +1057,7 @@ void PrintS_EXP( vector<EXP> s_exp )
     } // for 
   } // else 
 
+  return false ;
 } // PrintS_EXP() 
 
 
@@ -1239,157 +1264,143 @@ static int uTestNum = -1 ;
 
 int main() { 
   cin >> uTestNum ; 
-  bool readEXP = true ;
-  int parnum = 0 ; 
+
   int i = 0 ;
   bool syntaxIsTrue ;
+  stack<Type> myStack ; // 用來計算 左括號和右括號還有 DOT 的數量 
+
+  bool hasDot = false ; 
+
   cout << "Welcome to OurScheme!" << endl  ;
   
-  bool aLL_EXP_DONE = false ; 
+  bool quit = false ; 
+  bool readEXP = true ;
   bool hasErr = false ; 
   
   vector<EXP> s_exp ;
   EXP nextToken ;
-  
-  
-  while ( NOT aLL_EXP_DONE ) 
-  { 
- 
-    readEXP = true ;
-    parnum = 0 ; 
-    gNowColumn = 0 ; 
-    s_exp.clear() ; 
-    hasErr = false ;
-    gEndLine = false ; // false : 不要計算換行 ; true : 開始計算換行 
-    
-    cout << endl << "> " ; 
-    while ( readEXP )
-    {
-      try 
-      {
-        nextToken = GetToken() ; 
-         
-      } // try 
-      catch ( MyException exp ) // string Error  
-      {
-        cout << exp.What() << endl ; 
-        readEXP = false ; 
-        nextToken.token = "ERROR" ;
-        nextToken.type = ERROR ; 
-        hasErr = true ; 
-      } // catch 
 
-      gEndLine = true ;
-      s_exp.push_back( nextToken ) ;  
-      if ( nextToken.type == LEFT_PAREN ) 
-      { 
-        parnum ++ ; 
-        // cout << "Left Paren :" << parnum << endl ; 
-      } // if       
-      else if ( nextToken.type == RIGHT_PAREN ) 
+  while ( NOT quit )
+  {
+    while ( readEXP == true )
+    {
+      try
       {
-        parnum -- ; 
-        // cout << "Right Paren :" << parnum << endl ; 
-      } // else if 
-      
-      if ( parnum == 0 ) // 這條指令結束 
-      {
-        if ( nextToken.type == QUOTE )
+        
+        nextToken = GetToken() ; // 有可能會丟出stringException 和 EofException
+
+        s_exp.push_back( nextToken ) ; 
+
+
+        if ( nextToken.type == LEFT_PAREN )
         {
-          readEXP = true ;
+          myStack.push( nextToken.type ) ; 
+        } // if 
+        else if ( nextToken.type == RIGHT_PAREN )
+        {
+          if ( myStack.top == LEFT_PAREN )
+          {
+            myStack.pop() ; 
+          } // if 
+          else if ( myStack.top == DOT )
+          {
+            myStack.pop() ;
+            cout << "Debug >> My Stack top : " << PrintType(myStack.top) << endl ;
+            myStack.pop() ;
+
+          } // else if 
+          
+        } // else if
+        else if ( nextToken.type == DOT )
+        {
+          if ( myStack.top() == DOT )
+          {
+            throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
+          } // if 
+          else
+          {
+            myStack.push( nextToken.type ) ; 
+          } // else 
+
+        } // else if 
+        
+        if ( myStack.empty() )
+        {  
+          if ( nextToken.type == QUOTE )
+          {
+            readEXP = true ; 
+          } // if 
+          else // 這條指令結束了
+          {
+            FixToken( s_exp ) ; // 更正一些token t, (), nil...   
+
+            // 建立樹結構 
+            delete gRoot ;  
+            gRoot = NULL ;
+            i = 0 ;
+            BuildTree( s_exp, i ) ;
+            gHead = gRoot ; // new
+
+
+            // 判斷文法 
+            gnum = 0 ;
+            S_EXP( gHead ) ; // 可能會丟出 syntax execepiton 
+
+            // 一些印出指令前的處裡 
+            FixQuote( s_exp ) ; 
+            DeleteDotParen( s_exp ) ;
+            quit = PrintS_EXP( s_exp ) ; 
+            readEXP = false ;
+
+            cout << endl << "Debug >> 會跑到這裡代表沒有任何Exception而且指令結束了 " << endl ;
+            cout << endl << "=======================================================" << endl ; 
+          } // else if 
         } // if 
         
-        else if ( nextToken.type != NONE && nextToken.type != ERROR ) 
-        {
-          
-          
-          FixToken( s_exp ) ; // 更正token 
-          
-          delete gRoot ;  
-          gRoot = NULL ;
-          i = 0 ;
-          BuildTree( s_exp, i ) ;
-          gHead = gRoot ; // new
-          bool isTrue = true ; 
-          try 
-          {
-            gnum = 0 ;
-            isTrue = S_EXP( gHead ) ;
-
-          } // try 
-          catch ( MyException exp )
-          {
-            cout << exp.What() << endl ; 
-            char t = '\0' ; 
-            do 
-            {
-              t = getchar() ; 
-            } while ( t != '\n' ) ; 
-            gNowRow ++ ; 
-            gNowColumn = 0 ; 
-            hasErr = true ; 
-          } // catch 
-
-          FixQuote( s_exp ) ;
-          if ( NOT hasErr )
-          {
-            
-            gLastRow = gNowRow ;
-            PrintS_EXP( s_exp ) ; 
-            
-          } // if 
-              
-          readEXP = false ;
-        } // else if 
-        else if ( nextToken.type == NONE ) // nextToken == NONE 代表讀到 EOF 了，沒有任何指令了 
-        {
-          cout << "ERROR (no more input) : END-OF-FILE encountered" ; 
-          readEXP = false ;
-        } // else if 
-        
-         
-      } // if 
-      else if ( parnum < 0 )
+      } // try 
+      catch ( NotAStringException ex ) // has no closing quote exception 
       {
-        try 
-        {
-          throw MyException( SYNERR_ATOM_PAR, nextToken ) ; 
-        } // try 
-        catch ( MyException exp )
-        { readEXP = false ; 
-          cout << exp.What() << endl ; 
-          char t = '\0' ; 
-          do 
-          {
-            t = getchar() ; 
-          } while ( t != '\n' ) ; 
-          gNowColumn = 0 ;
-          gNowRow ++ ; 
-        } // catch 
-        
-      } // else if 
-      
+        cout << ex.What() << endl ; 
 
+        // After print an String Error Message
+        // we should break the while( readEXP ) 
+        readEXP = false ; 
+        hasErr = true ;
+
+      } // catch  the No Closing Quote Exception 
+      catch ( SyntaxErrorException ex ) // SyntaxError 
+      {
+        cout << ex.What() << endl ; 
+        hasErr = true ;
+        // After print an Syntax Error Message
+        // we should break the while( readEXP )
+        readEXP = false ; 
+
+        // and we should read char to end line ; 
+        char ch = '\0'
+        do
+        {
+          ch = getchar() ; 
+        } while ( ch != '\n' ) ; 
+
+        // and gNowRow plus one, gNowColumn clear 
+        gNowRow ++ ; 
+        gNowColumn = 0 ; 
+
+      } // catch Syntax Exception
+      catch ( EofException ex )
+      {
+        hasErr = true ;
+        cout << ex.What() << endl ; 
+        readEXP = false ; 
+        quit = true ; 
+      } // catch 
+        
     } // while ( readEXP )
 
-
-    if ( NOT hasErr )
-    {
-      DeleteDotParen( s_exp ) ; 
-    } // if 
-    
-    if ( nextToken.type == NONE ) // 讀到 EOF
-    {
-      aLL_EXP_DONE = true ;
-    } // if 沒有 (exit) 
-    else if ( s_exp.at( 0 ).token == "("  && s_exp.at( 1 ).token == "exit" && s_exp.at( 2 ).token == ")" )
-    {
-      aLL_EXP_DONE = true ;
-    } // else if 
-    
-  } // while ( ALL_EXP ) 
+  } // while ( NOT quit )  
   
-  printf( "\nThanks for using OurScheme!" ) ;
+  printf( "Thanks for using OurScheme!" ) ;
 
   return 0;
     
