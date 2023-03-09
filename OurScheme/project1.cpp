@@ -902,8 +902,8 @@ void DeleteDotParen( vector<EXP> & s_exp )
     {
       if ( s_exp.at( i + 1 ).type == LEFT_PAREN ) // . ( 
       { 
-        parnum ++ ;
-        for ( int r = i+1 ; r < s_exp.size( ) ; r++ ) // i = '.'  i+1 = '('
+        bool bb = false ; 
+        for ( int r = i+1 ; r < s_exp.size( ) && NOT bb  ; r++ ) // i = '.'  i+1 = '('
         {
           if ( s_exp.at( r ).type == LEFT_PAREN )
           {
@@ -912,11 +912,11 @@ void DeleteDotParen( vector<EXP> & s_exp )
           else if ( s_exp.at( r ).type == RIGHT_PAREN )
           {
             parnum -- ; 
-            if ( parnum == 1 )
+            if ( parnum == 0 )
             {
 
               s_exp.erase( s_exp.begin() + r ) ; 
-
+              bb = true ; 
             } // if 
           } // else if 
 
@@ -924,7 +924,7 @@ void DeleteDotParen( vector<EXP> & s_exp )
 
         s_exp.erase( s_exp.begin() + i ) ; // delete '.' 
         s_exp.erase( s_exp.begin() + i ) ; // delete '('
-
+        // PrintVec( s_exp ) ;  
       } // if 
       else if ( s_exp.at( i + 1 ).type == NIL ) // . nil 
       {
@@ -934,9 +934,11 @@ void DeleteDotParen( vector<EXP> & s_exp )
 
     } // if 
      
+  
+
   } // for
 
-  // PrintVec( s_exp ) ;  
+
 
 } // DeleteDotParen()
 
@@ -1045,7 +1047,6 @@ EXP *GetValue( vector<EXP> vec, int &i ) {
   ptr -> pre_next = NULL ;
   ptr -> listPtr = NULL ;
   ptr -> pre_listPtr = NULL ;
-//  ptr -> quoteCnt = 0 ;
   ptr -> dotCnt = 0 ;
   i++ ;
   return ptr ;
@@ -1232,17 +1233,12 @@ void FixQuote( vector<EXP> & s_exp ) { // '(1 '4) , '(1), (1 '2 4 5)
   } // while
 } // FixQuote()
 
-void test(vector<EXP> s_exp){
-  for ( int i = 0; i < s_exp.size(); i++){
-    cout << s_exp[i].token << "," << PrintType(s_exp[i].type) << endl ;
-  }
-}
 
 
 static int uTestNum = -1 ; 
 
 int main() { 
-//  cin >> uTestNum ; 
+  cin >> uTestNum ; 
   bool readEXP = true ;
   int parnum = 0 ; 
   int i = 0 ;
@@ -1319,12 +1315,6 @@ int main() {
           {
             gnum = 0 ;
             isTrue = S_EXP( gHead ) ;
-//            if ( isTrue == true ) {
-//              cout << "Correct!" << endl ;
-//            }
-//            else{
-//              cout << "ERROR!" << endl ;
-//            }
 
           } // try 
           catch ( MyException exp )
@@ -1383,7 +1373,11 @@ int main() {
     } // while ( readEXP )
 
 
-    DeleteDotParen( s_exp ) ; 
+    if ( NOT hasErr )
+    {
+      DeleteDotParen( s_exp ) ; 
+    } // if 
+    
     if ( nextToken.type == NONE ) // Åª¨ì EOF
     {
       aLL_EXP_DONE = true ;
