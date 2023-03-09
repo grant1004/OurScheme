@@ -1275,13 +1275,27 @@ void FixQuote( vector<EXP> & s_exp ) { // '(1 '4) , '(1), (1 '2 4 5)
   } // while
 } // FixQuote()
 
-void StackClear( stack<Type>& stack )
+
+struct DotCheck 
 {
-  while ( NOT stack.empty( ) )
+  Type type ; 
+  bool isCheck ; 
+  int leftParNum ; 
+} ; // DotCheck 
+
+int CountInVec( vector<Type> vec, Type tp )
+{
+  int cnt = 0 ; 
+  for ( int i = 0 ; i < vec.size( ) ; i++ )
   {
-    stack.pop() ; 
-  } // while 
-} // StackClear()
+    if ( vec.at( i ) == tp )
+    {
+      cnt ++ ; 
+    } // if 
+  } // for
+
+  return cnt ; 
+} // CountInVec()
 
 static int uTestNum = -1 ; 
 
@@ -1290,8 +1304,8 @@ int main() {
 
   int i = 0 ;
   bool syntaxIsTrue ;
-  stack<Type> myStack ; // 用來計算 左括號和右括號還有 DOT 的數量 
-
+  vector<Type> myStack ; // 用來計算 左括號和右括號還有 DOT 的數量 
+  vector<DotCheck> dotStack ; 
   bool hasDot = false ; 
 
   cout << "Welcome to OurScheme!" << endl  ;
@@ -1308,7 +1322,8 @@ int main() {
     readEXP = true ; 
     gNowColumn = 0 ; 
     s_exp.clear() ; 
-    StackClear( myStack ) ; 
+    myStack.clear() ;
+    dotStack.clear() ;
 
     while ( readEXP == true )
     {
@@ -1317,38 +1332,68 @@ int main() {
         
         nextToken = GetToken() ; // 有可能會丟出stringException 和 EofException
 
-        s_exp.push_back( nextToken ) ; 
+        if ( NOT dotStack.empty() && dotStack.back().isCheck == true )
+        {
+          // cout << "Is Check " << PrintType(nextToken.type) << endl ;
+          if ( nextToken.type != RIGHT_PAREN )
+          {
+            // cout << "ERROR" ; 
+            throw SyntaxErrorException( SYNERR_RIGHTPAREN, nextToken ) ; 
+          } // if 
+        
+        } // if 
 
+        s_exp.push_back( nextToken ) ; 
 
         if ( nextToken.type == LEFT_PAREN )
         {
-          myStack.push( nextToken.type ) ; 
+          myStack.push_back( nextToken.type ) ; 
         } // if 
         else if ( nextToken.type == RIGHT_PAREN )
         {
           // cout << "Right Paren " ;  
+          // cout << "dot cnt : " << dotCnt << " DOT Stack size : " << dotStack.size() << endl; 
           if ( myStack.empty( ) )
           {
             // cout << "RIGHT PAREN Exception line : " << nextToken.row  ;
             throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
           } // else if 
-          else if ( myStack.top() == LEFT_PAREN )
+          else if ( myStack.back() == LEFT_PAREN )
           {
             // cout << "Correct" << endl ; 
-            myStack.pop() ; 
+            myStack.pop_back() ; 
+
+            if ( NOT dotStack.empty() && CountInVec( myStack, DOT ) == dotStack.size( ) && 
+                 dotStack.back().leftParNum == CountInVec( myStack, LEFT_PAREN ) )
+            {
+              dotStack.back().isCheck = true ; 
+            } // if 
           } // if 
-          else if ( myStack.top() == DOT )
+          else if ( myStack.back() == DOT )
           {
             // cout << "Debug >> pop stack : " << PrintType( myStack.top() ) << endl ;
-            myStack.pop() ;
+            myStack.pop_back() ;
             // cout << "Debug >> pop stack : " << PrintType( myStack.top() ) << endl ;
-            myStack.pop() ;
+            myStack.pop_back() ;
 
+            // cout << "Pop dot stack" << endl ; 
+            dotStack.pop_back() ; 
+
+            if ( NOT dotStack.empty( ) && dotStack.back().leftParNum == CountInVec( myStack, LEFT_PAREN ) )
+            {
+              dotStack.back().isCheck = true ; 
+            } // if  
+            
           } // else if 
           
         } // else if
         else if ( nextToken.type == DOT )
         {
+          DotCheck tt ; 
+          tt.type = DOT ; 
+          tt.isCheck = false ; 
+          tt.leftParNum = CountInVec( myStack, LEFT_PAREN ) ; 
+          dotStack.push_back( tt ) ; 
 
           // cout << "DOT" ; 
           if ( myStack.empty() ) 
@@ -1356,7 +1401,7 @@ int main() {
             // cout << " has Exception" << endl ; 
             throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
           } // if 
-          else if ( myStack.top() == DOT ) 
+          else if ( myStack.back() == DOT ) 
           {
             // cout << " has Exception" << endl ; 
             throw SyntaxErrorException( SYNERR_RIGHTPAREN, nextToken ) ; 
@@ -1364,11 +1409,13 @@ int main() {
           else
           {
             // cout << " Correct" << endl ; 
-            myStack.push( nextToken.type ) ; 
+            myStack.push_back( nextToken.type ) ; 
           } // else 
-
+ 
+          
         } // else if 
         
+
         // cout << " NO Exception" << endl ; 
         if ( myStack.empty() )
         {  
@@ -1404,7 +1451,7 @@ int main() {
             // cout << endl << "=======================================================" << endl ;
           } // else if 
         } // if 
-        else if ( myStack.top() == DOT && myStack.size() == 1 )
+        else if ( myStack.back() == DOT && myStack.size() == 1 )
         {
           throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
         } // else if 
