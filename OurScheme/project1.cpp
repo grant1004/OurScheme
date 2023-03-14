@@ -999,7 +999,7 @@ bool PrintS_EXP( vector<EXP> s_exp )
   {
     for ( int i = 0 ; i < s_exp.size() ; i++ )
     {
-      // cout << "Line : " << s_exp.at( i ).row << " " ; 
+      cout << "Line :" << s_exp.at( i ).nowRow << " " ;
       if ( s_exp.at( i ).type == LEFT_PAREN )
       {
         parnum ++ ; 
@@ -1204,6 +1204,8 @@ void FixToken( vector<EXP> & s_exp ) {
               && s_exp.at( i + 1 ).type == RIGHT_PAREN ) {
       s_exp.at( i ).token = "nil" ;
       s_exp.at( i ).type = NIL ;
+      s_exp.at( i ).row = s_exp.at( i + 1 ).row ;
+      s_exp.at( i ).nowRow = s_exp.at( i + 1 ).nowRow ;
       s_exp.erase( s_exp.begin()+i+1 ) ;
       
     } // else if 
@@ -1315,6 +1317,7 @@ int main() {
   
   vector<EXP> s_exp ;
   EXP nextToken ;
+  EXP lastToken ; 
 
   while ( NOT quit )
   {
@@ -1325,11 +1328,12 @@ int main() {
     myStack.clear() ;
     dotStack.clear() ;
 
+
     while ( readEXP == true )
     {
       try
       {
-        
+
         nextToken = GetToken() ; // 有可能會丟出stringException 和 EofException
 
         if ( NOT dotStack.empty() && dotStack.back().isCheck == true )
@@ -1343,12 +1347,18 @@ int main() {
         
         } // if 
 
-        if ( nextToken.type == RIGHT_PAREN && s_exp.back ( ).type == DOT )
+        if ( nextToken.type == RIGHT_PAREN && NOT s_exp.empty() && s_exp.back().type == DOT )
+        {
+          throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
+        } // if 
+
+        if ( nextToken.type == DOT && NOT s_exp.empty() && s_exp.back ( ).type == LEFT_PAREN )
         {
           throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
         } // if 
 
         s_exp.push_back( nextToken ) ; 
+
 
         if ( nextToken.type == LEFT_PAREN )
         {
@@ -1427,6 +1437,7 @@ int main() {
           } // if
         } // else 
         // cout << " NO Exception" << endl ; 
+
         if ( myStack.empty() )
         {  
           if ( nextToken.type == QUOTE )
@@ -1465,6 +1476,8 @@ int main() {
         {
           throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
         } // else if 
+
+
       } // try 
       catch ( NotAStringException ex ) // has no closing quote exception 
       {
@@ -1478,6 +1491,8 @@ int main() {
       } // catch  the No Closing Quote Exception 
       catch ( SyntaxErrorException ex ) // SyntaxError 
       {
+        
+
         cout << ex.What() << endl ; 
         // After print an Syntax Error Message
         // we should break the while( readEXP )
@@ -1491,8 +1506,10 @@ int main() {
         } while ( ch != '\n' && ch != EOF && ch != -1 ) ; 
 
         // and gNowRow plus one, gNowColumn clear 
-        gLastRow = gNowRow ; 
+        
         gNowRow ++ ;
+        gLastRow = gNowRow ; 
+
         // cout << endl << "  ERROR ADD LINE  " << gNowRow ; 
         gNowColumn = 0 ; 
 
