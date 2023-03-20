@@ -1451,6 +1451,8 @@ class Functions
       Integer_qmark() ;
     else if ( exeNode->token == "real?" ) // real? and number? 
       Real_qmark() ;
+    else 
+      cout << "ERROR (unbound symbol)" << endl ;
 //    else if ( exeNode->token == "car" )
 //      Car() ;
        
@@ -1577,10 +1579,7 @@ class Functions
 //    {
 //      Clean_Environment() ;
 //    } // else if 
-//    else
-//    {
-//      // throw NotFoundFuncException() ; 
-//    } // else 
+
     
     } // EvalSEXP()
 
@@ -1612,17 +1611,39 @@ void Functions::Real_qmark() {
   EXP* temp = exeNode->next ;
   EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
   EXP ex ;
+  vector<EXP> new_vector ;
+  bool isTrue = false ;
   if ( temp != NULL && temp->next != NULL && temp->next->type == RIGHT_PAREN ) { // 1
-    if ( temp->type == INT || temp->type == FLOAT ) {
+    if ( temp->type == INT || temp->type == FLOAT )
+      isTrue = true ;
+    else if ( FindMap( temp->token, new_vector ) == true ) {
+      
+      if ( new_vector.size() == 1 ) {
+        ex.token = new_vector.at(0).token ;
+        ex.type = new_vector.at(0).type ;
+        if ( IsATOM( &ex ) ) 
+          isTrue = true ;
+        else 
+          isTrue = false ;
+      } // if
+      else
+        isTrue = false ;
+      
+    } // else if
+    else 
+      isTrue = false ;
+      
+      
+    if ( isTrue == true ) {
       ex.token = "#t" ;
       ex.type = T ;
       emptyptr->vec.push_back( ex ) ;
     } // if
-    else {
+    else { // isTrue = false
       ex.token = "nil" ;
       ex.type = NIL ;
       emptyptr->vec.push_back( ex ) ;
-    } // else
+    } // else 
     
   } // if
   else {
@@ -1636,17 +1657,39 @@ void Functions::Integer_qmark() {
   EXP* temp = exeNode->next ;
   EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
   EXP ex ;
+  vector<EXP> new_vector ;
+  bool isTrue = false ;
   if ( temp != NULL && temp->next != NULL && temp->next->type == RIGHT_PAREN ) { // 1
-    if ( temp->type == INT ) {
+    if ( temp->type == INT )
+      isTrue = true ;
+    else if ( FindMap( temp->token, new_vector ) == true ) {
+      
+      if ( new_vector.size() == 1 ) {
+        ex.token = new_vector.at(0).token ;
+        ex.type = new_vector.at(0).type ;
+        if ( IsATOM( &ex ) ) 
+          isTrue = true ;
+        else 
+          isTrue = false ;
+      } // if
+      else
+        isTrue = false ;
+      
+    } // else if
+    else 
+      isTrue = false ;
+      
+      
+    if ( isTrue == true ) {
       ex.token = "#t" ;
       ex.type = T ;
       emptyptr->vec.push_back( ex ) ;
     } // if
-    else {
+    else { // isTrue = false
       ex.token = "nil" ;
       ex.type = NIL ;
       emptyptr->vec.push_back( ex ) ;
-    } // else
+    } // else 
     
   } // if
   else {
@@ -1659,18 +1702,39 @@ void Functions::Null_qmark() {
   EXP* temp = exeNode->next ;
   EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
   EXP ex ;
-  
+  bool isTrue = false ;
+  vector<EXP> new_vector ;
   if ( temp != NULL && temp->next != NULL && temp->next->type == RIGHT_PAREN ) { // 1
-    if ( temp->type == NIL ) {
+    if ( temp->type == NIL )
+      isTrue = true ;
+    else if ( FindMap( temp->token, new_vector ) == true ) {
+      
+      if ( new_vector.size() == 1 ) {
+        ex.token = new_vector.at(0).token ;
+        ex.type = new_vector.at(0).type ;
+        if ( IsATOM( &ex ) ) 
+          isTrue = true ;
+        else 
+          isTrue = false ;
+      } // if
+      else
+        isTrue = false ;
+      
+    } // else if
+    else 
+      isTrue = false ;
+      
+      
+    if ( isTrue == true ) {
       ex.token = "#t" ;
       ex.type = T ;
       emptyptr->vec.push_back( ex ) ;
     } // if
-    else {
+    else { // isTrue = false
       ex.token = "nil" ;
       ex.type = NIL ;
       emptyptr->vec.push_back( ex ) ;
-    } // else
+    } // else 
     
   } // if
   else {
@@ -1684,18 +1748,43 @@ void Functions::Atom_qmark() {
   EXP* temp = exeNode->next ;
   EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
   EXP ex ;
-  
+  vector<EXP> new_vector ;
+  bool isTrue = false ;
   if ( temp != NULL && temp->next != NULL && temp->next->type == RIGHT_PAREN ) { // 1
-    if ( IsATOM( temp ) ) {
+    
+    if ( temp->type != SYMBOL && IsATOM( temp ) )
+      isTrue = true ;
+    else if ( FindMap( temp->token, new_vector ) == true ) {
+      
+      if ( new_vector.size() == 1 ) {
+        ex.token = new_vector.at(0).token ;
+        ex.type = new_vector.at(0).type ;
+        if ( IsATOM( &ex ) ) 
+          isTrue = true ;
+        else 
+          isTrue = false ;
+      } // if
+      else
+        isTrue = false ;
+      
+    } // else if
+    else if ( temp->type == SYMBOL ) {
+      cout << "ERROR (unbound symbol)" << endl ;
+    } // if
+    else 
+      isTrue = false ;
+      
+      
+    if ( isTrue == true ) {
       ex.token = "#t" ;
       ex.type = T ;
       emptyptr->vec.push_back( ex ) ;
     } // if
-    else {
+    else { // isTrue = false
       ex.token = "nil" ;
       ex.type = NIL ;
       emptyptr->vec.push_back( ex ) ;
-    } // else
+    } // else 
     
   } // if
   else {
@@ -1741,6 +1830,7 @@ ERROR (non-list) :
         for ( int i = 0; i < temp->vec.size(); i++ ) {
           emptyptr->vec.push_back( temp->vec.at(i) ) ;
         } // for
+        
       } // else if
       else {
         cout << "ERROR (unbound symbol)" << endl ;
@@ -1776,27 +1866,28 @@ ERROR (non-list) :
 void Functions::Define() { 
   string str ;
   vector<EXP> vs ;
+  vector<EXP> new_vector ; // map¥Î 
   EXP ex ;
-  Type type ;
   EXP* temp = exeNode->next ;
-  if ( IsSystemPrimitive(temp->type) ) {
+  if ( temp != NULL && IsSystemPrimitive(temp->type) ) {
     cout << "attempt to redefine a system primitive" << endl ;
   } // if
-  else if ( temp != NULL && temp->type == SYMBOL && temp->next != NULL && temp->next->next != NULL && temp->next->next->type == RIGHT_PAREN ) { // 2
+  else if ( temp != NULL && temp->next != NULL && temp->next->next != NULL && temp->next->next->type == RIGHT_PAREN ) { // 2
     if ( temp->type == SYMBOL ) {
       str = temp->token ;
-      type = temp->type ;
       temp = temp->next ;
-      if ( temp->type == EMPTYPTR ) {
-        temp = temp->listPtr ;
-        while ( temp != NULL ) {
-          ex.token = temp->token ;
-          ex.type = temp->type ;
-          vs.push_back( ex ) ;
-          temp = temp->next ;
-        } // while
+      if ( temp->type == EMPTYPTR ) { 
+        for ( int i = 0; i < temp->vec.size(); i++ ) {
+          vs.push_back( temp->vec.at(i) ) ;
+        } // for
         
       } // if
+      else if ( FindMap( temp->token, new_vector ) ) {
+        for ( int i = 0; i < new_vector.size(); i++ ) {
+          vs.push_back( new_vector.at(i) ) ;
+        } // for
+        
+      } // else if
       else {
         ex.token = temp->token ;
         ex.type = temp->type ;
