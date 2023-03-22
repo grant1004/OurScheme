@@ -1393,24 +1393,25 @@ class Functions
     map<string,vector<EXP>> symbolMap ; // map symbol 
     EXP* exeNode ; 
 
-  public : 
-    void SetRoot() ;
-    void Eval( ) ; // 文法檢查 
-    bool CheckNumOfArg( int num ) ; 
+  public : // 早安胖嘟嘟肥肥 
+    void SetRoot() ; // iris
+    void Eval( ) ; // iris
+    bool CheckNumOfArg( int num ) ; // iris
     void Define() ; // iris
     void Cons() ; // iris
-    bool IsSystemPrimitive( Type type ) ;
-//    void Execute() ;
-    void PrintMap() ;
-    bool FindMap( string str, vector<EXP> &new_vector ) ;
+    bool IsSystemPrimitive( Type type ) ; // iris
+    void PrintMap() ; // iris
+    bool FindMap( string str, vector<EXP> &new_vector ) ; // iris
     void Atom_qmark() ; // iris
     void Null_qmark() ; // iris
     void Integer_qmark() ; // iris
     void Real_qmark() ; // iris
-//    void Car() ; // iris
+    void Quote() ; // iris
     
+    
+    
+//    void Car() ; // iris
 //    EXP List() ; // list
-//    EXP Quote() ; // ' 
 //    EXP Cdr() ; // cdr 
 //    EXP Pair_qmark() ; // pair?
 //    EXP List_qmark() ; // list?
@@ -1454,6 +1455,8 @@ class Functions
       Integer_qmark() ;
     else if ( exeNode->token == "real?" ) // real? and number? 
       Real_qmark() ;
+    else if ( exeNode->token == "quote" ) 
+      Quote() ;
 //    else if ( exeNode->token == "car" )
 //      Car() ;
     else 
@@ -1609,11 +1612,20 @@ void Functions::SetRoot() {
 } // SetRoot()
 
 void Functions::PrintMap() {
+//  new_vector.assign(original.begin(), original.end());
+  vector<EXP> new_vector ;
   cout << endl << "Map Content: " << endl ;
   for ( auto it = symbolMap.rbegin(); it != symbolMap.rend(); it++ ) {
       cout << "string: " << (*it).first << endl ;
+      cout << "Content: " ;
+      new_vector.assign((*it).second.begin(), (*it).second.end());
+      for ( int i = 0; i < new_vector.size(); i++ ){
+        cout << new_vector.at(i).token ;
+      }
   } // for
-  cout << "===============" ;
+  
+  
+  cout << endl << "===============" << endl ;
 } // PrintMap()
 
 bool Functions::FindMap( string str, vector<EXP> &new_vector ) {
@@ -1824,6 +1836,48 @@ void Functions::Atom_qmark() {
   
 } // Atom_qmark()
 
+void Functions::Quote() {
+  EXP* temp = exeNode->next ;
+  EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
+  EXP ex ;
+  bool bbreak = false ;
+  while ( bbreak == false ) {
+
+    if ( temp->type == EMPTYPTR ) {
+      temp = temp->listPtr ;
+    } // if
+    else if ( temp->type == RIGHT_PAREN ) {
+      ex.token = temp->token ;
+      ex.type = temp->type ;
+      emptyptr->vec.push_back( ex ) ;
+      
+      while ( temp->type != LEFT_PAREN ) { // 走回去 
+        temp = temp->pre_next ; 
+      } // while
+      
+      temp = temp->pre_listPtr ;
+      if ( temp == emptyptr ) {
+        bbreak = true ;
+      } 
+      else {
+        temp = temp->next ;
+      }
+    } // else if 
+    else {
+      ex.token = temp->token ;
+      ex.type = temp->type ;
+      emptyptr->vec.push_back( ex ) ;
+      temp = temp->next ;
+    } // else
+
+  } // while
+  
+  emptyptr->vec.erase(emptyptr->vec.end() - 1) ;
+//  cout << endl << " emptyptr->vec " << endl ;
+//  for( int i = 0 ; i < emptyptr->vec.size() ; i++ ){
+//    cout << emptyptr->vec.at(i).token ;
+//  }
+}
 
 void Functions::Cons() { 
   string str ;
@@ -1971,43 +2025,49 @@ Else if ( 遇到X )
   bool hasError = false ;
   vector<EXP> new_vector ; // map用 
   EXP* temp = exeNode ;
+  
   if ( IsATOM(temp) && temp->type != SYMBOL ) {
     hasError = true ; 
     exeNode = temp ;
     cout << temp->token ;
     // 出迴圈 
-  } // if
+  } // else if
   else if ( temp->type == SYMBOL && FindMap( temp->token, new_vector ) == false ) {
     hasError = true ; 
     cout << "ERROR (unbound symbol) 1982" << endl ;
   } // else if 
   else if ( temp->type == EMPTYPTR ) {
-    temp = temp->listPtr ;
-    EXP* listHead = temp ;
-    while ( listHead->type != RIGHT_PAREN ) {
-      if ( listHead->type == DOT ) {
-        cout << "ERROR (non-list)" << endl ;
-        hasError = true ; 
-        break ;
-      } // if
-      listHead = listHead->next ;
+    if ( temp->listPtr->next->type == QUOTE ) {
+      exeNode = temp->listPtr->next ;
+    } // if
+    else {
+      temp = temp->listPtr ;
+      EXP* listHead = temp ;
+      while ( listHead->type != RIGHT_PAREN ) {
+        if ( listHead->type == DOT ) {
+          cout << "ERROR (non-list)" << endl ;
+          hasError = true ; 
+          break ;
+        } // if
+        listHead = listHead->next ;
+        
+      } // while
       
-    } // while
-    
-    temp = temp->next ;
-    if ( temp->type == SYMBOL && FindMap( temp->token, new_vector ) == false ) {
-      hasError = true ; 
-      cout << "ERROR (attempt to apply non-function)" << endl ;
-    }
-    
-    exeNode = temp ;
+      temp = temp->next ;
+      if ( temp->type == SYMBOL && FindMap( temp->token, new_vector ) == false ) {
+        hasError = true ; 
+        cout << "ERROR (attempt to apply non-function)" << endl ;
+      }
+      
+      exeNode = temp ;
+    } // else
+
     
   } // else if
   
   if ( hasError == false ) {
     cout << endl << "Execute Start" << endl ;
     Execute() ;
-//    system("pause") ;
   }
     
 
@@ -2187,6 +2247,7 @@ int main() {
             gnum = 0 ;
             S_EXP( gHead ) ; // 可能會丟出 syntax execepiton
 //            preOrderTraversal(gHead) ; // test
+//            system("pause") ;
             
             funcClass.SetRoot() ;
             funcClass.Eval() ;
