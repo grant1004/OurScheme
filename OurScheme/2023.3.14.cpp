@@ -1394,6 +1394,7 @@ class Functions
     EXP* exeNode ; 
 
   public : 
+    void SetRoot() ;
     void Eval( ) ; // 文法檢查 
     bool CheckNumOfArg( int num ) ; 
     void Define() ; // iris
@@ -1456,7 +1457,7 @@ class Functions
 //    else if ( exeNode->token == "car" )
 //      Car() ;
     else 
-      cout << "ERROR (unbound symbol)" << endl ;
+      cout << "ERROR (unbound symbol) 1460" << endl ;
 
        
 //    else if ( exeNode->token == "list" )
@@ -1602,6 +1603,10 @@ bool Functions::CheckNumOfArg( int num ) {
     return true ;
   
 } // CheckNumOfArg()  
+
+void Functions::SetRoot() {
+  exeNode = gHead ;
+} // SetRoot()
 
 void Functions::PrintMap() {
   cout << endl << "Map Content: " << endl ;
@@ -1795,7 +1800,7 @@ void Functions::Atom_qmark() {
       
     } // else if
     else if ( temp->type == SYMBOL ) {
-      cout << "ERROR (unbound symbol)" << endl ;
+      cout << "ERROR (unbound symbol) 1803" << endl ;
     } // else if
     else 
       isTrue = false ;
@@ -1824,7 +1829,6 @@ void Functions::Cons() {
   string str ;
   EXP ex ;
   int argNum = 0 ;
-  bool hasError = false ;
   vector<EXP> new_vector ;
   EXP* temp = exeNode->next ;
   EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
@@ -1833,7 +1837,7 @@ void Functions::Cons() {
     ex.token = "(" ;
     ex.type = LEFT_PAREN ;
     emptyptr->vec.push_back( ex ) ;
-    while ( hasError == false && temp != NULL && temp->type != RIGHT_PAREN ) {
+    while ( temp != NULL && temp->type != RIGHT_PAREN ) {
       if ( temp->type == INT || temp->type == FLOAT ) {
         ex.token = temp->token ;
         ex.type = temp->type ;
@@ -1848,9 +1852,11 @@ void Functions::Cons() {
       } // else if
       else if ( temp->type == SYMBOL ) {
         cout << "ERROR (unbound symbol)" << endl ;
-        hasError = true ;
+        break ;
       } // else if 
-      else if ( temp->type == EMPTYPTR && temp->listPtr->next->type == QUOTE ) {
+      else if ( temp->type == EMPTYPTR ) {
+        exeNode = temp ;
+        Eval() ;
         for ( int i = 0; i < temp->vec.size(); i++ ) {
           emptyptr->vec.push_back( temp->vec.at(i) ) ;
         } // for
@@ -1858,7 +1864,7 @@ void Functions::Cons() {
       } // else if
       else if ( temp->type == EMPTYPTR ) {
         cout << "ERROR (non-list)" << endl ;
-        hasError = true ;
+        break ;
       } // else if
       
       if ( argNum == 0 ) {
@@ -1900,6 +1906,7 @@ ERROR (DEFINE format) :
       str = temp->token ;
       temp = temp->next ;
       if ( temp->type == EMPTYPTR ) { 
+        exeNode = temp ;
         Eval() ;
         symbolMap.insert( pair<string,vector<EXP>>(str,temp->vec) ) ;
         
@@ -1909,7 +1916,7 @@ ERROR (DEFINE format) :
         
       } // else if
       else if ( temp->type == SYMBOL ) {
-        cout << "ERROR (unbound symbol)" << endl ; // unbound symbol
+        cout << "ERROR (unbound symbol) 1918" << endl ; // unbound symbol
       } // else
       else {
         ex.token = temp->token ;
@@ -1927,8 +1934,7 @@ ERROR (DEFINE format) :
     else {
       cout << "ERROR (DEFINE format)" << endl ; // pretty print
     } // else
-    
-  } // if
+
 
 } // Define()
 
@@ -1962,15 +1968,18 @@ Else if ( 遇到X )
     ERROR (attempt to apply non-function) 
 
 */
+  bool hasError = false ;
   vector<EXP> new_vector ; // map用 
-  EXP* temp = gHead ;
+  EXP* temp = exeNode ;
   if ( IsATOM(temp) && temp->type != SYMBOL ) {
+    hasError = true ; 
     exeNode = temp ;
     cout << temp->token ;
     // 出迴圈 
   } // if
   else if ( temp->type == SYMBOL && FindMap( temp->token, new_vector ) == false ) {
-    cout << "ERROR (unbound symbol)" << endl ;
+    hasError = true ; 
+    cout << "ERROR (unbound symbol) 1982" << endl ;
   } // else if 
   else if ( temp->type == EMPTYPTR ) {
     temp = temp->listPtr ;
@@ -1978,6 +1987,7 @@ Else if ( 遇到X )
     while ( listHead->type != RIGHT_PAREN ) {
       if ( listHead->type == DOT ) {
         cout << "ERROR (non-list)" << endl ;
+        hasError = true ; 
         break ;
       } // if
       listHead = listHead->next ;
@@ -1986,6 +1996,7 @@ Else if ( 遇到X )
     
     temp = temp->next ;
     if ( temp->type == SYMBOL && FindMap( temp->token, new_vector ) == false ) {
+      hasError = true ; 
       cout << "ERROR (attempt to apply non-function)" << endl ;
     }
     
@@ -1993,8 +2004,12 @@ Else if ( 遇到X )
     
   } // else if
   
-  
-  Execute() ;
+  if ( hasError == false ) {
+    cout << endl << "Execute Start" << endl ;
+    Execute() ;
+//    system("pause") ;
+  }
+    
 
 
 } // Eval()
@@ -2171,10 +2186,11 @@ int main() {
             // 判斷文法 
             gnum = 0 ;
             S_EXP( gHead ) ; // 可能會丟出 syntax execepiton
-            
-            
-            funcClass.Execute() ;
 //            preOrderTraversal(gHead) ; // test
+            
+            funcClass.SetRoot() ;
+            funcClass.Eval() ;
+            
             funcClass.PrintMap() ; // test
             
             printRoot() ;
