@@ -941,7 +941,6 @@ void PrintTab( int numOfTab )
 
 void PrintVec( vector<EXP> vec )
 {
-  cout << "VEC : " ; 
   for ( int i = 0 ; i < vec.size() ; i ++ )
     cout << vec.at( i ).token << " " ; 
   cout << endl ; 
@@ -1009,7 +1008,7 @@ bool PrintS_EXP( vector<EXP> s_exp )
   {
     for ( int i = 0 ; i < s_exp.size() ; i++ )
     {
-      cout << "Line :" << s_exp.at( i ).nowRow << " " ;
+      // cout << "Line :" << s_exp.at( i ).nowRow << " " ;
       if ( s_exp.at( i ).type == LEFT_PAREN )
       {
         parnum ++ ; 
@@ -1392,8 +1391,36 @@ class Functions
   private: 
     map<string,vector<EXP>> symbolMap ; // map symbol 
     EXP* exeNode ; 
+    int level = 0 ; 
 
-  public : // 早安胖嘟嘟肥肥 
+    bool IsNonList( EXP* temp )
+    {
+      EXP* listHead = temp ;
+      while ( listHead->type != RIGHT_PAREN ) {
+        // cout << listHead->token << endl ; 
+        if ( listHead->type == DOT ) {
+          return true ; 
+        } // if
+        listHead = listHead->next ;
+      } // while
+
+      return false ; 
+    } // IsNonList() 
+
+    bool IsInternalFunction( vector<EXP> vec )
+    {
+      if ( vec.size() == 1 )
+      {
+        if ( IsSystemPrimitive ( vec.at( 0 ).type ) )
+        {
+          return true ; 
+        } // if 
+      } // if 
+
+      return false ; 
+    } // IsInternalFunction()
+  
+public : // 早安胖嘟嘟肥肥 
     void SetRoot() ; // iris
     void Eval( ) ; // iris
     bool CheckNumOfArg( int num ) ; // iris
@@ -1407,10 +1434,13 @@ class Functions
     void Integer_qmark() ; // iris
     void Real_qmark() ; // iris
     void Quote() ; // iris
+    void Car() ; // iris
+    void ResetLevel()
+    {
+       level = 0 ; 
+    } // ResetLevel()
     
     
-    
-//    void Car() ; // iris
 //    EXP List() ; // list
 //    EXP Cdr() ; // cdr 
 //    EXP Pair_qmark() ; // pair?
@@ -1443,24 +1473,24 @@ class Functions
     
     void Execute() 
     { // ptr指在function call上面 
-    if ( exeNode->token == "define" )
-      Define() ;
-    else if ( exeNode->token == "cons" )
-      Cons() ; 
-    else if ( exeNode->token == "atom?" )
-      Atom_qmark() ;
-    else if ( exeNode->token == "null?" )
-      Null_qmark() ;
-    else if ( exeNode->token == "integer?" )
-      Integer_qmark() ;
-    else if ( exeNode->token == "real?" ) // real? and number? 
-      Real_qmark() ;
-    else if ( exeNode->token == "quote" ) 
-      Quote() ;
-//    else if ( exeNode->token == "car" )
-//      Car() ;
-    else 
-      cout << "ERROR (unbound symbol) 1460" << endl ;
+      if ( exeNode->token == "define" )
+        Define() ;
+      else if ( exeNode->token == "cons" )
+        Cons() ; 
+      else if ( exeNode->token == "atom?" )
+        Atom_qmark() ;
+      else if ( exeNode->token == "null?" )
+        Null_qmark() ;
+      else if ( exeNode->token == "integer?" )
+        Integer_qmark() ;
+      else if ( exeNode->token == "real?" ) // real? and number? 
+        Real_qmark() ;
+      else if ( exeNode->token == "quote" ) 
+        Quote() ;
+      else if ( exeNode->token == "car" )
+        Car() ;
+      else 
+        cout << "ERROR (unbound symbol) 1494" << exeNode->token << endl ;
 
        
 //    else if ( exeNode->token == "list" )
@@ -1614,18 +1644,18 @@ void Functions::SetRoot() {
 void Functions::PrintMap() {
 //  new_vector.assign(original.begin(), original.end());
   vector<EXP> new_vector ;
-  cout << endl << "Map Content: " << endl ;
+  cout << endl << "======= Map Content Start=======" << endl ;
   for ( auto it = symbolMap.rbegin(); it != symbolMap.rend(); it++ ) {
-      cout << "string: " << (*it).first << endl ;
+      cout << "string: " << (*it).first << "  ";
       cout << "Content: " ;
       new_vector.assign((*it).second.begin(), (*it).second.end());
       for ( int i = 0; i < new_vector.size(); i++ ){
-        cout << new_vector.at(i).token ;
+        cout << new_vector.at(i).token << " ";
       }
   } // for
   
   
-  cout << endl << "===============" << endl ;
+  cout << endl << "======= END Map Content========" << endl << endl ;
 } // PrintMap()
 
 bool Functions::FindMap( string str, vector<EXP> &new_vector ) {
@@ -1786,7 +1816,6 @@ void Functions::Null_qmark() {
   
 } // Null_qmark()
 
-
 void Functions::Atom_qmark() { 
   EXP* temp = exeNode->next ;
   EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
@@ -1836,48 +1865,143 @@ void Functions::Atom_qmark() {
   
 } // Atom_qmark()
 
+void Functions::Car() {
+  vector<EXP> new_vector ;
+  EXP* temp = exeNode->next ;
+  EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
+  EXP ex ;
+  if ( CheckNumOfArg( 1 ) ) {
+    if ( FindMap( temp->token, new_vector ) == true ) {
+      
+      if ( new_vector.at(0).type == LEFT_PAREN ) {
+        if ( new_vector.size() >= 2 &&  new_vector.at(1).type == LEFT_PAREN ) {
+          int parnum = 1 ;
+          int i = 2 ;
+          ex.token = "(" ;
+          ex.type = LEFT_PAREN ;
+          emptyptr->vec.push_back( ex ) ;
+          
+          while ( parnum != 0 ) {
+            if ( new_vector.at(i).type == LEFT_PAREN ) 
+              parnum++ ;
+            else if ( new_vector.at(i).type == RIGHT_PAREN )
+              parnum-- ;
+              
+            ex.token = new_vector.at(i).token ;
+            ex.type = new_vector.at(i).type ;
+            emptyptr->vec.push_back( ex ) ;
+            i++ ;
+            
+          } // while
+          
+        } // if
+        else {
+          ex.token = new_vector.at(1).token ;
+          ex.type = new_vector.at(1).type ;
+          emptyptr->vec.push_back( ex ) ;
+        } // else
+        
+      } // if
+      else {
+        cout << "ERROR (car with incorrect argument type)" << endl ;
+      } // else
+
+    } // if FindMap
+    else if ( temp->type == SYMBOL ) {
+      cout << "ERROR (unbound symbol)" << endl ; 
+    } // else if 
+    else if ( temp->type == EMPTYPTR && temp->listPtr->next->type == QUOTE && temp->listPtr->next->next->type == EMPTYPTR ) { 
+      exeNode = temp ;
+      Eval() ;
+
+      if ( temp->vec.size() >= 2 && temp->vec.at(1).type == LEFT_PAREN ) {
+        int parnum = 1 ;
+        int i = 2 ;
+        ex.token = "(" ;
+        ex.type = LEFT_PAREN ;
+        emptyptr->vec.push_back( ex ) ;
+        
+        while ( parnum != 0 ) {
+          if ( temp->vec.at(i).type == LEFT_PAREN ) 
+            parnum++ ;
+          else if ( temp->vec.at(i).type == RIGHT_PAREN )
+            parnum-- ;
+            
+          ex.token = temp->vec.at(i).token ;
+          ex.type = temp->vec.at(i).type ;
+          emptyptr->vec.push_back( ex ) ;
+          i++ ;
+          
+        } // while
+        
+      } // if
+      else {
+        ex.token = temp->vec.at(1).token ;
+        ex.type = temp->vec.at(1).type ;
+        emptyptr->vec.push_back( ex ) ;
+      } // else
+      
+    } // if temp->type == EMPTYPTR
+    else {
+      cout << "ERROR (car with incorrect argument type)" << endl ;
+    } // else
+  } // if CheckNumOfArg( 1 )
+  else {
+    cout << "ERROR (incorrect number of arguments)" << endl ;
+  } // else 
+  
+} // Car() 
+
 void Functions::Quote() {
   EXP* temp = exeNode->next ;
   EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
   EXP ex ;
   bool bbreak = false ;
-  while ( bbreak == false ) {
-
-    if ( temp->type == EMPTYPTR ) {
-      temp = temp->listPtr ;
-    } // if
-    else if ( temp->type == RIGHT_PAREN ) {
-      ex.token = temp->token ;
-      ex.type = temp->type ;
-      emptyptr->vec.push_back( ex ) ;
-      
-      while ( temp->type != LEFT_PAREN ) { // 走回去 
-        temp = temp->pre_next ; 
-      } // while
-      
-      temp = temp->pre_listPtr ;
-      if ( temp == emptyptr ) {
-        bbreak = true ;
-      } 
-      else {
-        temp = temp->next ;
-      }
-    } // else if 
-    else {
-      ex.token = temp->token ;
-      ex.type = temp->type ;
-      emptyptr->vec.push_back( ex ) ;
-      temp = temp->next ;
-    } // else
-
-  } // while
   
-  emptyptr->vec.erase(emptyptr->vec.end() - 1) ;
-//  cout << endl << " emptyptr->vec " << endl ;
-//  for( int i = 0 ; i < emptyptr->vec.size() ; i++ ){
-//    cout << emptyptr->vec.at(i).token ;
-//  }
-}
+  if ( CheckNumOfArg( 1 ) ) {
+    while ( bbreak == false ) {
+  
+      if ( temp->type == EMPTYPTR ) {
+        temp = temp->listPtr ;
+      } // if
+      else if ( temp->type == RIGHT_PAREN ) {
+        ex.token = temp->token ;
+        ex.type = temp->type ;
+        emptyptr->vec.push_back( ex ) ;
+        
+        while ( temp->type != LEFT_PAREN ) { // 走回去 
+          temp = temp->pre_next ; 
+        } // while
+        
+        temp = temp->pre_listPtr ;
+        if ( temp == emptyptr ) {
+          bbreak = true ;
+        } 
+        else {
+          temp = temp->next ;
+        }
+      } // else if 
+      else {
+        ex.token = temp->token ;
+        ex.type = temp->type ;
+        emptyptr->vec.push_back( ex ) ;
+        temp = temp->next ;
+      } // else
+  
+    } // while
+    
+    emptyptr->vec.erase(emptyptr->vec.end() - 1) ;
+  //  cout << endl << " emptyptr->vec " << endl ;
+  //  for( int i = 0 ; i < emptyptr->vec.size() ; i++ ){
+  //    cout << emptyptr->vec.at(i).token ;
+  //  }
+    
+  } // if
+  else {
+    cout << "ERROR (incorrect number of arguments)" << endl ;
+  } // else
+
+} // Quote()
 
 void Functions::Cons() { 
   string str ;
@@ -1962,11 +2086,23 @@ ERROR (DEFINE format) :
       if ( temp->type == EMPTYPTR ) { 
         exeNode = temp ;
         Eval() ;
-        symbolMap.insert( pair<string,vector<EXP>>(str,temp->vec) ) ;
+        if ( FindMap( str, new_vector ) ){
+          symbolMap[str] = temp->vec ;
+        } // if
+        else{
+          symbolMap.insert( pair<string,vector<EXP>>(str,temp->vec) ) ;
+        } // else
+        
         
       } // if
       else if ( FindMap( temp->token, new_vector ) ) {
-        symbolMap.insert( pair<string,vector<EXP>>(str,new_vector) ) ;
+        if ( FindMap( str, new_vector ) ){
+          symbolMap[str] = new_vector ;
+        } // if
+        else {
+          symbolMap.insert( pair<string,vector<EXP>>(str,new_vector) ) ;
+        } // else
+        
         
       } // else if
       else if ( temp->type == SYMBOL ) {
@@ -1976,18 +2112,27 @@ ERROR (DEFINE format) :
         ex.token = temp->token ;
         ex.type = temp->type ;
         vs.push_back( ex ) ; 
-        symbolMap.insert( pair<string,vector<EXP>>(str,vs) ) ;
+        if ( FindMap( str, new_vector ) ){
+          symbolMap[str] = vs ;
+        } // if
+        else {
+          symbolMap.insert( pair<string,vector<EXP>>(str,vs) ) ;
+        } // else
+        
       } // else
       
       
-      }
+      } // else if
       else {
         cout << "ERROR (DEFINE format)" << endl ;
-      }
+      } // else
+      
     } // if
     else {
       cout << "ERROR (DEFINE format)" << endl ; // pretty print
     } // else
+    
+    cout << str << "defined" ;
 
 
 } // Define()
@@ -2001,7 +2146,8 @@ bool Functions:: IsSystemPrimitive( Type type ) {
        || type == NOTT || type == AND || type == OR || type == BIGGERTHAN 
        || type == BIGGEREQUAL || type == LESSTHAN || type == LESSEQUAL || type == EQUAL 
        || type == STRING_APPEND || type == STRING_BIGGER || type == STRING_LESS 
-       || type == STRING_EQUAL || type == EQV_QMARK || type == EQUAL_QMARK || type == BEGIN || type == IF || type == COND || type == CLEAN_ENVIRONMENT ) {
+       || type == STRING_EQUAL || type == EQV_QMARK || type == EQUAL_QMARK || type == BEGIN 
+       || type == IF || type == COND || type == CLEAN_ENVIRONMENT ) {
     return true ;
   } // if 
   else 
@@ -2025,63 +2171,172 @@ Else if ( 遇到X )
   bool hasError = false ;
   vector<EXP> new_vector ; // map用 
   EXP* temp = exeNode ;
-  
-  if ( IsATOM(temp) && temp->type != SYMBOL ) {
+  level ++ ; 
+  cout << "Level : " << level << " Eval : " << temp->token << endl ; 
+  if ( IsATOM(temp) && temp->type != SYMBOL  )  {
+    cout << "Is an atom but not a symbol" << endl ; 
     hasError = true ; 
     exeNode = temp ;
     cout << temp->token ;
     // 出迴圈 
   } // else if
-  else if ( temp->type == SYMBOL && FindMap( temp->token, new_vector ) == false ) {
+  else if ( temp->type == SYMBOL ) {
+    cout << "Is a symbol : " << endl ; 
     hasError = true ; 
-    cout << "ERROR (unbound symbol) 1982" << endl ;
-  } // else if 
-  else if ( temp->type == EMPTYPTR ) {
-    if ( temp->listPtr->next->type == QUOTE ) {
-      exeNode = temp->listPtr->next ;
-    } // if
-    else {
-      temp = temp->listPtr ;
-      EXP* listHead = temp ;
-      while ( listHead->type != RIGHT_PAREN ) {
-        if ( listHead->type == DOT ) {
-          cout << "ERROR (non-list)" << endl ;
-          hasError = true ; 
-          break ;
-        } // if
-        listHead = listHead->next ;
-        
-      } // while
-      
-      temp = temp->next ;
-      if ( temp->type == SYMBOL && FindMap( temp->token, new_vector ) == false ) {
-        hasError = true ; 
-        cout << "ERROR (attempt to apply non-function)" << endl ;
-      }
-      
-      exeNode = temp ;
-    } // else
+    if ( FindMap( temp->token, new_vector) == false ) // unbound symbol 
+    { 
+      cout << "Line :  2037 >> ERROR (unbound symbol) : " << temp->token << endl ;
+    } // if  
+    else
+    {
+      PrintVec( new_vector ) ; 
+    } // else 
 
-    
+  } // else if 
+  else if ( IsSystemPrimitive ( temp->type ) )
+  {
+    cout << "#<procedure " << temp->token << ">" << endl ; 
+  } // else if 
+  else 
+  { // temp == emptyptr || temp == bounding symbol 
+
+    temp = temp->listPtr; // first LEFT_PAREN
+    cout << "Temp is Left Paren : " << temp->token << " type :" << temp->type << endl ;
+
+    EXP* firstArgument = temp->next ; 
+    cout << "First Argument is : " << firstArgument->token << " type :" << firstArgument->type << endl  ;
+
+    if ( firstArgument->type == QUOTE ) {
+      exeNode = firstArgument ; 
+    } // if
+    else if ( IsNonList( temp ) ) // non list error 
+    {
+        hasError = true ; 
+        cout << "ERROR (non-list)" << endl ;
+    } // if 
+    else if ( IsATOM( firstArgument ) && firstArgument->type != SYMBOL && NOT IsSystemPrimitive( firstArgument->type ) )  // non-function
+    {
+      hasError = true ; 
+      cout << "ERROR (attempt to apply non-function) : " << firstArgument->token << endl ;
+    } // if 
+    else if ( firstArgument->type == SYMBOL || IsSystemPrimitive( firstArgument->type ) )
+    { cout << "First argument of (...) is a symbol SYM : " << firstArgument->token << endl ; 
+
+      if ( IsSystemPrimitive ( firstArgument->type ) || firstArgument->token == "exit" )
+      { cout << "First argument of (...) is a known function : " << firstArgument->token  << endl ; 
+        
+        if ( ( firstArgument->type == DEFINE || firstArgument->type == CLEAN_ENVIRONMENT || 
+               firstArgument->token == "exit" ) && level > 1 )
+        {
+            cout << "ERROR (level of " << firstArgument->token << ")" ; 
+            hasError = true ; 
+        } // if 
+        else if ( firstArgument->type == DEFINE || firstArgument->type == COND ) // 未完成
+        { cout << "First argument is \'define\' or \'set!\' or \'let\' or \'cond\' or \'lambda\' : " << firstArgument->token  << endl ;
+          exeNode = firstArgument ; 
+        } // else if 
+        else if ( firstArgument->type == IF )
+        { cout << "First argument is \'if\' or \'and\' or \'or\' : " << firstArgument->token  << endl ;
+          if ( CheckNumOfArg( 2 ) && CheckNumOfArg( 3 ) ) 
+          {
+            exeNode = firstArgument ; 
+          } // if 
+          else
+          {
+            hasError = true ;
+            cout << "ERROR (incorrect number of arguments) : if" << endl ; 
+          } // else 
+        } // else if 
+        else if ( firstArgument->type == AND || firstArgument->type == OR )
+        { cout << "First argument is \'if\' or \'and\' or \'or\' : " << firstArgument->token  << endl ;
+          if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) // >= 2 
+          {
+            exeNode = firstArgument ; 
+          } // if 
+          else
+          {
+            hasError = true ;
+            cout << "ERROR (incorrect number of arguments) : " << firstArgument->token << endl ; 
+          } // else
+        } // else if
+        else // 自訂義的 function 
+        {
+          hasError = true ; 
+          cout << "ERROR (incorrect number of arguments) : " << firstArgument -> token << endl ; 
+        } // else 
+      } // if
+      else // SYM is not the name of a known function
+      {
+        hasError = true ; 
+        if ( FindMap ( firstArgument->token, new_vector ) == false )
+        {
+          cout << "ERROR (unbound symbol) : " << firstArgument->token << endl ; 
+        } // if 
+        else
+        {
+          cout << "ERROR (attempt to apply non-function) : " ; 
+          PrintVec( new_vector ) ; 
+        } // else 
+      } // else 
+    } // else if 
+    else // the first argument of ( ... ) is ( 。。。 ), i.e., it is ( ( 。。。 ) ...... )
+    {
+      cout << "ELSE" << endl ; 
+      exeNode = firstArgument ; 
+      Eval() ;
+      exeNode = firstArgument ; 
+      cout << "Now is :" << exeNode->token << "  vec : " ; 
+      PrintVec( exeNode->vec ) ; 
+      if ( IsInternalFunction( exeNode->vec ) ) 
+      {
+        exeNode->token = exeNode->vec.at( 0 ).token ;
+        cout << "Now is :" << exeNode->token << "  vec : " ; 
+        PrintVec( exeNode->vec ) ;
+      } // if 
+      else
+      {
+        hasError = true ; 
+        cout << "ERROR (attempt to apply non-function) : " ; 
+        PrintVec( exeNode->vec ) ; 
+      } // else 
+
+    } // else 
+
   } // else if
-  
+
   if ( hasError == false ) {
-    cout << endl << "Execute Start" << endl ;
+    cout << endl << "Execute Start : " << exeNode->token  << endl ;
     Execute() ;
-  }
+  } // if 
     
 
 
 } // Eval()
 
 
-void printRoot() {
-  cout << endl << "root Content: " << endl ;
-  for ( int i = 0; i < gHead->vec.size(); i++ ) {
-    cout << gHead->vec.at(i).token ;
-  } 
-  cout << endl << "========= root Content END =============" << endl ;
-} 
+
+bool printRoot( vector<EXP> s_exp ) 
+{
+  cout << endl << "========= Evaluate Answer =============" << endl ;
+  if ( NOT gHead->vec.empty ( ) )
+  {
+    DeleteDotParen( gHead->vec ) ;
+    return PrintS_EXP( gHead->vec ) ; 
+  } // if 
+  else if ( s_exp.at( 0 ).token == "(" && s_exp.at( 2 ).token == ")" )
+  {
+    if ( s_exp.at ( 1 ).token == "clean-environment" )
+    {
+      cout << "environment cleaned" << endl ; 
+      return false ; 
+    } // if 
+    else if ( s_exp.at ( 1 ).token == "exit" ) 
+    {
+      return true ; 
+    } // 
+  } // else 
+  
+} // printRoot()
 
 int main() { 
 //  cin >> uTestNum ; 
@@ -2251,17 +2506,14 @@ int main() {
             
             funcClass.SetRoot() ;
             funcClass.Eval() ;
-            
+            funcClass.ResetLevel() ; 
             funcClass.PrintMap() ; // test
             
-            printRoot() ;
-            cout << endl ;
+            quit = printRoot( s_exp ) ;
             
             // 一些印出指令前的處裡 
             gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
-            
-            
-            quit = PrintS_EXP( s_exp ) ; 
+             
             readEXP = false ;
 
             // cout << endl << "Debug >> 會跑到這裡代表沒有任何Exception而且指令結束了 " << endl ;
@@ -2272,7 +2524,6 @@ int main() {
         {
           throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
         } // else if 
-
 
       } // try 
       catch ( NotAStringException ex ) // has no closing quote exception 
