@@ -1654,8 +1654,6 @@ void Functions::PrintMap() {
       }
   } // for
   
-  
-  cout << endl << "======= END Map Content========" << endl << endl ;
 } // PrintMap()
 
 bool Functions::FindMap( string str, vector<EXP> &new_vector ) {
@@ -1665,7 +1663,7 @@ bool Functions::FindMap( string str, vector<EXP> &new_vector ) {
     return true ;
   } // if
   else {
-    cout << "Key does not exist!" << endl ;
+    // cout << "Key does not exist!" << endl ;
     return false ;
   } // else
   
@@ -2171,17 +2169,17 @@ Else if ( 遇到X )
   bool hasError = false ;
   vector<EXP> new_vector ; // map用 
   EXP* temp = exeNode ;
+
   level ++ ; 
-  cout << "Level : " << level << " Eval : " << temp->token << endl ; 
   if ( IsATOM(temp) && temp->type != SYMBOL  )  {
-    cout << "Is an atom but not a symbol" << endl ; 
+    cout << "Is just an atom but not a symbol" << endl ; 
     hasError = true ; 
     exeNode = temp ;
     cout << temp->token ;
     // 出迴圈 
   } // else if
   else if ( temp->type == SYMBOL ) {
-    cout << "Is a symbol : " << endl ; 
+    cout << "Is a symbol without Paren: " ; 
     hasError = true ; 
     if ( FindMap( temp->token, new_vector) == false ) // unbound symbol 
     { 
@@ -2195,18 +2193,35 @@ Else if ( 遇到X )
   } // else if 
   else if ( IsSystemPrimitive ( temp->type ) )
   {
-    cout << "#<procedure " << temp->token << ">" << endl ; 
+    cout << temp->token << endl ; 
   } // else if 
   else 
   { // temp == emptyptr || temp == bounding symbol 
 
     temp = temp->listPtr; // first LEFT_PAREN
-    cout << "Temp is Left Paren : " << temp->token << " type :" << temp->type << endl ;
-
     EXP* firstArgument = temp->next ; 
-    cout << "First Argument is : " << firstArgument->token << " type :" << firstArgument->type << endl  ;
+    cout << "First Argument [" << firstArgument->token << "] " ;
 
-    if ( firstArgument->type == QUOTE ) {
+    if ( FindMap( firstArgument->token, new_vector ) )
+    {
+      if ( IsSystemPrimitive( new_vector.at( 0 ).type ) )
+      {
+        firstArgument->token = new_vector.at( 0 ).token ; 
+        firstArgument->type = new_vector.at( 0 ).type ; 
+      } // if 
+    } // if
+
+    if ( firstArgument->token == "exit" )
+    {
+      if ( level > 1 )
+      {
+        cout << "ERROR (level of exit)" ; 
+         
+      } // if 
+
+      hasError = true ; 
+    } // if 
+    else if ( firstArgument->type == QUOTE ) {
       exeNode = firstArgument ; 
     } // if
     else if ( IsNonList( temp ) ) // non list error 
@@ -2214,30 +2229,29 @@ Else if ( 遇到X )
         hasError = true ; 
         cout << "ERROR (non-list)" << endl ;
     } // if 
-    else if ( IsATOM( firstArgument ) && firstArgument->type != SYMBOL && NOT IsSystemPrimitive( firstArgument->type ) )  // non-function
+    else if ( IsATOM( firstArgument ) && firstArgument->type != SYMBOL && NOT IsSystemPrimitive( firstArgument->type ) )  // non known function
     {
       hasError = true ; 
       cout << "ERROR (attempt to apply non-function) : " << firstArgument->token << endl ;
     } // if 
-    else if ( firstArgument->type == SYMBOL || IsSystemPrimitive( firstArgument->type ) )
-    { cout << "First argument of (...) is a symbol SYM : " << firstArgument->token << endl ; 
+    else if ( firstArgument->type == SYMBOL || IsSystemPrimitive( firstArgument->type ) )  
+    { 
+      if ( IsSystemPrimitive( firstArgument->type ) )
+      { 
+        cout << "is a primitive function : " << firstArgument->token  << endl ; 
 
-      if ( IsSystemPrimitive ( firstArgument->type ) || firstArgument->token == "exit" )
-      { cout << "First argument of (...) is a known function : " << firstArgument->token  << endl ; 
-        
-        if ( ( firstArgument->type == DEFINE || firstArgument->type == CLEAN_ENVIRONMENT || 
-               firstArgument->token == "exit" ) && level > 1 )
+        if ( ( firstArgument->type == DEFINE || firstArgument->type == CLEAN_ENVIRONMENT ) && level > 1 )
         {
             cout << "ERROR (level of " << firstArgument->token << ")" ; 
             hasError = true ; 
         } // if 
         else if ( firstArgument->type == DEFINE || firstArgument->type == COND ) // 未完成
-        { cout << "First argument is \'define\' or \'set!\' or \'let\' or \'cond\' or \'lambda\' : " << firstArgument->token  << endl ;
+        { 
           exeNode = firstArgument ; 
         } // else if 
         else if ( firstArgument->type == IF )
-        { cout << "First argument is \'if\' or \'and\' or \'or\' : " << firstArgument->token  << endl ;
-          if ( CheckNumOfArg( 2 ) && CheckNumOfArg( 3 ) ) 
+        { 
+          if ( CheckNumOfArg( 2 ) || CheckNumOfArg( 3 ) ) 
           {
             exeNode = firstArgument ; 
           } // if 
@@ -2248,8 +2262,8 @@ Else if ( 遇到X )
           } // else 
         } // else if 
         else if ( firstArgument->type == AND || firstArgument->type == OR )
-        { cout << "First argument is \'if\' or \'and\' or \'or\' : " << firstArgument->token  << endl ;
-          if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) // >= 2 
+        { 
+          if ( NOT CheckNumOfArg( 1 ) && NOT CheckNumOfArg( 0 ) ) // >= 2 
           {
             exeNode = firstArgument ; 
           } // if 
@@ -2259,16 +2273,15 @@ Else if ( 遇到X )
             cout << "ERROR (incorrect number of arguments) : " << firstArgument->token << endl ; 
           } // else
         } // else if
-        else // 自訂義的 function 
+        else  
         {
-          hasError = true ; 
-          cout << "ERROR (incorrect number of arguments) : " << firstArgument -> token << endl ; 
+            exeNode = firstArgument ; 
         } // else 
       } // if
       else // SYM is not the name of a known function
       {
         hasError = true ; 
-        if ( FindMap ( firstArgument->token, new_vector ) == false )
+        if ( FindMap( firstArgument->token, new_vector ) == false )
         {
           cout << "ERROR (unbound symbol) : " << firstArgument->token << endl ; 
         } // if 
@@ -2281,13 +2294,14 @@ Else if ( 遇到X )
     } // else if 
     else // the first argument of ( ... ) is ( 。。。 ), i.e., it is ( ( 。。。 ) ...... )
     {
-      cout << "ELSE" << endl ; 
+      // firstArgument->type == EMPTYPTR 
+      cout << "first argument is : " << firstArgument->token << endl ;
       exeNode = firstArgument ; 
       Eval() ;
+      cout << "first argument is : " << firstArgument->token << endl ;
       exeNode = firstArgument ; 
-      cout << "Now is :" << exeNode->token << "  vec : " ; 
-      PrintVec( exeNode->vec ) ; 
-      if ( IsInternalFunction( exeNode->vec ) ) 
+
+      if ( IsSystemPrimitive( exeNode->type ) ) 
       {
         exeNode->token = exeNode->vec.at( 0 ).token ;
         cout << "Now is :" << exeNode->token << "  vec : " ; 
@@ -2305,7 +2319,7 @@ Else if ( 遇到X )
   } // else if
 
   if ( hasError == false ) {
-    cout << endl << "Execute Start : " << exeNode->token  << endl ;
+    cout << "Execute Start : " << exeNode->token  << endl << endl ;
     Execute() ;
   } // if 
     
@@ -2317,27 +2331,15 @@ Else if ( 遇到X )
 
 bool printRoot( vector<EXP> s_exp ) 
 {
-  cout << endl << "========= Evaluate Answer =============" << endl ;
-  if ( NOT gHead->vec.empty ( ) )
+  if ( NOT gHead->vec.empty( ) )
   {
-    DeleteDotParen( gHead->vec ) ;
+    DeleteDotParen( s_exp ) ; 
     return PrintS_EXP( gHead->vec ) ; 
   } // if 
-  else if ( s_exp.at( 0 ).token == "(" && s_exp.at( 2 ).token == ")" )
-  {
-    if ( s_exp.at ( 1 ).token == "clean-environment" )
-    {
-      cout << "environment cleaned" << endl ; 
-      return false ; 
-    } // if 
-    else if ( s_exp.at ( 1 ).token == "exit" ) 
-    {
-      return true ; 
-    } // 
-  } // else 
-  
-} // printRoot()
+  cout << endl << "gHead->vec is EMPTY" ;  
 
+  return false ; 
+} // printRoot()
 int main() { 
 //  cin >> uTestNum ; 
 
