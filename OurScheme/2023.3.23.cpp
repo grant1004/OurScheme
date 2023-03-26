@@ -202,6 +202,7 @@ class NonListException
   } // EofException() 
 }; // NonListException 
 
+class 
 
 /* 
   PrintType( Type type ) 
@@ -1236,11 +1237,13 @@ EXP *GetValue( vector<EXP> vec, int &i ) {
 void preOrderTraversal(EXP* focusNode) {
 
   if (focusNode != NULL) {
-    cout << focusNode->token << " ";
+    if ( focusNode->type != EMPTYPTR )
+    {
+      cout << focusNode->token << " ";
+    } // if 
     preOrderTraversal(focusNode->listPtr);
     preOrderTraversal(focusNode->next);
   } // if 
-
 } // preOrderTraversal()
 
 
@@ -1309,71 +1312,6 @@ void BuildTree( vector<EXP> s_exp, int &i ) {
   
 } // BuildTree()
 
-void BuildTreeOnAnyRoot( EXP *& root, vector<EXP> s_exp, int &i ) {
-  EXP * temp = NULL ;
-  // (1(2)
-  while ( i < s_exp.size() ) {
-    // cout << endl << "s_exp.at(i).token: "       << s_exp.at(i).token << endl ; 
-    //  if( temp != NULL )
-    //    cout << "temp->token: " << temp->token << endl ;
-    //  preOrderTraversal(gRoot) ;  
-
-    if ( s_exp.at( i ).type == RIGHT_PAREN ) {
-      temp->next = GetValue( s_exp, i ) ; 
-      temp->next->pre_next = temp ;
-
-
-      while ( temp->type != LEFT_PAREN ) {
-        temp = temp->pre_next ; 
-      } // while
-
-      temp = temp->pre_listPtr ;
-
-    } // if
-    else if ( s_exp.at( i ).type == LEFT_PAREN ) {
-      if ( root == NULL ) {
-        root = new EXP() ;
-        root->type = EMPTYPTR ;
-        root->token = "XXEMPTYXX" ;
-        root->next = NULL ;
-        root->listPtr = GetValue( s_exp, i ) ;
-        root->listPtr->pre_listPtr = root ; 
-        temp = root->listPtr ;
-      } // if
-      else {
-        temp->next = new EXP() ;
-        temp->next->type = EMPTYPTR ;
-        temp->next->token = "XXEMPTYXX" ;
-        temp->next->pre_next = temp ;
-        temp->next->next = NULL ;
-        temp = temp->next ;
-
-        temp->listPtr = GetValue( s_exp, i ) ;
-        temp->listPtr->pre_listPtr = temp ;
-        temp = temp->listPtr ;
-
-      } // else
-
-    } // else if
-    else {
-      if ( root == NULL ) {
-        root = GetValue( s_exp, i ) ; 
-        temp = root ;
-      } // if
-      else {
-        temp->next = GetValue( s_exp, i ) ; 
-        temp->next->pre_next = temp ;
-        temp = temp->next ;        
-      } // else
-
-    } // else 
-
-
-  } // while
-
-
-} // BuildTree()
-
 string Rounding( string str ) { // 小數點後四位+四捨五入 
 
   stringstream ss ;
@@ -1388,13 +1326,7 @@ string IntToString( int num ) {
   ss << num ;
   return ss.str() ;
 } // IntToString()
-
-string FloatToString( float value ) {
-  ostringstream ss ;
-  ss << value ;
-  return ss.str() ;
-} // FloatToString()
-
+ 
 void FixToken( vector<EXP> & s_exp ) {
 
   int i = 0 ;
@@ -1422,155 +1354,155 @@ void FixToken( vector<EXP> & s_exp ) {
     } // else if 
     else if ( s_exp.at( i ).token == "define" ) {
       s_exp.at( i ).type = DEFINE ;
-//      s_exp.at( i ).token = "#<procedure define>" ;
+      s_exp.at( i ).token = "#<procedure define>" ;
     }
     else if ( s_exp.at( i ).token == "cons" ) {
       s_exp.at( i ).type = CONS ;
-//      s_exp.at( i ).token = "#<procedure cons>" ;
+      s_exp.at( i ).token = "#<procedure cons>" ;
     }
     else if ( s_exp.at( i ).token == "list" ) {
       s_exp.at( i ).type = LIST ;
-//      s_exp.at( i ).token = "#<procedure list>" ;
+      s_exp.at( i ).token = "#<procedure list>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "\'" || s_exp.at( i ).token == "quote" ) {
       s_exp.at( i ).type = QUOTE ;
-//      s_exp.at( i ).token = "#<procedure quote>" ;
+      s_exp.at( i ).token = "#<procedure quote>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "car" ) {
       s_exp.at( i ).type = CAR ;
-//      s_exp.at( i ).token = "#<procedure car>" ;
+      s_exp.at( i ).token = "#<procedure car>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "cdr" ) {
       s_exp.at( i ).type = CDR ;
-//      s_exp.at( i ).token = "#<procedure cdr>" ;
+      s_exp.at( i ).token = "#<procedure cdr>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "atom?" ) {
       s_exp.at( i ).type = ATOM_QMARK ;
-//      s_exp.at( i ).token = "#<procedure atom?>" ;
+      s_exp.at( i ).token = "#<procedure atom?>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "pair?" ) {
       s_exp.at( i ).type = PAIR_QMARK ;
-//      s_exp.at( i ).token = "#<procedure pair?>" ;
+      s_exp.at( i ).token = "#<procedure pair?>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "list?" ) {
       s_exp.at( i ).type = LIST_QMARK ;
-//      s_exp.at( i ).token = "#<procedure list?>" ;
+      s_exp.at( i ).token = "#<procedure list?>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "null?" ) {
       s_exp.at( i ).type = NULL_QMARK ;
-//      s_exp.at( i ).token = "#<procedure null?>" ;
+      s_exp.at( i ).token = "#<procedure null?>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "integer?" ) {
       s_exp.at( i ).type = INTEGER_QMARK ;
-//      s_exp.at( i ).token = "#<procedure integer?>" ;
+      s_exp.at( i ).token = "#<procedure integer?>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "real?" ) {
       s_exp.at( i ).type = REAL_QMARK ;
-//      s_exp.at( i ).token = "#<procedure real?>" ;
+      s_exp.at( i ).token = "#<procedure real?>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "number?" ) {
       s_exp.at( i ).type = NUMBER_QMARK ;
-//      s_exp.at( i ).token = "#<procedure number?>" ;
+      s_exp.at( i ).token = "#<procedure number?>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "string?" ) {
       s_exp.at( i ).type = STRING_QMARK ;
-//      s_exp.at( i ).token = "#<procedure string?>" ;
+      s_exp.at( i ).token = "#<procedure string?>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "boolean?" ) {
       s_exp.at( i ).type = BOOLEAN_QMARK ;
-//      s_exp.at( i ).token = "#<procedure boolean?>" ;
+      s_exp.at( i ).token = "#<procedure boolean?>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "symbol?" ) {
       s_exp.at( i ).type = SYMBOL_QMARK ;
-//      s_exp.at( i ).token = "#<procedure symbol?>" ;
+      s_exp.at( i ).token = "#<procedure symbol?>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "+" ) {
       s_exp.at( i ).type = ADD ;
-//      s_exp.at( i ).token = "#<procedure +>" ;
+      s_exp.at( i ).token = "#<procedure +>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "-" ) {
       s_exp.at( i ).type = SUB ;
-//      s_exp.at( i ).token = "#<procedure ->" ;
+      s_exp.at( i ).token = "#<procedure ->" ;
     } // else if 
     else if ( s_exp.at( i ).token == "*" ) {
       s_exp.at( i ).type = MULT ;
-//      s_exp.at( i ).token = "#<procedure *>" ;
+      s_exp.at( i ).token = "#<procedure *>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "/" ) {
       s_exp.at( i ).type = DIV ;
-//      s_exp.at( i ).token = "#<procedure />" ;
+      s_exp.at( i ).token = "#<procedure />" ;
     } // else if 
     else if ( s_exp.at( i ).token == "not" ) {
       s_exp.at( i ).type = NOTT ;
-//      s_exp.at( i ).token = "#<procedure not>" ;
+      s_exp.at( i ).token = "#<procedure not>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "and" ) {
       s_exp.at( i ).type = AND ;
-//      s_exp.at( i ).token = "#<procedure and>" ;
+      s_exp.at( i ).token = "#<procedure and>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "or" ) {
       s_exp.at( i ).type = OR ;
-//      s_exp.at( i ).token = "#<procedure or>" ;
+      s_exp.at( i ).token = "#<procedure or>" ;
     } // else if 
     else if ( s_exp.at( i ).token == ">" ) {
       s_exp.at( i ).type = BIGGERTHAN ;
-//      s_exp.at( i ).token = "#<procedure >>" ;
+      s_exp.at( i ).token = "#<procedure >>" ;
     } // else if 
     else if ( s_exp.at( i ).token == ">=" ) {
       s_exp.at( i ).type = BIGGEREQUAL ;
-//      s_exp.at( i ).token = "#<procedure >=>" ;
+      s_exp.at( i ).token = "#<procedure >=>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "<" ) {
       s_exp.at( i ).type = LESSTHAN ;
-//      s_exp.at( i ).token = "#<procedure <>" ;
+      s_exp.at( i ).token = "#<procedure <>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "<=" ) {
       s_exp.at( i ).type = LESSEQUAL ;
-//      s_exp.at( i ).token = "#<procedure <=>" ;
+      s_exp.at( i ).token = "#<procedure <=>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "=" ) {
       s_exp.at( i ).type = EQUAL ;
-//      s_exp.at( i ).token = "#<procedure =>" ;
+      s_exp.at( i ).token = "#<procedure =>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "string-append" ) {
       s_exp.at( i ).type = STRING_APPEND ;
-//      s_exp.at( i ).token = "#<procedure string-append>" ;
+      s_exp.at( i ).token = "#<procedure string-append>" ;
     } // else if 
-    else if ( s_exp.at( i ).token == "string>?" ) {
+    else if ( s_exp.at( i ).token == "string>" ) {
       s_exp.at( i ).type = STRING_BIGGER ;
-//      s_exp.at( i ).token = "#<procedure string>>" ;
+      s_exp.at( i ).token = "#<procedure string>>" ;
     } // else if 
-    else if ( s_exp.at( i ).token == "string<?" ) {
+    else if ( s_exp.at( i ).token == "string<" ) {
       s_exp.at( i ).type = STRING_LESS ;
-//      s_exp.at( i ).token = "#<procedure string<>" ;
+      s_exp.at( i ).token = "#<procedure string<>" ;
     } // else if 
-    else if ( s_exp.at( i ).token == "string=?" ) {
+    else if ( s_exp.at( i ).token == "string=" ) {
       s_exp.at( i ).type = STRING_EQUAL ;
-//      s_exp.at( i ).token = "#<procedure string=>" ;
+      s_exp.at( i ).token = "#<procedure string=>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "eqv?" ) {
       s_exp.at( i ).type = EQV_QMARK ;
-//      s_exp.at( i ).token = "#<procedure eqv?>" ;
+      s_exp.at( i ).token = "#<procedure eqv?>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "equal?" ) {
       s_exp.at( i ).type = EQUAL_QMARK ;
-//      s_exp.at( i ).token = "#<procedure equal?>" ;
+      s_exp.at( i ).token = "#<procedure equal?>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "begin" ) {
       s_exp.at( i ).type = BEGIN ;
-//      s_exp.at( i ).token = "#<procedure begin>" ;
+      s_exp.at( i ).token = "#<procedure begin>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "if" ) {
       s_exp.at( i ).type = IF ;
-//      s_exp.at( i ).token = "#<procedure if>" ;
+      s_exp.at( i ).token = "#<procedure if>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "cond" ) {
       s_exp.at( i ).type = COND ;
-//      s_exp.at( i ).token = "#<procedure cond>" ;
+      s_exp.at( i ).token = "#<procedure cond>" ;
     } // else if 
     else if ( s_exp.at( i ).token == "clean-environment" ) {
       s_exp.at( i ).type = CLEAN_ENVIRONMENT ;
-//      s_exp.at( i ).token = "#<procedure clean-environment>" ;
+      s_exp.at( i ).token = "#<procedure clean-environment>" ;
     } // else if 
       
     i++ ;
@@ -1673,52 +1605,18 @@ class Functions
     int level = 0 ; 
 
     vector<EXP> result ; 
-    
-    bool CompareVectors( vector<EXP> vec1, vector<EXP> vec2 ) {
-      if ( vec1.size() != vec2.size() ) {
-        return false ;
-      } // if
-  
-      for ( int i = 0; i < vec1.size(); i++ ) {
-        if ( ( vec1.at( i ).token != vec2.at( i ).token ) || ( vec1.at( i ).type != vec2.at( i ).type ) ) {
-          return false ;
-        } // if
-      } // for
-  
-      return true ;
-    } // CompareVectors()
 
-    string FixDoubleQuotes( string str ) { // iris
-      string result = "" ;
-        for ( int i = 1; i < str.length() - 1; i++ ) {
-            result += str[i];
-        } // for 
-        return result ; 
-    } // FixDoubleQuotes()
     void TraversalEmpty( EXP* focusNode) {
 
-      if ( focusNode != NULL ) {
+      if (focusNode != NULL) {
         if ( focusNode->type != EMPTYPTR )
         {
           nonListVec.push_back( *focusNode ) ;
         } // if 
-        TraversalEmpty(focusNode->listPtr) ;
-        TraversalEmpty(focusNode->next) ;
+        TraversalEmpty(focusNode->listPtr);
+        TraversalEmpty(focusNode->next);
       } // if 
     } // preOrderTraversal()
-
-    void SetDotPair( vector<EXP> & vec )
-    {
-      stack<EXP> st ; 
-
-      for ( int i = 0 ; i < vec.size( ) ; i++ )
-      {
-        st.push( vec.at( i ) ) ; 
-      } // for 
-
-      
-
-    } // SetDotPair()
 
     bool IsNonList( EXP* temp )
     {
@@ -1750,7 +1648,7 @@ class Functions
 
       nonListVec.push_back( *listHead ) ; 
 
-      // cout << endl << "Pretty Tree : " << endl << PrettyString( nonListVec ) << endl << endl ;
+      cout << endl << "Pretty Tree : " << endl << PrettyString( nonListVec ) << endl << endl ;
       return non ; 
     } // IsNonList() 
 
@@ -1769,25 +1667,19 @@ class Functions
   
 public : // 早安胖嘟嘟肥肥 
     void SetRoot() ; // iris
-    void Eval() ; // iris
+    void Eval( ) ; // iris
     bool CheckNumOfArg( int num ) ; // iris
     void Define() ; // iris
     void Cons() ; // iris
     bool IsSystemPrimitive( Type type ) ; // iris
     void PrintMap() ; // iris
     bool FindMap( string str, vector<EXP> &new_vector ) ; // iris
-    void Qmark( string whichQmark ) ; // atom? , null? , integer? , real? , boolean? iris                         
+    void Atom_qmark() ; // iris
+    void Null_qmark() ; // iris
+    void Integer_qmark() ; // iris
+    void Real_qmark() ; // iris
     void Quote() ; // iris
     void Car() ; // iris
-    void Cdr() ; // iris 
-    void Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) ; // + - * / iris 
-    void CompareNum( string whichOperator ) ; // > , >= , < , <= , = iris
-    void CompareString( string whichOperator ) ; // string>? , string<? , string=?
-    void String_append() ; // iris
-    void Not() ; // iris
-    void Equal_qmark() ; // iris
-    void List() ;
-    void Clean_Environment() ; // iris
     void ResetLevel()
     {
        level = 0 ; 
@@ -1798,14 +1690,36 @@ public : // 早安胖嘟嘟肥肥
       return result ; 
     } // GetResult() 
     
+//    EXP List() ; // list
+//    EXP Cdr() ; // cdr 
 //    EXP Pair_qmark() ; // pair?
 //    EXP List_qmark() ; // list?
-//    void And() ; // iris
+//    EXP String_qmark() ; // string? 
+//    EXP Boolean_qmark() ; // boolean?
+//    EXP Symbol_qmark() ; // symbol?
+//    EXP Add() ; // + 
+//    EXP Sub() ; // -
+//    EXP Mul() ; // *
+//    EXP Div() ; // / 
+//    EXP Not() ; // not 
+//    EXP And() ; // and 
 //    EXP Or() ;  // or 
+//    EXP BiggerThan() ; // > 
+//    EXP BiggerEqual() ; // >= 
+//    EXP LessThan() ; // < 
+//    EXP LessEqual() ; // <=  
+//    EXP Equal() ; // = 
+//    EXP String_append() ; // string-append  
+//    EXP String_Bigger( ); // string> 
+//    EXP String_Less() ;   // string< 
+//    EXP String_Equal() ; // string=
 //    EXP Eqv_qmark() ; // eqv? 
+//    EXP Equal_qmark() ; // equal? 
 //    EXP Begin() ; // begin
 //    EXP If() ; // if 
 //    EXP Cond() ; // cond 
+//    EXP Clean_Environment() ; // clean-environment 
+    
     void Execute() 
     { // ptr指在function call上面 
     
@@ -1813,106 +1727,148 @@ public : // 早安胖嘟嘟肥肥
         Define() ;
       else if ( exeNode->type == CONS )
         Cons() ; 
-      else if ( exeNode->type == ATOM_QMARK ) 
-        Qmark( "atom?" ) ;
+      else if ( exeNode->type == ATOM_QMARK )
+        Atom_qmark() ;
       else if ( exeNode->type == NULL_QMARK )
-        Qmark( "null?" ) ;
+        Null_qmark() ;
       else if ( exeNode->type == INTEGER_QMARK )
-        Qmark( "integer?" ) ;
+        Integer_qmark() ;
       else if ( exeNode->type == REAL_QMARK || exeNode->type == NUMBER_QMARK ) // real? and number? 
-        Qmark( "real?" ) ;
-      else if ( exeNode->type == BOOLEAN_QMARK )
-        Qmark( "boolean?" ) ;
-      else if ( exeNode->type == STRING_QMARK )
-        Qmark( "string?" ) ;
-      else if ( exeNode->type == SYMBOL_QMARK )
-        Qmark( "symbol?" ) ; 
+        Real_qmark() ;
       else if ( exeNode->type == QUOTE ) 
         Quote() ;
       else if ( exeNode->type == CAR )
         Car() ;
-      else if ( exeNode->type == CDR )
-        Cdr() ; 
-      else if ( exeNode->type == ADD )
-        Arithmetic_Add_Sub_Mul_DIV( "+" ) ;
-      else if ( exeNode->type == SUB )
-        Arithmetic_Add_Sub_Mul_DIV( "-" ) ;
-      else if ( exeNode->type == MULT )
-        Arithmetic_Add_Sub_Mul_DIV( "*" ) ;
-      else if ( exeNode->type == DIV )
-        Arithmetic_Add_Sub_Mul_DIV( "/" ) ;
-      else if ( exeNode->type == BIGGERTHAN )
-        CompareNum( ">" ) ;
-      else if ( exeNode->type == BIGGEREQUAL )
-        CompareNum( ">=" ) ;
-      else if ( exeNode->type == LESSTHAN ) 
-        CompareNum( "<" ) ;
-      else if ( exeNode->type == LESSEQUAL )
-        CompareNum( "<=" ) ;
-      else if ( exeNode->type == EQUAL )
-        CompareNum( "=" ) ; 
-      else if ( exeNode->type == STRING_BIGGER )
-        CompareString( "string>?" ) ;
-      else if ( exeNode->type == STRING_LESS )
-        CompareString( "string<?" ) ;
-      else if ( exeNode->type == STRING_EQUAL ) 
-        CompareString( "string=?" ) ;
-      else if ( exeNode->type == STRING_APPEND )
-        String_append() ; 
-      else if ( exeNode->type == NOTT )
-        Not() ; 
-      else if ( exeNode->type == EQUAL_QMARK )
-        Equal_qmark() ;
-      else if ( exeNode->type == LIST ) 
-        List() ; 
-      else if ( exeNode->type == CLEAN_ENVIRONMENT )
-        Clean_Environment() ; 
       else 
-        cout << "ERROR (unbound symbol) 1762" << exeNode->token << endl ;
+        cout << "ERROR (unbound symbol) 1494" << exeNode->token << endl ;
 
        
-// ================= Grant ===============================          
+//    else if ( exeNode->token == "list" )
+//    {
+//      List() ; 
+//    } // else if 
+//    else if ( exeNode->token == "\'" )
+//    {
+//      Quote() ;
+//    } // else if 
 
-  //    else if ( exeNode->type == "pair?" )
-  //    {
-  //      Pair_qmark() ;
-  //    } // else if 
-  //    else if ( exeNode->type == "list?" )
-  //    {
-  //      List_qmark() ;
-  //    } // else if  
-  //        else if ( exeNode->type == AND )
-  //        And() ;
-  //    else if ( exeNode->type == "or" )
-  //    {
-  //      Or() ;
-  //    } // else if             
+//    else if ( exeNode->token == "cdr" )
+//    {
+//      Cdr() ;
+//    } // else if 
+ 
+//    else if ( exeNode->token == "pair?" )
+//    {
+//      Pair_qmark() ;
+//    } // else if 
+//    else if ( exeNode->token == "list?" )
+//    {
+//      List_qmark() ;
+//    } // else if 
 
-  //    else if ( exeNode->type == "eqv?" )
-  //    {
-  //      Eqv_qmark() ;
-  //    } // else if 
-
-  //    else if ( exeNode->type == "begin" )
-  //    {
-  //      Begin() ; 
-  //    } // else if 
-  
-  //    else if ( exeNode->type == "if" )
-  //    {
-  //      If() ;
-  //    } // else if 
-  //    else if ( exeNode->type == "cond" )
-                   
-                                          
-  //    {
-  //      Cond() ;
-  //    } // else if 
-  //    void Cdr() ; 
-
+//    else if ( exeNode->token == "string?" )
+//    {
+//      String_qmark() ;
+//    } // else if 
+//    else if ( exeNode->token == "boolean?" )
+//    {
+//      Boolean_qmark() ;
+//    } // else if 
+//    else if ( exeNode->token == "symbol?" )
+//    {
+//      Symbol_qmark() ;
+//    } // else if 
+//    else if ( exeNode->token == "+" )
+//    {
+//      Add() ;
+//    } // else if 
+//    else if ( exeNode->token == "-" )
+//    {
+//      Sub() ;
+//    } // else if 
+//    else if ( exeNode->token == "*" )
+//    {
+//      Mul() ; 
+//    } // else if 
+//    else if ( exeNode->token == "/" )
+//    {
+//      Div() ;
+//    } // else if 
+//    else if ( exeNode->token == "not" )
+//    {
+//      Not() ; 
+//    } // else if 
+//    else if ( exeNode->token == "and" )
+//    {
+//      And() ;
+//    } // else if 
+//    else if ( exeNode->token == "or" )
+//    {
+//      Or() ;
+//    } // else if 
+//    else if ( exeNode->token == ">" )
+//    {
+//      BiggerThan() ;
+//    } // else if 
+//    else if ( exeNode->token == ">=" )
+//    {
+//      BiggerEqual() ;
+//    } // else if 
+//    else if ( exeNode->token == "<" )
+//    {
+//      LessThan() ;
+//    } // else if 
+//    else if ( exeNode->token == "<=" )
+//    {
+//      LessEqual() ; 
+//    } // else if 
+//    else if ( exeNode->token == "=" )
+//    {
+//      Equal() ;
+//    } // else if 
+//    else if ( exeNode->token == "string-append" )
+//    {
+//      String_append() ;
+//    } // else if 
+//    else if ( exeNode->token == "string>" )
+//    {
+//      String_Bigger( );
+//    } // else if 
+//    else if ( exeNode->token == "string<" )
+//    {
+//      String_Less() ;  
+//    } // else if 
+//    else if ( exeNode->token == "string=" )
+//    {
+//      String_Equal() ;
+//    } // else if 
+//    else if ( exeNode->token == "eqv?" )
+//    {
+//      Eqv_qmark() ;
+//    } // else if 
+//    else if ( exeNode->token == "equal?" )
+//    {
+//      Equal_qmark() ;
+//    } // else if 
+//    else if ( exeNode->token == "begin" )
+//    {
+//      Begin() ; 
+//    } // else if 
+//    else if ( exeNode->token == "if" )
+//    {
+//      If() ;
+//    } // else if 
+//    else if ( exeNode->token == "cond" )
+//    {
+//      Cond() ;
+//    } // else if 
+//    else if ( exeNode->token == "clean-environment" )
+//    {
+//      Clean_Environment() ;
+//    } // else if 
 
     
-    } // Execute()
+    } // EvalSEXP()
 
 }; // Functions
 
@@ -1942,10 +1898,10 @@ void Functions::PrintMap() {
   for ( auto it = symbolMap.rbegin(); it != symbolMap.rend(); it++ ) {
       cout << "string: " << (*it).first << "  ";
       cout << "Content: " ;
-      new_vector.assign( ( *it ).second.begin(), (*it).second.end());
+      new_vector.assign((*it).second.begin(), (*it).second.end());
       for ( int i = 0; i < new_vector.size(); i++ ){
-        cout << new_vector.at( i ).token << " ";
-      } // for 
+        cout << new_vector.at(i).token << " ";
+      }
       cout << endl ;
   } // for
   
@@ -1963,820 +1919,20 @@ bool Functions::FindMap( string str, vector<EXP> &new_vector ) {
   } // else
   
 } // FindMap()
-
-void Functions::Clean_Environment() { ///// (define a clean-environment)
-  if ( CheckNumOfArg( 0 ) ) {
-    symbolMap.clear() ;
-    cout << "environment cleaned" << endl ;
-  } // if
-  else {
-    cout << "ERROR (incorrect number of arguments) : clean-environment" << endl ;
-  } // else
   
-} // Clean_Environment()
-
-void Functions::List() {
-  EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
-  EXP* temp = exeNode->next ;
-  vector<EXP> new_vector ;
-  EXP ex ;
-  
-  ex.token = "(" ;
-  ex.type = LEFT_PAREN ;
-  emptyptr->vec.push_back( ex ) ;
-  
-  while ( temp->type != RIGHT_PAREN ) { 
-    if ( FindMap( temp->token, new_vector ) == true ) {
-      for ( int i = 0; i < new_vector.size(); i++ ) {
-        emptyptr->vec.push_back( new_vector.at( i ) ) ;
-      } // for
-
-    } // if 
-    else if ( temp->type == SYMBOL ) {
-      cout << "ERROR (unbound symbol)" << endl ; 
-      break ;
-    } // else if 
-    else if (  temp->type == EMPTYPTR ) {
-      exeNode = temp ;
-      Eval() ;
-      
-      for ( int i = 0; i < temp->vec.size(); i++ ) {
-        emptyptr->vec.push_back( temp->vec.at( i ) ) ;
-      } // for
-      
-    } // else if
-    else {
-      ex.token = temp->token ;
-      ex.type = temp->type ;
-      emptyptr->vec.push_back( ex ) ;
-    } // else
-
-    temp = temp->next ;
-  } // while  
-  
-  ex.token = ")" ;
-  ex.type = RIGHT_PAREN ;
-  emptyptr->vec.push_back( ex ) ;
-
-} // List()
-
-void Functions::Equal_qmark() { // arg == 2 // new.assign(old.begin(), old.end());
-  EXP* emptyptr = exeNode->pre_next->pre_listPtr ; 
-  EXP* temp = exeNode->next ;         
-  EXP ex ;
-  vector<EXP> new_vector ;
-  int argNum = 1 ;    
-  EXP firstArg ;
-  EXP secondArg ;
-  bool isTrue = true ;
-  
-  if ( CheckNumOfArg( 2 ) ) {
-
-    while ( temp->type != RIGHT_PAREN ) {
-      if ( FindMap( temp->token, new_vector ) == true ) {
-        if ( argNum == 1 )
-          firstArg.vec.assign( new_vector.begin(), new_vector.end() ) ;
-        else
-          secondArg.vec.assign( new_vector.begin(), new_vector.end() ) ;
-      } // if
-      else if ( temp->type == SYMBOL ) {                            
-        cout << "ERROR (unbound symbol) 1907" << endl ;
-        isTrue = false ;
-        break ;
-      } // else if
-      else if ( temp->type == EMPTYPTR ) {
-        exeNode = temp ;
-        Eval() ;
-        
-        if ( argNum == 1 )
-          firstArg.vec.assign( temp->vec.begin(), temp->vec.end() ) ;
-        else
-          secondArg.vec.assign( temp->vec.begin(), temp->vec.end() ) ;
-      } // else if
-      else {
-        if ( argNum == 1 ) {
-          ex.token = temp->token ;
-          ex.type = temp->type ;
-          firstArg.vec.push_back( ex ) ;
-        } // if
-        else {
-          ex.token = temp->token ;
-          ex.type = temp->type ;
-          secondArg.vec.push_back( ex ) ;
-        } // else
-
-      } // else
-      argNum++ ;
-      temp = temp->next ;
-    } // while
-    
-    EXP ex ;
-    
-    if ( isTrue == false ) {
-      ;
-    }
-    else if ( CompareVectors( firstArg.vec, secondArg.vec ) ) {
-      ex.token = "#t" ;
-      ex.type = T ;
-      emptyptr->vec.push_back( ex ) ;
-    } // else if
-    else {
-      ex.token = "nil" ;
-      ex.type = NIL ;
-      emptyptr->vec.push_back( ex ) ;
-    } // else 
-    
-
-    
-  } // if
-  else {
-    cout << "ERROR (incorrect number of arguments) : equal?" << endl ;
-  } // else 
-  
-} // Equal_qmark()
-
-void Functions::Not() { // arg == 1
-  EXP* temp = exeNode->next ;
-  EXP* emptyptr = exeNode->pre_next->pre_listPtr ;          
-  EXP ex ;
-  vector<EXP> new_vector ;
-  bool isNIL = false ;
-  if ( CheckNumOfArg( 1 ) ) {
-    if ( temp->type == NIL || temp->type == T ) {
-      if ( temp->type == NIL )  
-        isNIL = true ;
-    } // if
-    else if ( FindMap( temp->token, new_vector ) == true ) {
-      if ( new_vector.size() == 1 ) {
-        if ( new_vector.at( 0 ).type == NIL )  
-          isNIL = true ;
-      } // if
-    } // else if
-    else if ( temp->type == SYMBOL ) {                            
-      cout << "ERROR (unbound symbol) 1904" << endl ;
-    } // else if
-    else if ( temp->type == EMPTYPTR ) {
-      exeNode = temp ;
-      Eval() ;
-      
-      if ( temp->vec.size() == 1 ) {
-        if ( temp->vec.at( 0 ).type == NIL )  
-          isNIL = true ;
-      } // if
-    } // else if
-      
-  } // if
-  else {
-    cout << "ERROR (incorrect number of arguments) : not" << endl ;
-  } // else
-  
-  if ( isNIL == true ) {
-    ex.token = "#t" ;
-    ex.type = T ;
-  } // if
-  else {
-    ex.token = "nil" ;
-    ex.type = NIL ;
-  } // else
-  
-  emptyptr->vec.push_back( ex ) ;
-  
-} // Not()
-
-void Functions::String_append() { // FixDoubleQuotes()
-  EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
-  EXP* temp = exeNode->next ;
-  vector<EXP> new_vector ;
-  string str = "\"" ;
-  bool isTrue = true ;
-  EXP ex ;
-  if ( CheckNumOfArg( 1 ) ) {
-    cout << "ERROR (incorrect number of arguments) : string-append" << endl ;
-  } // if
-  else {
-    while ( temp->type != RIGHT_PAREN ) { 
-      if ( temp->type == STRING ) {
-        str = str + FixDoubleQuotes( temp->token ) ;
-      } // if
-      else if ( FindMap( temp->token, new_vector ) == true ) {
-        if ( new_vector.size() == 1 && new_vector.at( 0 ).type == STRING ) {
-          str = str + FixDoubleQuotes( new_vector.at( 0 ).token ) ;
-        } // if
-        else {
-          isTrue = false ;
-          cout << "ERROR (string-append with incorrect argument type) : " << endl ;
-          break ;
-        } // else
-
-      } // else if 
-      else if ( temp->type == SYMBOL ) {
-        isTrue = false ;
-        cout << "ERROR (unbound symbol)" << endl ; 
-        break ;
-      } // else if 
-      else if (  temp->type == EMPTYPTR ) {
-        exeNode = temp ;
-        Eval() ;
-        
-        if ( temp->vec.size() == 1 && temp->vec.at( 0 ).type == STRING ) {
-          str = str + FixDoubleQuotes( temp->vec.at( 0 ).token ) ;
-        } // if
-        else {
-          isTrue = false ;
-          cout << "ERROR (string-append with incorrect argument type) : " << endl ;
-          break ;
-        } // else
-        
-      } // else if
-      else {
-        isTrue = false ;
-        cout << "ERROR (string-append with incorrect argument type) : " << endl ;
-        break ;
-      } // else
-
-      temp = temp->next ;
-    } // while  
-    
-    str = str + "\"" ;
-    ex.token = str ;
-    ex.type = STRING ;
-    emptyptr->vec.push_back( ex ) ;
-  } // else
-
-} // String_append()
-
-void Functions::CompareString( string whichOperator ) { // string>? , string<? , string=?
-  EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
-  EXP* temp = exeNode->next ;
-  string previous_string ;
-  vector<EXP> new_vector ;
-  EXP ex ;
-  bool isTrue = true ;
-  bool isFirstArg = true ;
-  if ( CheckNumOfArg( 1 ) ) {
-    cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
-  } // if
-  else {
-    while ( temp->type != RIGHT_PAREN ) { 
-      if ( temp->type == STRING ) {
-        if ( isFirstArg == true ) {
-          previous_string = FixDoubleQuotes( temp->token ) ;
-          isFirstArg = false ;
-        } // if
-        else if ( whichOperator == "string>?" ) {
-          if ( previous_string > FixDoubleQuotes( temp->token ) ) 
-            previous_string = FixDoubleQuotes( temp->token ) ;
-          else {
-            isTrue = false ;
-            break ;
-          } // else  
-        } // else if
-        else if ( whichOperator == "string<?" ) {
-          if ( previous_string < FixDoubleQuotes( temp->token ) ) 
-            previous_string = FixDoubleQuotes( temp->token ) ;
-          else {
-            isTrue = false ;
-            break ;
-          } // else  
-        } // else if
-        else if ( whichOperator == "string=?" ) {
-          if ( previous_string == FixDoubleQuotes( temp->token ) ) 
-            previous_string = FixDoubleQuotes( temp->token ) ;
-          else {
-            isTrue = false ;
-            break ;
-          } // else  
-        } // else if
-          
-      } // if
-      else if ( FindMap( temp->token, new_vector ) == true ) {
-        if ( new_vector.size() == 1 && new_vector.at( 0 ).type == STRING ) {
-  
-          if ( isFirstArg == true ) {
-            previous_string = FixDoubleQuotes( new_vector.at( 0 ).token ) ;
-            isFirstArg = false ;
-          } // if
-          else if ( whichOperator == "string>?" ) {
-            if ( previous_string > FixDoubleQuotes( new_vector.at( 0 ).token ) ) 
-              previous_string = FixDoubleQuotes( new_vector.at( 0 ).token ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          else if ( whichOperator == "string<?" ) {
-            if ( previous_string < FixDoubleQuotes( new_vector.at( 0 ).token ) ) 
-              previous_string = FixDoubleQuotes( new_vector.at( 0 ).token ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          else if ( whichOperator == "string=?" ) {
-            if ( previous_string == FixDoubleQuotes( new_vector.at( 0 ).token ) ) 
-              previous_string = FixDoubleQuotes( new_vector.at( 0 ).token ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          
-        } // if
-        else {
-          isTrue = false ;
-          cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
-          break ;
-        } // else
-
-      } // else if 
-      else if ( temp->type == SYMBOL ) {
-        isTrue = false ;
-        cout << "ERROR (unbound symbol)" << endl ; 
-        break ;
-      } // else if 
-      else if (  temp->type == EMPTYPTR ) {
-        exeNode = temp ;
-        Eval() ;
-        
-        if ( temp->vec.size() == 1 && temp->vec.at( 0 ).type == STRING ) { 
-
-          if ( isFirstArg == true ) {
-            previous_string = FixDoubleQuotes( temp->vec.at( 0 ).token ) ;
-            isFirstArg = false ;
-          } // if
-          else if ( whichOperator == "string>?" ) {
-            if ( previous_string > FixDoubleQuotes( temp->vec.at( 0 ).token ) ) 
-              previous_string = FixDoubleQuotes( temp->vec.at( 0 ).token ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          else if ( whichOperator == "string<?" ) {
-            if ( previous_string < FixDoubleQuotes( temp->vec.at( 0 ).token ) ) 
-              previous_string = FixDoubleQuotes( temp->vec.at( 0 ).token ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          else if ( whichOperator == "string=?" ) {
-            if ( previous_string == FixDoubleQuotes( temp->vec.at( 0 ).token ) ) 
-              previous_string = FixDoubleQuotes( temp->vec.at( 0 ).token ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-
-          
-        } // if
-        else {
-          isTrue = false ;
-          cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
-          break ;
-        } // else
-        
-      } // else if
-      else {
-        isTrue = false ;
-        cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
-        break ;
-      } // else
-
-      temp = temp->next ;
-    } // while
-
-    if ( isTrue == true ) {
-      ex.token = "#t" ;
-      ex.type = T ;
-                                     
-    } // if
-    else {
-      ex.token = "nil" ;
-      ex.type = NIL ;
-    } // else
-    emptyptr->vec.push_back( ex ) ;
-              
-    
-         
-  } // else  
-} // CompareString()
-
-void Functions::CompareNum( string whichOperator ) { // arg >= 2
-                             
-  EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
-  EXP* temp = exeNode->next ;
-  float previous_number = 0 ;
-  vector<EXP> new_vector ;
-  EXP ex ;
-  bool isTrue = true ;
-  bool isFirstArg = true ;
-  
-  if ( CheckNumOfArg( 1 ) ) {
-    cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
-  } // if
-  else {
-    while ( temp->type != RIGHT_PAREN ) { 
-      if ( temp->type == INT || temp->type == FLOAT ) {
-          
-        if ( isFirstArg == true ) {
-          previous_number = atof( temp->token.c_str() ) ;
-          isFirstArg = false ;
-        } // if
-        else if ( whichOperator == ">" ) {
-          if ( previous_number > atof( temp->token.c_str() ) ) 
-            previous_number = atof( temp->token.c_str() ) ;
-          else {
-            isTrue = false ;
-            break ;
-          } // else  
-        } // else if
-        else if ( whichOperator == ">=" ) {
-          if ( previous_number >= atof( temp->token.c_str() ) ) 
-            previous_number = atof( temp->token.c_str() ) ;
-          else {
-            isTrue = false ;
-            break ;
-          } // else  
-        } // else if
-        else if ( whichOperator == "<" ) {
-          if ( previous_number < atof( temp->token.c_str() ) ) 
-            previous_number = atof( temp->token.c_str() ) ;
-          else {
-            isTrue = false ;
-            break ;
-          } // else  
-        } // else if
-        else if ( whichOperator == "<=" ) {
-          if ( previous_number <= atof( temp->token.c_str() ) ) 
-            previous_number = atof( temp->token.c_str() ) ;
-          else {
-            isTrue = false ;
-            break ;
-          } // else  
-        } // else if
-        else if ( whichOperator == "=" ) {
-          if ( previous_number == atof( temp->token.c_str() ) ) 
-            previous_number = atof( temp->token.c_str() ) ;
-          else {
-            isTrue = false ;
-            break ;
-          } // else  
-        } // else if
-        
-      } // if
-      else if ( FindMap( temp->token, new_vector ) == true ) {
-        if ( new_vector.size() == 1 && ( new_vector.at( 0 ).type == INT || new_vector.at( 0 ).type == FLOAT ) ) {
-  
-          if ( isFirstArg == true ) {
-            previous_number = atof( new_vector.at( 0 ).token.c_str() ) ;
-            isFirstArg = false ;
-          } // if
-          else if ( whichOperator == ">" ) {
-            if ( previous_number > atof( new_vector.at( 0 ).token.c_str() ) ) 
-              previous_number = atof( new_vector.at( 0 ).token.c_str() ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          else if ( whichOperator == ">=" ) {
-            if ( previous_number >= atof( new_vector.at( 0 ).token.c_str() ) ) 
-              previous_number = atof( new_vector.at( 0 ).token.c_str() ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          else if ( whichOperator == "<" ) {
-            if ( previous_number < atof( new_vector.at( 0 ).token.c_str() ) ) 
-              previous_number = atof( new_vector.at( 0 ).token.c_str() ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          else if ( whichOperator == "<=" ) {
-            if ( previous_number <= atof( new_vector.at( 0 ).token.c_str() ) ) 
-              previous_number = atof( new_vector.at( 0 ).token.c_str() ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          else if ( whichOperator == "=" ) {
-            if ( previous_number == atof( new_vector.at( 0 ).token.c_str() ) ) 
-              previous_number = atof( new_vector.at( 0 ).token.c_str() ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          
-        } // if
-        else {
-          isTrue = false ;
-          cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
-          break ;
-        } // else
-
-      } // else if 
-      else if ( temp->type == SYMBOL ) {
-        isTrue = false ;
-        cout << "ERROR (unbound symbol)" << endl ; 
-        break ;
-      } // else if 
-      else if (  temp->type == EMPTYPTR ) {
-        exeNode = temp ;
-        Eval() ;
-        
-        if ( temp->vec.size() == 1 && ( temp->vec.at( 0 ).type == INT || temp->vec.at( 0 ).type == FLOAT ) ) {
-          if ( isFirstArg == true ) {
-            previous_number = atof( temp->vec.at( 0 ).token.c_str() ) ;
-            isFirstArg = false ;
-          } // if
-          else if ( whichOperator == ">" ) {
-            if ( previous_number > atof( temp->vec.at( 0 ).token.c_str() ) ) 
-              previous_number = atof( temp->vec.at( 0 ).token.c_str() ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          else if ( whichOperator == ">=" ) {
-            if ( previous_number >= atof( temp->vec.at( 0 ).token.c_str() ) ) 
-              previous_number = atof( temp->vec.at( 0 ).token.c_str() ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          else if ( whichOperator == "<" ) {
-            if ( previous_number < atof( temp->vec.at( 0 ).token.c_str() ) ) 
-              previous_number = atof( temp->vec.at( 0 ).token.c_str() ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          else if ( whichOperator == "<=" ) {
-            if ( previous_number <= atof( temp->vec.at( 0 ).token.c_str() ) ) 
-              previous_number = atof( temp->vec.at( 0 ).token.c_str() ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          else if ( whichOperator == "=" ) {
-            if ( previous_number == atof( temp->vec.at( 0 ).token.c_str() ) ) 
-              previous_number = atof( temp->vec.at( 0 ).token.c_str() ) ;
-            else {
-              isTrue = false ;
-              break ;
-            } // else  
-          } // else if
-          
-        } // if
-        else {
-          isTrue = false ;
-          cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
-          break ;
-        } // else
-        
-      } // else if
-      else {
-        isTrue = false ;
-        cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
-        break ;
-      } // else
-
-      temp = temp->next ;
-    } // while
-
-    if ( isTrue == true ) {
-      ex.token = "#t" ;
-      ex.type = T ;
-                                     
-    } // if
-    else {
-      ex.token = "nil" ;
-      ex.type = NIL ;
-    } // else
-    emptyptr->vec.push_back(ex) ;
-              
-    
-         
-  } // else
-                                                                  
-            
-  
-} // CompareNum()
-
-
-void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 2
-
-  EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
-  EXP* temp = exeNode->next ;
-  float sum = 0 ;
-  vector<EXP> new_vector ;
-  bool noError = true ;
-  bool isFirstArg = true ;
-  bool hasFloat = false ;
-  
-  if ( CheckNumOfArg( 1 ) ) {
-    cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
-  } // if
-  else {
-    while ( temp->type != RIGHT_PAREN ) {
-      if ( temp->type == INT || temp->type == FLOAT ) {
-        if ( temp->type == FLOAT )
-          hasFloat = true ;
-          
-        if ( isFirstArg == true ) {
-          sum = atof( temp->token.c_str() ) ;
-          isFirstArg = false ;
-        } // if
-        else if ( whichOperator == "+" )
-          sum = sum + atof( temp->token.c_str() ) ;
-        else if ( whichOperator == "-" ) 
-          sum = sum - atof( temp->token.c_str() ) ;
-        else if ( whichOperator == "*" ) 
-          sum = sum * atof( temp->token.c_str() ) ;
-        else if ( whichOperator == "/" ) {
-          if ( temp->token == "0" ) {
-            cout << "ERROR (division by zero) : /" << endl ;
-            noError = false ;
-            break ;
-          } // if
-          else {
-            sum = sum / atof( temp->token.c_str() ) ;
-          } // else()
-        } // else if
-  
-      } // if
-      else if ( FindMap( temp->token, new_vector ) == true ) {
-        if ( new_vector.size() == 1 && ( new_vector.at( 0 ).type == INT || new_vector.at( 0 ).type == FLOAT ) ) {
-          if ( new_vector.at( 0 ).type == FLOAT )
-            hasFloat = true ;
-            
-          if ( isFirstArg == true ) {
-            sum = atof( new_vector.at( 0 ).token.c_str() ) ;
-            isFirstArg = false ;
-          } // if
-          else if ( whichOperator == "+" )
-            sum = sum + atof( new_vector.at( 0 ).token.c_str() ) ;
-          else if ( whichOperator == "-" ) 
-            sum = sum - atof( new_vector.at( 0 ).token.c_str() ) ;
-          else if ( whichOperator == "*" ) 
-            sum = sum * atof( new_vector.at( 0 ).token.c_str() ) ;
-          else if ( whichOperator == "/" ) {
-            if ( new_vector.at( 0 ).token == "0" ) {
-              cout << "ERROR (division by zero) : /" << endl ;
-              noError = false ;
-              break ;
-            } // if
-            else {
-              sum = sum / atof( new_vector.at( 0 ).token.c_str() ) ;
-            } // else()
-          } // else if
-        
-        } // if
-        else {
-          noError = false ;
-          cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
-          break ;
-        } // else
-      } // else if
-      else if ( temp->type == SYMBOL ) {
-        noError = false ;
-        cout << "ERROR (unbound symbol)" << endl ; 
-        break ;
-      } // else if 
-      else if (  temp->type == EMPTYPTR ) {
-        exeNode = temp ;
-        Eval() ;
-        
-        if ( temp->vec.size() == 1 && ( temp->vec.at( 0 ).type == INT || temp->vec.at( 0 ).type == FLOAT ) ) {
-          if ( temp->vec.at( 0 ).type == FLOAT )
-            hasFloat = true ;
-            
-          if ( isFirstArg == true ) {
-            sum = atof( temp->vec.at( 0 ).token.c_str() ) ;
-            isFirstArg = false ;
-          } // if
-          else if ( whichOperator == "+" )
-            sum = sum + atof( temp->vec.at( 0 ).token.c_str() ) ;
-          else if ( whichOperator == "-" ) 
-            sum = sum - atof( temp->vec.at( 0 ).token.c_str() ) ;
-          else if ( whichOperator == "*" ) 
-            sum = sum * atof( temp->vec.at( 0 ).token.c_str() ) ;
-          else if ( whichOperator == "/" ) {
-            if ( temp->vec.at( 0 ).token == "0" ) {
-              cout << "ERROR (division by zero) : /" << endl ;
-              noError = false ;
-              break ;
-            } // if
-            else {
-              sum = sum / atof( temp->vec.at( 0 ).token.c_str() ) ;
-            } // else()
-          } // else if
-          
-        } // if
-        else {
-          noError = false ;
-          cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
-          break ;
-        }
-      } // else if
-      temp = temp->next ;
-      
-    } // while
-    
-    if ( noError == true ) {
-      EXP ex ;
-      if ( hasFloat == true ) {
-        
-        ex.token = Rounding( FloatToString( sum ) ) ;
-        ex.type = FLOAT ;      
-      } // if
-      else { // INT
-        ex.token = IntToString( sum ) ;
-        ex.type = INT ;
-      } // else
-        
-      cout << "ex.token:  " << ex.token << endl ;            
-      
-      
-                           
-                       
-                   
-      emptyptr->vec.push_back(ex) ;
-    } // if
-                                                   
-                        
-                     
-                                     
-              
-    
-         
-        
-                                                             
-  } // else
-  
-                    
-
-  
-} // Arithmetic_Add_Sub_Mul_DIV() 
- 
-void Functions::Qmark( string whichQmark ) { // atom? , null? , integer? , real? , boolean? , string? , symbol?
+void Functions::Real_qmark() { 
   EXP* temp = exeNode->next ;
   EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
-                       
-  EXP ex ;
   vector<EXP> new_vector ;
   bool isTrue = false ;
+  EXP ex ; 
   if ( CheckNumOfArg( 1 ) ) { // 1
-    
-    if ( whichQmark == "atom?" && temp->type != SYMBOL && IsATOM( temp ) ) {
+    if ( temp->type == INT || temp->type == FLOAT )
       isTrue = true ;
-    } // if
-    else if ( whichQmark == "null?" && temp->type == NIL ) {
-      isTrue = true ;
-    } // else if
-    else if ( whichQmark == "integer?" && temp->type == INT ) {
-      isTrue = true ;
-    } // else if
-    else if ( whichQmark == "real?" && ( temp->type == INT || temp->type == FLOAT ) ) {
-      isTrue = true ;
-    } // else if
-    else if ( whichQmark == "boolean?" && ( temp->type == NIL || temp->type == T ) ) {
-      isTrue = true ;
-    } // else if
-    else if ( whichQmark == "string?" && temp->type == STRING ) {
-      isTrue = true ;
-    } // else if
-    else if ( whichQmark == "symbol?" && IsSystemPrimitive( temp->type ) ) {
-      isTrue = true ;
-    } // else if
     else if ( FindMap( temp->token, new_vector ) == true ) {
       
       if ( new_vector.size() == 1 ) {
-        ex.token = new_vector.at( 0 ).token ;
-        ex.type = new_vector.at( 0 ).type ;
-        if ( whichQmark == "atom?" && IsATOM( &ex ) ) 
-          isTrue = true ;
-        else if ( whichQmark == "null?" && new_vector.at( 0 ).type == NIL ) 
-          isTrue = true ;
-        else if ( whichQmark == "integer?" && new_vector.at( 0 ).type == INT ) 
-          isTrue = true ; 
-        else if ( whichQmark == "real?" && ( new_vector.at( 0 ).type == INT || new_vector.at( 0 ).type == FLOAT ) ) 
-          isTrue = true ;
-        else if ( whichQmark == "boolean?" && ( new_vector.at( 0 ).type == NIL || new_vector.at( 0 ).type == T ) ) 
-          isTrue = true ;
-        else if ( whichQmark == "string?" && new_vector.at( 0 ).type == STRING ) 
-          isTrue = true ;
-        else if ( whichQmark == "symbol?" && IsSystemPrimitive( new_vector.at( 0 ).type ) ) 
+        if ( new_vector.at(0).type == INT || new_vector.at(0).type == FLOAT ) 
           isTrue = true ;
         else 
           isTrue = false ;
@@ -2785,30 +1941,82 @@ void Functions::Qmark( string whichQmark ) { // atom? , null? , integer? , real?
         isTrue = false ;
       
     } // else if
-    else if ( temp->type == SYMBOL ) {
-                                       
-      cout << "ERROR (unbound symbol) 1803" << endl ;
+    else if ( temp->type == SYMBOL ) 
+    {
+      throw UnboundException( temp ) ; 
+      // cout << "ERROR (unbound symbol)" << endl ;
+    } // else if
+    else if ( temp->type == EMPTYPTR ) {
+      cout << "aaaaaaaaaaaaaaaa" << endl ;
+      exeNode = temp ;
+      Eval() ;
+      
+      if ( temp->vec.size() == 1 ) { 
+        if ( temp->vec.at(0).type == INT || temp->vec.at(0).type == FLOAT ) 
+          isTrue = true ;
+        else 
+          isTrue = false ;
+      } // if
+      else
+        isTrue = false ;
+      
+    } // else if 
+    else 
+      isTrue = false ;
+      
+      
+    if ( isTrue == true ) {
+      ex.token = "#t" ;
+      ex.type = T ;
+      emptyptr->vec.push_back( ex ) ;
+    } // if
+    else { // isTrue = false
+      ex.token = "nil" ;
+      ex.type = NIL ;
+      emptyptr->vec.push_back( ex ) ;
+    } // else 
+    
+  } // if
+  else {
+    cout << "problem with the number of parameters 1815" << endl ;
+  } // else 
+  
+} // Real_qmark()
+
+
+void Functions::Integer_qmark() { 
+  EXP* temp = exeNode->next ;
+  EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
+  vector<EXP> new_vector ;
+  bool isTrue = false ;
+  EXP ex ; 
+  if ( CheckNumOfArg( 1 ) ) { // 1
+    if ( temp->type == INT )
+      isTrue = true ;
+    else if ( FindMap( temp->token, new_vector ) == true ) {
+      
+      if ( new_vector.size() == 1 ) {
+
+        if ( new_vector.at(0).type == INT ) 
+          isTrue = true ;
+        else 
+          isTrue = false ;
+      } // if
+      else
+        isTrue = false ;
+      
+    } // else if
+    else if ( temp->type == SYMBOL ) 
+    {
+      throw UnboundException( temp ) ; 
+      // cout << "ERROR (unbound symbol)" << endl ;
     } // else if
     else if ( temp->type == EMPTYPTR ) {
       exeNode = temp ;
       Eval() ;
       
       if ( temp->vec.size() == 1 ) {
-        ex.token = temp->vec.at( 0 ).token ;
-        ex.type = temp->vec.at( 0 ).type ;
-        if ( whichQmark == "atom?" && IsATOM( &ex ) ) 
-          isTrue = true ;
-        else if ( whichQmark == "null?" && temp->vec.at( 0 ).type == NIL ) 
-          isTrue = true ;
-        else if ( whichQmark == "integer?" && temp->vec.at( 0 ).type == INT ) 
-          isTrue = true ; 
-        else if ( whichQmark == "real?" && ( temp->vec.at( 0 ).type == INT || temp->vec.at( 0 ).type == FLOAT ) ) 
-          isTrue = true ;
-        else if ( whichQmark == "boolean?" && ( temp->vec.at( 0 ).type == NIL || temp->vec.at( 0 ).type == T ) ) 
-          isTrue = true ;
-        else if ( whichQmark == "string?" && temp->vec.at( 0 ).type == STRING ) 
-          isTrue = true ;
-        else if ( whichQmark == "symbol?" && IsSystemPrimitive( temp->vec.at( 0 ).type ) ) 
+        if ( temp->vec.at(0).type == INT ) 
           isTrue = true ;
         else 
           isTrue = false ;
@@ -2837,117 +2045,159 @@ void Functions::Qmark( string whichQmark ) { // atom? , null? , integer? , real?
     cout << "problem with the number of parameters" << endl ;
   } // else 
   
-} // Qmark()
+} // Integer_qmark()
 
-void Functions::Cdr() {
+void Functions::Null_qmark() { 
+  EXP* temp = exeNode->next ;
+  EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
+  bool isTrue = false ;
+  EXP ex ; 
   vector<EXP> new_vector ;
-  vector<EXP> carVec ; 
-  vector<EXP> result ; 
-  // exeNode : firstArgument 
-  // temp = firstArgument 的下一個 
-  // emptyptr指的是 EMPTYPTR 
-  EXP* next = exeNode->next ; 
+  if ( CheckNumOfArg( 1 ) ) { // 1
+    if ( temp->type == NIL )
+      isTrue = true ;
+    else if ( FindMap( temp->token, new_vector ) == true ) {
+      
+      if ( new_vector.size() == 1 ) {
+        if ( new_vector.at(0).type == NIL ) 
+          isTrue = true ;
+        else 
+          isTrue = false ;
+      } // if
+      else
+        isTrue = false ;
+      
+    } // else if
+    else if ( temp->type == SYMBOL ) {
+      throw UnboundException( temp ) ; 
+      // cout << "ERROR (unbound symbol)" << endl ;
+    } // else if
+    else if ( temp->type == EMPTYPTR ) {
+      exeNode = temp ;
+      Eval() ;
+      
+      if ( temp->vec.size() == 1 ) {
+        if ( temp->vec.at(0).type == NIL ) 
+          isTrue = true ;
+        else 
+          isTrue = false ;
+      } // if
+      else
+        isTrue = false ;
+      
+    } // else if 
+    else 
+      isTrue = false ;
+      
+      
+    if ( isTrue == true ) {
+      ex.token = "#t" ;
+      ex.type = T ;
+      emptyptr->vec.push_back( ex ) ;
+    } // if
+    else { // isTrue = false
+      ex.token = "nil" ;
+      ex.type = NIL ;
+      emptyptr->vec.push_back( ex ) ;
+    } // else 
+    
+  } // if
+  else {
+    cout << "problem with the number of parameters" << endl ;
+  } // else 
+  
+} // Null_qmark()
+
+void Functions::Atom_qmark() { 
+  EXP* temp = exeNode->next ;
   EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
   EXP ex ;
-
-  if ( CheckNumOfArg( 1 ) ) {
-
-    if ( next->type == EMPTYPTR )
-    { 
-      cout << endl << "next is EmptyPtr" << endl ;
-      exeNode =  next ; 
-      Eval() ; 
-      carVec.assign(next->vec.begin(), next->vec.end()); 
-    } // if 
-    else if ( FindMap( next->token, new_vector ) )
-    {
-      cout << endl << "Find defined symbol" << endl ; 
-      carVec.assign(new_vector.begin(), new_vector.end());
+  vector<EXP> new_vector ;
+  bool isTrue = false ;
+  if ( CheckNumOfArg( 1 ) ) { // 1
+    
+    if ( temp->type != SYMBOL && IsATOM( temp ) )
+      isTrue = true ;
+    else if ( FindMap( temp->token, new_vector ) == true ) {
+      
+      if ( new_vector.size() == 1 ) {
+        ex.token = new_vector.at(0).token ;
+        ex.type = new_vector.at(0).type ;
+        if ( IsATOM( &ex ) ) 
+          isTrue = true ;
+        else 
+          isTrue = false ;
+      } // if
+      else
+        isTrue = false ;
+      
+    } // else if
+    else if ( temp->type == SYMBOL ) {
+      throw UnboundException( temp ) ; 
+      // cout << "ERROR (unbound symbol) 1803" << endl ;
+    } // else if
+    else if ( temp->type == EMPTYPTR ) {
+      exeNode = temp ;
+      Eval() ;
+      
+      if ( temp->vec.size() == 1 ) {
+        ex.token = temp->vec.at(0).token ;
+        ex.type = temp->vec.at(0).type ;
+        if ( IsATOM( &ex ) ) 
+          isTrue = true ;
+        else 
+          isTrue = false ;
+      } // if
+      else
+        isTrue = false ;
+      
     } // else if 
-    else if ( NOT FindMap( next->token, new_vector ) )
-    {
-      throw UnboundException( next ) ; 
-    } // else if 
-    else {
-      cout << "ERROR (car with incorrect argument type)" << endl ;
-    } // else
-
-    if ( NOT carVec.empty() )
-    {
-      int i = 0 ; 
-      EXP * root = NULL ; 
-
-      int parNum = 0 ; 
-      bool start = false ; 
-      for ( int i = 0 ; i < carVec.size( ) ; i++ )
-      {
-        if ( carVec.at( i ).type == LEFT_PAREN )
-        {
-          parNum ++ ; 
-        } // if 
-
-
-        cout << "\nParNum :" << parNum << " carVec :" << carVec.at( i ).token ; 
-        if ( parNum == 1 && ( carVec.at( i ).type == DOT || carVec.at( i ).type == RIGHT_PAREN ) ) 
-        {
-          start = true ; 
-        } // if
-        else if ( parNum > 1 && start )
-        {
-          result.push_back( carVec.at( i ) ) ; 
-        } // else 
-        else if ( carVec.at( i ).type != LEFT_PAREN && carVec.at( i ).type != RIGHT_PAREN )
-        {
-          start = true ; 
-        } // else 
-
-        if ( i < carVec.size() && carVec.at( i ).type == RIGHT_PAREN )
-        {
-          parNum -- ; 
-        } // else 
-      } // for 
-
-      cout << endl << "Pretty : \n" << PrettyString( result ) << endl ; 
-      emptyptr->vec.assign( result.begin(), result.end() ) ;
-    } // if 
-    else
-    {
-      cout << "EMPTY VEC" ; 
+    else 
+      isTrue = false ;
+      
+      
+    if ( isTrue == true ) {
+      ex.token = "#t" ;
+      ex.type = T ;
+      emptyptr->vec.push_back( ex ) ;
+    } // if
+    else { // isTrue = false
+      ex.token = "nil" ;
+      ex.type = NIL ;
+      emptyptr->vec.push_back( ex ) ;
     } // else 
-
-  } // if CheckNumOfArg( 1 )
+    
+  } // if
   else {
-    cout << "ERROR (incorrect number of arguments)" << endl ;
+    cout << "problem with the number of parameters" << endl ;
   } // else 
-
-} // Cdr()
+  
+} // Atom_qmark()
 
 void Functions::Car() {
   vector<EXP> new_vector ;
   vector<EXP> carVec ; 
-  vector<EXP> result ; 
   // exeNode : firstArgument 
   // temp = firstArgument 的下一個 
   // emptyptr指的是 EMPTYPTR 
   EXP* next = exeNode->next ; 
   EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
   EXP ex ;
-  
   if ( CheckNumOfArg( 1 ) ) {
-
+    cout << "Next :" << next->token ; 
+    cout << " EMPTY : " << emptyptr->token << endl ;
+    
     if ( next->type == EMPTYPTR )
-    { 
-      cout << endl << "next is EmptyPtr" << endl ;
+    {
       exeNode =  next ; 
       Eval() ; 
-      carVec.assign(next->vec.begin(), next->vec.end()); 
+      carVec.assign( next->vec.begin(), next->vec.end() ) ; 
     } // if 
-    else if ( FindMap( next->token, new_vector ) )
+    else if ( FindMap( temp->token, new_vector ) )
     {
-      cout << endl << "Find defined symbol" << endl ; 
-      carVec.assign(new_vector.begin(), new_vector.end());
+      carVec.assign( new_vector->vec.begin(), new_vector->vec.end() ) ; 
     } // else if 
-    else if ( NOT FindMap( next->token, new_vector ) )
+    else if ( NOT FindMap( temp->token, new_vector ) )
     {
       throw UnboundException( next ) ; 
     } // else if 
@@ -2955,57 +2205,17 @@ void Functions::Car() {
       cout << "ERROR (car with incorrect argument type)" << endl ;
     } // else
 
-    if ( NOT carVec.empty() )
+    if ( carVec.empty() )
     {
-      int i = 0 ; 
-      EXP * root = NULL ; 
-      
-      int parNum = 0 ; 
-
-      for ( int i = 0 ; i < carVec.size( ) ; i++ )
-      {
-        if ( carVec.at( i ).type == LEFT_PAREN )
-        {
-          parNum ++ ; 
-        } // if 
-        
-
-        cout << "\nParNum :" << parNum << " carVec :" << carVec.at( i ).token ; 
-        
-        if ( parNum == 1 && ( carVec.at( i ).type == DOT || carVec.at( i ).type == RIGHT_PAREN ) ) 
-        {
-          i = carVec.size() ; 
-        } // if
-        else if ( parNum > 1 )
-        {
-          result.push_back( carVec.at( i ) ) ; 
-        } // else 
-        else if ( carVec.at( i ).type != LEFT_PAREN && carVec.at( i ).type != RIGHT_PAREN )
-        {
-          result.push_back( carVec.at( i ) ) ;
-          i = carVec.size() ;
-        } // else 
-        
-        if ( i < carVec.size() && carVec.at( i ).type == RIGHT_PAREN )
-        {
-          parNum -- ; 
-        } // else 
-      } // for 
-      
-      cout << endl << "Pretty : \n" << PrettyString( result ) << endl ; 
-      emptyptr->vec.assign( result.begin(), result.end() ) ; 
+      cout << endl << "Pretty Print : " << PrettyString( carVec ) << endl << endl ; 
     } // if 
-    else
-    {
-      cout << "EMPTY VEC" ; 
-    } // else 
 
   } // if CheckNumOfArg( 1 )
   else {
     cout << "ERROR (incorrect number of arguments)" << endl ;
   } // else 
-
-} // Car()  
+  
+} // Car() 
 
 void Functions::Quote() {
   EXP* temp = exeNode->next ;
@@ -3016,9 +2226,6 @@ void Functions::Quote() {
   if ( CheckNumOfArg( 1 ) ) {
     while ( bbreak == false ) {
   
-      if ( IsSystemPrimitive( temp->type ) ) {
-        temp->type = SYMBOL ;
-      } // if
       if ( temp->type == EMPTYPTR ) {
         temp = temp->listPtr ;
       } // if
@@ -3048,8 +2255,12 @@ void Functions::Quote() {
   
     } // while
     
-    emptyptr->vec.erase( emptyptr->vec.end() - 1 ) ;
-
+    emptyptr->vec.erase(emptyptr->vec.end() - 1) ;
+  //  cout << endl << " emptyptr->vec " << endl ;
+  //  for( int i = 0 ; i < emptyptr->vec.size() ; i++ ){
+  //    cout << emptyptr->vec.at(i).token ;
+  //  }
+    
   } // if
   else {
     cout << "ERROR (incorrect number of arguments)" << endl ;
@@ -3077,7 +2288,7 @@ void Functions::Cons() {
       } // if
       else if ( FindMap( temp->token, new_vector ) == true ) {
         for ( int i = 0; i < new_vector.size(); i++ ) {
-          emptyptr->vec.push_back( new_vector.at( i ) ) ;
+          emptyptr->vec.push_back( new_vector.at(i) ) ;
         } // for
         new_vector.clear() ;
         
@@ -3091,7 +2302,7 @@ void Functions::Cons() {
         exeNode = temp ;
         Eval() ;
         for ( int i = 0; i < temp->vec.size(); i++ ) {
-          emptyptr->vec.push_back( temp->vec.at( i ) ) ;
+          emptyptr->vec.push_back( temp->vec.at(i) ) ;
         } // for
         
       } // else if
@@ -3419,15 +2630,6 @@ bool printRoot( vector<EXP> s_exp )
   return false ; 
 } // printRoot()
 
-void test( vector<EXP> s_exp ) {
-  
-  cout << "test" << endl ;
-  for ( int i = 0; i < s_exp.size(); i++ ) {
-    cout << s_exp[i].token << ", " << s_exp[i].type << endl ;
-  } // for
-  cout << endl ;
-  
-} // test
 int main() { 
 //  cin >> uTestNum ; 
 
