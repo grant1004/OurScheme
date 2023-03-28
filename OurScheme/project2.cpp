@@ -63,14 +63,14 @@ struct EXP {
   string token ;
   int column ;
   int row ; 
-  int nowRow ; // ¬ö¿ý¦³®Ä¦r¤¸¦æ¼Æ
+  int nowRow ; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¦rï¿½ï¿½ï¿½ï¿½ï¿½
   Type type ; // SYMBOL | INT | FLOAT | STRING | NIL | T | LEFT-PAREN | RIGHT-PAREN
   EXP* next ;
   EXP* pre_next ;
   EXP* listPtr ;
   EXP* pre_listPtr ;
   int dotCnt ;
-  vector<EXP> vec ; // EMPTYPTR¥Î 
+  vector<EXP> vec ; // EMPTYPTRï¿½ï¿½ 
 
 }; // struct EXP 
 
@@ -103,7 +103,7 @@ class SyntaxErrorException
   SyntaxErrorException( ExceptionType ErrType, EXP token ) 
   {
     stringstream ss ;
-    if ( ErrType == SYNERR_ATOM_PAR ) // ( ¤U¤@­ÓtokenÀ³¸Ó­n±µ ATOM ©Î¬O '(' )
+    if ( ErrType == SYNERR_ATOM_PAR ) // ( ï¿½Uï¿½@ï¿½ï¿½tokenï¿½ï¿½ï¿½Ó­nï¿½ï¿½ ATOM ï¿½Î¬O '(' )
     {
       ss << "ERROR (unexpected token) : "
         << "atom or '(' expected when token at "
@@ -111,7 +111,7 @@ class SyntaxErrorException
         << " Column " << token.column << " is >>" << token.token << "<<" ;  
       mErrMsg = ss.str() ;
     } // if 
-    else if ( ErrType == SYNERR_RIGHTPAREN ) // (  À³¸Ó­n±µ¥k¬A¸¹«o¨S¦³¥k¬A¸¹  )
+    else if ( ErrType == SYNERR_RIGHTPAREN ) // (  ï¿½ï¿½ï¿½Ó­nï¿½ï¿½ï¿½kï¿½Aï¿½ï¿½ï¿½oï¿½Sï¿½ï¿½ï¿½kï¿½Aï¿½ï¿½  )
     {
       ss << "ERROR (unexpected token) : "
         << "')' expected when token at "
@@ -205,7 +205,7 @@ class NonListException
 
 /* 
   PrintType( Type type ) 
-  ¨Ì³y¶Ç¶i¥hªº type ¦L¥X¹ïÀ³ªº type ¦WºÙ 
+  ï¿½Ì³yï¿½Ç¶iï¿½hï¿½ï¿½ type ï¿½Lï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ type ï¿½Wï¿½ï¿½ 
 */ 
 string PrintType( Type type )
 {
@@ -238,7 +238,7 @@ string PrintType( Type type )
 
 /* 
   CheckWhiteSpace(char ch) 
-  * ÀË¬d ch ¬O§_¬° white space 
+  * ï¿½Ë¬d ch ï¿½Oï¿½_ï¿½ï¿½ white space 
 */
 
 bool CheckWhiteSpace( char ch )  
@@ -259,7 +259,7 @@ bool CheckWhiteSpace( char ch )
 
 /* 
   CheckDelimiter ( char ch )
-  * ÀË¬d ch ¬O§_¬° Delimiter 
+  * ï¿½Ë¬d ch ï¿½Oï¿½_ï¿½ï¿½ Delimiter 
   * Delimiter : '('  ')'  '\''  WhiteSpace  
 */
 
@@ -276,7 +276,7 @@ bool CheckDelimiter( char ch )
 
 /* 
   IsStringStart ( char ch )
-  * ÀË¬d¬O§_¬° '\"'  
+  * ï¿½Ë¬dï¿½Oï¿½_ï¿½ï¿½ '\"'  
 */
 
 bool IsStringStart( char ch )
@@ -289,7 +289,7 @@ bool IsStringStart( char ch )
 
 /* 
   IsComment ( char ch )
-  *  ÀË¬d¬O§_¬° ';' 
+  *  ï¿½Ë¬dï¿½Oï¿½_ï¿½ï¿½ ';' 
 */
 
 bool IsComment( char ch )
@@ -305,7 +305,7 @@ bool IsComment( char ch )
   *  INT : '3', '+3', '-3'
 */ 
 
-bool IsInt( string token ) // ¶}ÀY¥i¥H¬O0¶Ü???
+bool IsInt( string token ) // ï¿½}ï¿½Yï¿½iï¿½Hï¿½O0ï¿½ï¿½???
 {  
   bool cont = false ; // continue ; 
   for ( int i = 0 ; i < token.size() ; i ++ ) 
@@ -341,7 +341,7 @@ bool IsInt( string token ) // ¶}ÀY¥i¥H¬O0¶Ü???
   *  FLOAT : '3.25', '.25', '+.25', '-.25', '+3.'
 */
 
-bool IsFloat( string token ) // ¶}ÀY¥i¥H¬O0¶Ü??
+bool IsFloat( string token ) // ï¿½}ï¿½Yï¿½iï¿½Hï¿½O0ï¿½ï¿½??
 {
   bool cont = false ; // continue ; 
   int numOfDot = 0 ; 
@@ -393,8 +393,8 @@ bool IsFloat( string token ) // ¶}ÀY¥i¥H¬O0¶Ü??
 
 /* 
   IsSymbol( string token )   
-*  ¥u­n¤£¬O INT || FLOAT || '(' || ')' || DOT || STRING || NIL || T || QUOTE 
-*  ³Ñ¤U³£·í§@SYMBOL
+*  ï¿½uï¿½nï¿½ï¿½ï¿½O INT || FLOAT || '(' || ')' || DOT || STRING || NIL || T || QUOTE 
+*  ï¿½Ñ¤Uï¿½ï¿½ï¿½ï¿½ï¿½@SYMBOL
 */
 
 bool IsSymbol( string token )
@@ -423,7 +423,7 @@ bool IsSymbol( string token )
 
 /* 
   IsString ( string token ) 
-*  ¶}ÀY¬O§_¬O "  "
+*  ï¿½}ï¿½Yï¿½Oï¿½_ï¿½O "  "
 */
 
 bool IsString( string token )
@@ -436,7 +436,7 @@ bool IsString( string token )
 
 /* 
   IsDelimiter( string token, Type & type ) 
-*  ÀË¬d¬ODelimiter ¨Ã³]©w¥Lªºtype 
+*  ï¿½Ë¬dï¿½ODelimiter ï¿½Ã³]ï¿½wï¿½Lï¿½ï¿½type 
 *  ( --> LEFT_PAREN 
 *  ) --> RIGHT_PAREN
 *  . --> DOT 
@@ -482,7 +482,7 @@ bool IsDelimiter( string token, Type & type )
 
 /*
   IsEOF ( char ch ) 
-*  ¬O§_¬° EOF 
+*  ï¿½Oï¿½_ï¿½ï¿½ EOF 
 */
 
 bool IsEOF( char ch )
@@ -494,7 +494,7 @@ bool IsEOF( char ch )
 
 /* 
   IdentifyType ( string token ) 
-*  ¤À¿ë token ¬O¤°»ò type 
+*  ï¿½ï¿½ï¿½ï¿½ token ï¿½Oï¿½ï¿½ï¿½ï¿½ type 
 */ 
 
 Type IdentifyType( string token )
@@ -531,8 +531,8 @@ Type IdentifyType( string token )
 
 /* 
   GetString ( ) 
-*  §â¾ã­Ó string Åª¥X¨Ó ª½¨ì ('\n') ©Î¬O¥t¤@­Ó ('\"')
-*  ¦pªGÅª¨ì '\n' ¨S¦³Åª¨ì '\"' ¨º´N¬O error  
+*  ï¿½ï¿½ï¿½ï¿½ string Åªï¿½Xï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ('\n') ï¿½Î¬Oï¿½tï¿½@ï¿½ï¿½ ('\"')
+*  ï¿½pï¿½GÅªï¿½ï¿½ '\n' ï¿½Sï¿½ï¿½Åªï¿½ï¿½ '\"' ï¿½ï¿½ï¿½Nï¿½O error  
 */
 
 void printRoot() {
@@ -552,9 +552,9 @@ string GetString()
     ch = getchar() ; 
     gNowColumn ++ ; 
     // cout << ch ; 
-    if ( ch == '\\' ) // ¸õ²æ¦r¤¸ \"
+    if ( ch == '\\' ) // ï¿½ï¿½ï¿½ï¿½rï¿½ï¿½ \"
     {
-      // ¹J¨ì¸õ²æ¦r¤¸­n§â \ §R±¼¡A¨Ã¯d¤U¤U¤@­Ó¦r¤¸ 
+      // ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½rï¿½ï¿½ï¿½nï¿½ï¿½ \ ï¿½Rï¿½ï¿½ï¿½Aï¿½Ã¯dï¿½Uï¿½Uï¿½@ï¿½Ó¦rï¿½ï¿½ 
       // EX:  '\"' --> '"', '\\"' --> '\"' 
       char peek = cin.peek() ; 
       if ( peek == 'n' || peek == 't' || peek == '\'' || peek == '\"' || peek == '\\' )
@@ -617,7 +617,7 @@ string GetString()
 
 /* 
   SkipComment ( ) 
-* §â ; «á­±ªº¥þ³¡Åª±¼ 
+* ï¿½ï¿½ ; ï¿½á­±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åªï¿½ï¿½ 
 */ 
 
 void SkipComment()
@@ -640,7 +640,7 @@ void SkipComment()
 
 /* 
    GetFirstChar ( ) 
-*  ¸õ¹LªÅ¥ÕÅª¨ì²Ä¤@­Ó¦r¤¸
+*  ï¿½ï¿½ï¿½Lï¿½Å¥ï¿½Åªï¿½ï¿½Ä¤@ï¿½Ó¦rï¿½ï¿½
 */ 
 
 char GetFirstChar() // skip white space to get First char 
@@ -675,24 +675,24 @@ char GetFirstChar() // skip white space to get First char
  
 /* 
   GetToken ( ) 
-* ¤Á¤Utoken ¨Ã§PÂ_¨eªº type  
+* ï¿½ï¿½ï¿½Utoken ï¿½Ã§Pï¿½_ï¿½eï¿½ï¿½ type  
 */ 
 
 EXP GetToken() 
 {
   // (1 . (2 . (3 . nil)))
-  // ¤Á³Î¹J¨ìªº²Ä¤@­Ótoken ¨Ã§PÂ_¨eªºtype 
+  // ï¿½ï¿½ï¿½Î¹Jï¿½ìªºï¿½Ä¤@ï¿½ï¿½token ï¿½Ã§Pï¿½_ï¿½eï¿½ï¿½type 
 
   EXP gg ;
 
   char ch = GetFirstChar() ;
   
   char peek = '\0' ;  
-  bool valid = true ; // true : ¤£¬O delimiter string EOF¡A false : ¥Nªí¥i¯à¬O delimiter string EOF 
+  bool valid = true ; // true : ï¿½ï¿½ï¿½O delimiter string EOFï¿½A false : ï¿½Nï¿½ï¿½ï¿½iï¿½ï¿½O delimiter string EOF 
   
   bool skipComment = false ; 
   
-  while ( NOT skipComment ) // ·íÁÙ¨S¸õ§¹¥þ³¡µù¸Ñ¡A´N¶i¥hwhile¡A¦pªG¥þ³¡¸õ¹L¤F¤~©¹¤U¨«
+  while ( NOT skipComment ) // ï¿½ï¿½ï¿½Ù¨Sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡Aï¿½Nï¿½iï¿½hwhileï¿½Aï¿½pï¿½Gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Lï¿½Fï¿½~ï¿½ï¿½ï¿½Uï¿½ï¿½
   {
     if ( IsComment( ch ) )
     {
@@ -844,7 +844,7 @@ DOT 5
   else if ( temp->type == RIGHT_PAREN && ( gnum == 1 || gnum == 2 ) ) { 
     //      cout << "bb" << endl ;
     gnum = 2 ; // list
-    while ( temp->type != LEFT_PAREN ) { // ¨«¦^¥h 
+    while ( temp->type != LEFT_PAREN ) { // ï¿½ï¿½ï¿½^ï¿½h 
       temp = temp->pre_next ; 
     } // while
     
@@ -856,7 +856,7 @@ DOT 5
     //    cout << "cc" << endl ;
     gnum = -1 ;
     throw SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ; 
-    return false ; // temp À³¸Ó¬Os_EXP 
+    return false ; // temp ï¿½ï¿½ï¿½Ó¬Os_EXP 
   } // else if
   else if ( IsATOM( temp ) == true && gnum == 0 && temp->next == NULL && temp->listPtr == NULL ) {
     //    cout << "dd" << endl ;
@@ -869,10 +869,10 @@ DOT 5
       //      cout << "ee" << endl ;
       temp->dotCnt = temp->pre_next->dotCnt+1 ;
       throw SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
-      return false ; // À³¸Ó¬O¥k¬A¸¹ ex: . 3 3 
+      return false ; // ï¿½ï¿½ï¿½Ó¬Oï¿½kï¿½Aï¿½ï¿½ ex: . 3 3 
     } // if
     else {
-      if ( gnum == 5 ) { // «e­±¬ODOT 
+      if ( gnum == 5 ) { // ï¿½eï¿½ï¿½ï¿½ODOT 
         //        cout << "hh" << endl ;
         gAfterDotCnt++ ;
         temp->dotCnt = gAfterDotCnt ;
@@ -891,7 +891,7 @@ DOT 5
       temp->dotCnt = temp->pre_next->dotCnt+1 ;
       temp = temp->listPtr ; 
       throw SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
-      return false ; // À³¸Ó¬O¥k¬A¸¹ ex: . (1) (1)  
+      return false ; // ï¿½ï¿½ï¿½Ó¬Oï¿½kï¿½Aï¿½ï¿½ ex: . (1) (1)  
     } // if
     else {
       //      cout << "oo" << endl ;
@@ -933,7 +933,7 @@ DOT 5
     else {
       //      cout << "vv" << endl ;
       throw SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
-      return false ; // ex: (1 . 3 . 3 ) // ¥X²{²Ä¤G­Ó.¤F 
+      return false ; // ex: (1 . 3 . 3 ) // ï¿½Xï¿½{ï¿½Ä¤Gï¿½ï¿½.ï¿½F 
     } // else 
 
   } // else if
@@ -941,7 +941,7 @@ DOT 5
     //    cout << "ww" << endl ;
     gnum = -1 ;
     throw SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ;
-    return false ; // §Ñ°O³o¬O¬Æ»òERROR¤F¥ý©ñµÛ 
+    return false ; // ï¿½Ñ°Oï¿½oï¿½Oï¿½Æ»ï¿½ERRORï¿½Fï¿½ï¿½ï¿½ï¿½ï¿½ 
   } // else if
   else if ( temp->type == QUOTE ) { 
     //    cout << "xx" << endl ;
@@ -953,7 +953,7 @@ DOT 5
     //    cout << "yy" << endl ;
     gnum = -1 ;
     throw SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ;
-    return false ; // ¨S¦³³oºØªF¦è 
+    return false ; // ï¿½Sï¿½ï¿½ï¿½oï¿½ØªFï¿½ï¿½ 
   } // else 
 
   return true ;     
@@ -1309,6 +1309,7 @@ void BuildTree( vector<EXP> s_exp, int &i ) {
   
 } // BuildTree()
 
+<<<<<<< HEAD
 void BuildTreeOnAnyRoot( EXP *& root, vector<EXP> s_exp, int &i ) {
   EXP * temp = NULL ;
   // (1(2)
@@ -1375,6 +1376,9 @@ void BuildTreeOnAnyRoot( EXP *& root, vector<EXP> s_exp, int &i ) {
 } // BuildTree()
 
 string Rounding( string str ) { // ¤p¼ÆÂI«á¥|¦ì+¥|±Ë¤­¤J 
+=======
+string Rounding( string str ) { // ï¿½pï¿½ï¿½ï¿½Iï¿½ï¿½|ï¿½ï¿½+ï¿½|ï¿½Ë¤ï¿½ï¿½J 
+>>>>>>> NewCARCDR
 
   stringstream ss ;
   ss << fixed << setprecision( 3 ) << atof( str.c_str() ) ;
@@ -1604,11 +1608,11 @@ void FixQuote( vector<EXP> & s_exp ) { // '(1 '4) , '(1), (1 '2 4 5)
           parnum-- ;
         } // else if
         
-        if ( parnum == 0 ) { // ¹J¨ì¥¿½Tªº¥k¬A¸¹ 
+        if ( parnum == 0 ) { // ï¿½Jï¿½ì¥¿ï¿½Tï¿½ï¿½ï¿½kï¿½Aï¿½ï¿½ 
           temp.token = ")" ;
           temp.type = RIGHT_PAREN ;
           s_exp.insert( s_exp.begin()+k+1, temp ) ;
-          k = s_exp.size() ; // ¥X°j°é 
+          k = s_exp.size() ; // ï¿½Xï¿½jï¿½ï¿½ 
         } // if
 
         k++ ;
@@ -1662,7 +1666,7 @@ int CountInVec( vector<Type> vec, Type tp )
 
 static int uTestNum = -1 ; 
 
-// ¤åªkÀË¬d§¹¤~¶ifunctionÀË¬d­Ó¼Æ 
+// ï¿½ï¿½kï¿½Ë¬dï¿½ï¿½ï¿½~ï¿½ifunctionï¿½Ë¬dï¿½Ó¼ï¿½ 
 class Functions
 {
 
@@ -1767,7 +1771,7 @@ class Functions
       return false ; 
     } // IsInternalFunction()
   
-public : // ¦­¦w­D¹Ê¹ÊªÎªÎ 
+public : // ï¿½ï¿½ï¿½wï¿½Dï¿½Ê¹ÊªÎªï¿½ 
     void SetRoot() ; // iris
     void Eval() ; // iris
     bool CheckNumOfArg( int num ) ; // iris
@@ -1807,7 +1811,7 @@ public : // ¦­¦w­D¹Ê¹ÊªÎªÎ
 //    EXP If() ; // if 
 //    EXP Cond() ; // cond 
     void Execute() 
-    { // ptr«ü¦bfunction call¤W­± 
+    { // ptrï¿½ï¿½ï¿½bfunction callï¿½Wï¿½ï¿½ 
     
       if ( exeNode->type == DEFINE )
         Define() ;
@@ -2869,7 +2873,12 @@ void Functions::Cdr() {
       throw UnboundException( next ) ; 
     } // else if 
     else {
+<<<<<<< HEAD
       cout << "ERROR (car with incorrect argument type)" << endl ;
+=======
+      cout << "ERROR (cdr with incorrect argument type)" << endl ;
+                  
+>>>>>>> NewCARCDR
     } // else
 
     if ( NOT carVec.empty() )
@@ -3027,7 +3036,7 @@ void Functions::Quote() {
         ex.type = temp->type ;
         emptyptr->vec.push_back( ex ) ;
         
-        while ( temp->type != LEFT_PAREN ) { // ¨«¦^¥h 
+        while ( temp->type != LEFT_PAREN ) { // ï¿½ï¿½ï¿½^ï¿½h 
           temp = temp->pre_next ; 
         } // while
         
@@ -3212,17 +3221,17 @@ void Functions::Eval() {
 /*
 If Is an atom but not a symbol
   Return atom
-Else if ( ¬Osymbol ¦ý¨S³Q©w¸q¹L ) :
+Else if ( ï¿½Osymbol ï¿½ï¿½ï¿½Sï¿½Qï¿½wï¿½qï¿½L ) :
   ERROR (unbound symbol)
-Else if ( ¹J¨ìX )
-  If ( ¬A¸¹¸Ì­±¦³DOT ) :
+Else if ( ï¿½Jï¿½ï¿½X )
+  If ( ï¿½Aï¿½ï¿½ï¿½Ì­ï¿½ï¿½ï¿½DOT ) :
     ERROR (non-list)
-  Else if ( ¬Osymbol && IsSystemPrimitive( Type type ) == false ):
+  Else if ( ï¿½Osymbol && IsSystemPrimitive( Type type ) == false ):
     ERROR (attempt to apply non-function) 
 
 */
   bool hasError = false ;
-  vector<EXP> new_vector ; // map¥Î 
+  vector<EXP> new_vector ; // mapï¿½ï¿½ 
   EXP* temp = exeNode ;
 
   level ++ ; 
@@ -3232,7 +3241,7 @@ Else if ( ¹J¨ìX )
     hasError = true ; 
     exeNode = temp ;
     cout << temp->token ;
-    // ¥X°j°é 
+    // ï¿½Xï¿½jï¿½ï¿½ 
   } // else if
   else if ( temp->type == SYMBOL ) {
     cout << "Is a symbol without Paren: " ; 
@@ -3307,7 +3316,7 @@ Else if ( ¹J¨ìX )
             cout << "ERROR (level of " << firstArgument->token << ")" ; 
             hasError = true ; 
         } // if 
-        else if ( firstArgument->type == DEFINE || firstArgument->type == COND ) // ¥¼§¹¦¨
+        else if ( firstArgument->type == DEFINE || firstArgument->type == COND ) // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         { 
           exeNode = firstArgument ; 
         } // else if 
@@ -3364,7 +3373,7 @@ Else if ( ¹J¨ìX )
         } // else 
       } // else 
     } // else if 
-    else // the first argument of ( ... ) is ( ¡C¡C¡C ), i.e., it is ( ( ¡C¡C¡C ) ...... )
+    else // the first argument of ( ... ) is ( ï¿½Cï¿½Cï¿½C ), i.e., it is ( ( ï¿½Cï¿½Cï¿½C ) ...... )
     {
       // firstArgument->type == EMPTYPTR 
       cout << "Now is : " << firstArgument->token << ", then Call Eval() " << endl ;
@@ -3433,7 +3442,7 @@ int main() {
 
   int i = 0 ;
   bool syntaxIsTrue ;
-  vector<Type> myStack ; // ¥Î¨Ó­pºâ ¥ª¬A¸¹©M¥k¬A¸¹ÁÙ¦³ DOT ªº¼Æ¶q 
+  vector<Type> myStack ; // ï¿½Î¨Ó­pï¿½ï¿½ ï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½Mï¿½kï¿½Aï¿½ï¿½ï¿½Ù¦ï¿½ DOT ï¿½ï¿½ï¿½Æ¶q 
   vector<DotCheck> dotStack ; 
   bool hasDot = false ; 
 
@@ -3463,7 +3472,7 @@ int main() {
       try
       {
 
-        nextToken = GetToken() ; // ¦³¥i¯à·|¥á¥XstringException ©M EofException
+        nextToken = GetToken() ; // ï¿½ï¿½ï¿½iï¿½ï¿½|ï¿½ï¿½XstringException ï¿½M EofException
 
         if ( NOT dotStack.empty() && dotStack.back().isCheck == true )
         {
@@ -3573,17 +3582,17 @@ int main() {
           {
             readEXP = true ; 
           } // if 
-          else // ³o±ø«ü¥Oµ²§ô¤F expend
+          else // ï¿½oï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½F expend
           {
             
             
             FixQuote( s_exp ) ; 
-            FixToken( s_exp ) ; // §ó¥¿¤@¨Çtoken t, (), nil, function  call ...
+            FixToken( s_exp ) ; // ï¿½ó¥¿¤@ï¿½ï¿½token t, (), nil, function  call ...
             DeleteDotParen( s_exp ) ;
 
             // cout << "Pretty Print S_EXP: " << endl << PrettyString( s_exp ) << endl ;  
             
-            // «Ø¥ß¾ðµ²ºc 
+            // ï¿½Ø¥ß¾ðµ²ºc 
             delete gRoot ;  
             gRoot = NULL ;
             i = 0 ;
@@ -3591,10 +3600,10 @@ int main() {
             gHead = gRoot ; // new
 
 
-            // §PÂ_¤åªk 
+            // ï¿½Pï¿½_ï¿½ï¿½k 
             gnum = 0 ;
             S_EXP( gHead ) ; 
-            // ¥i¯à·|¥á¥X syntax execepiton  
+            // ï¿½iï¿½ï¿½|ï¿½ï¿½X syntax execepiton  
             // preOrderTraversal(gHead) ; 
             
             
@@ -3605,12 +3614,12 @@ int main() {
             
             // quit = printRoot( s_exp ) ;
             printRoot() ;
-            // ¤@¨Ç¦L¥X«ü¥O«eªº³B¸Ì 
+            // ï¿½@ï¿½Ç¦Lï¿½Xï¿½ï¿½ï¿½Oï¿½eï¿½ï¿½ï¿½Bï¿½ï¿½ 
             gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
              
             readEXP = false ;
 
-            // cout << endl << "Debug >> ·|¶]¨ì³o¸Ì¥Nªí¨S¦³¥ô¦óException¦Ó¥B«ü¥Oµ²§ô¤F " << endl ;
+            // cout << endl << "Debug >> ï¿½|ï¿½]ï¿½ï¿½oï¿½Ì¥Nï¿½ï¿½ï¿½Sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Exceptionï¿½Ó¥Bï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½F " << endl ;
             // cout << endl << "=======================================================" << endl ;
           } // else if 
         } // if 
