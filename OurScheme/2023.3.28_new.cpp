@@ -3073,104 +3073,192 @@ void Functions::Cdr() {
 
 void Functions::Car() {
   vector<EXP> new_vector ;
-  vector<EXP> carVec ; 
-  vector<EXP> result ; 
-  // exeNode : firstArgument 
-  // temp = firstArgument 的下一個 
-  // emptyptr指的是 EMPTYPTR 
-  EXP* next = exeNode->next ; 
+  EXP* temp = exeNode->next ;
   EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
   EXP ex ;
-  
   if ( CheckNumOfArg( 1 ) ) {
+    if ( FindMap( temp->token, new_vector ) == true ) {
 
-    if ( next->type == EMPTYPTR )
-    { 
-      cout << endl << "next is EmptyPtr" << endl ;
-      exeNode =  next ; 
-      Eval() ; 
-      carVec.assign(next->vec.begin(), next->vec.end()); 
-    } // if 
-    else if ( FindMap( next->token, new_vector ) )
-    {
-      cout << endl << "Find defined symbol" << endl ; 
-      carVec.assign(new_vector.begin(), new_vector.end());
+      if ( new_vector.at(0).type == LEFT_PAREN ) {
+        if ( new_vector.size() >= 2 &&  new_vector.at(1).type == LEFT_PAREN ) {
+          int parnum = 1 ;
+          int i = 2 ;
+          ex.token = "(" ;
+          ex.type = LEFT_PAREN ;
+          emptyptr->vec.push_back( ex ) ;
+
+          while ( parnum != 0 ) {
+            if ( new_vector.at(i).type == LEFT_PAREN ) 
+              parnum++ ;
+            else if ( new_vector.at(i).type == RIGHT_PAREN )
+              parnum-- ;
+
+            ex.token = new_vector.at(i).token ;
+            ex.type = new_vector.at(i).type ;
+            emptyptr->vec.push_back( ex ) ;
+            i++ ;
+
+          } // while
+
+        } // if
+        else {
+          ex.token = new_vector.at(1).token ;
+          ex.type = new_vector.at(1).type ;
+          emptyptr->vec.push_back( ex ) ;
+        } // else
+
+      } // if
+      else {
+        cout << "ERROR (car with incorrect argument type)" << endl ;
+      } // else
+
+    } // if FindMap
+    else if ( temp->type == SYMBOL ) {
+
+      cout << "ERROR (unbound symbol)" << endl ; 
     } // else if 
-    else if ( next->type == SYMBOL ) 
-    {
-      cout << "Throw Error " << endl ; 
-      throw UnboundException( next ) ; 
-    } // else if 
-    else 
-    {
+    else if ( temp->type == EMPTYPTR && temp->listPtr->next->type == QUOTE && temp->listPtr->next->next->type == EMPTYPTR ) { 
+      exeNode = temp ;
+      Eval() ;
+
+      if ( temp->vec.size() >= 2 && temp->vec.at(1).type == LEFT_PAREN ) {
+        int parnum = 1 ;
+        int i = 2 ;
+        ex.token = "(" ;
+        ex.type = LEFT_PAREN ;
+        emptyptr->vec.push_back( ex ) ;
+
+        while ( parnum != 0 ) {
+          if ( temp->vec.at(i).type == LEFT_PAREN ) 
+            parnum++ ;
+          else if ( temp->vec.at(i).type == RIGHT_PAREN )
+            parnum-- ;
+
+          ex.token = temp->vec.at(i).token ;
+          ex.type = temp->vec.at(i).type ;
+          emptyptr->vec.push_back( ex ) ;
+          i++ ;
+
+        } // while
+
+      } // if
+      else {
+        ex.token = temp->vec.at(1).token ;
+        ex.type = temp->vec.at(1).type ;
+        emptyptr->vec.push_back( ex ) ;
+      } // else
+
+    } // if temp->type == EMPTYPTR
+    else {
       cout << "ERROR (car with incorrect argument type)" << endl ;
     } // else
-
-    if ( carVec.size() > 1 )
-    {
-      int i = 0 ; 
-      EXP * root = NULL ; 
-      
-      int parNum = 0 ; 
-
-      cout << endl << "Pretty : \n" << PrettyString( carVec ) << endl ;
-      // 刪除最外層括號
-      carVec.erase( carVec.begin() ) ; 
-      carVec.pop_back() ; 
-      // cout << endl << "Pretty : \n" << PrettyString( carVec ) << endl ; 
-
-      for ( int i = 0 ; i < carVec.size() ; i++ )
-      {
-        if ( parNum == 1 )
-        {
-          while ( parNum != 0 )
-          {
-            if ( carVec.at( i ).type == RIGHT_PAREN )
-            {
-              parNum -- ; 
-            } // if
-            else if ( carVec.at( i ).type == LEFT_PAREN )
-            {
-              parNum ++ ; 
-            } // else if 
-
-            result.push_back( carVec.at( i ) ) ;
-            i ++ ; 
-          } // while 
-
-          i = carVec.size() ; 
-        } // if
-        else if ( carVec.at( i ).type == LEFT_PAREN )
-        {
-          if ( parNum == 0 )
-          {
-            result.push_back( carVec.at( i ) ) ; 
-          } // if 
-          parNum ++ ; 
-        } // else if 
-        else if ( parNum == 0 )
-        {
-          cout << "HERE" ; 
-          result.push_back( carVec.at( i ) ) ; 
-          i = carVec.size() ; // break for 迴圈
-        } // if 
-         
-      } // for 
-
-      cout << endl << "Pretty : \n" << PrettyString( result ) << endl ; 
-      emptyptr->vec.assign( result.begin(), result.end() ) ; 
-    } // if 
-    else
-    {
-      cout << "ERROR (car with incorrect argument type)" << endl ;
-    } // else 
-
   } // if CheckNumOfArg( 1 )
   else {
     cout << "ERROR (incorrect number of arguments)" << endl ;
   } // else 
 
-} // Car()  
+} // Car() 
+
+//void Functions::Car() {
+//  vector<EXP> new_vector ;
+//  vector<EXP> carVec ; 
+//  vector<EXP> result ; 
+//  // exeNode : firstArgument 
+//  // temp = firstArgument 的下一個 
+//  // emptyptr指的是 EMPTYPTR 
+//  EXP* next = exeNode->next ; 
+//  EXP* emptyptr = exeNode->pre_next->pre_listPtr ;
+//  EXP ex ;
+//  
+//  if ( CheckNumOfArg( 1 ) ) {
+//
+//    if ( next->type == EMPTYPTR )
+//    { 
+//      cout << endl << "next is EmptyPtr" << endl ;
+//      exeNode =  next ; 
+//      Eval() ; 
+//      carVec.assign(next->vec.begin(), next->vec.end()); 
+//    } // if 
+//    else if ( FindMap( next->token, new_vector ) )
+//    {
+//      cout << endl << "Find defined symbol" << endl ; 
+//      carVec.assign(new_vector.begin(), new_vector.end());
+//    } // else if 
+//    else if ( next->type == SYMBOL ) 
+//    {
+//      cout << "Throw Error " << endl ; 
+//      throw UnboundException( next ) ; 
+//    } // else if 
+//    else 
+//    {
+//      cout << "ERROR (car with incorrect argument type)" << endl ;
+//    } // else
+//
+//    if ( carVec.size() > 1 )
+//    {
+//      int i = 0 ; 
+//      EXP * root = NULL ; 
+//      
+//      int parNum = 0 ; 
+//
+//      cout << endl << "Pretty : \n" << PrettyString( carVec ) << endl ;
+//      // 刪除最外層括號
+//      carVec.erase( carVec.begin() ) ; 
+//      carVec.pop_back() ; 
+//      // cout << endl << "Pretty : \n" << PrettyString( carVec ) << endl ; 
+//
+//      for ( int i = 0 ; i < carVec.size() ; i++ )
+//      {
+//        if ( parNum == 1 )
+//        {
+//          while ( parNum != 0 )
+//          {
+//            if ( carVec.at( i ).type == RIGHT_PAREN )
+//            {
+//              parNum -- ; 
+//            } // if
+//            else if ( carVec.at( i ).type == LEFT_PAREN )
+//            {
+//              parNum ++ ; 
+//            } // else if 
+//
+//            result.push_back( carVec.at( i ) ) ;
+//            i ++ ; 
+//          } // while 
+//
+//          i = carVec.size() ; 
+//        } // if
+//        else if ( carVec.at( i ).type == LEFT_PAREN )
+//        {
+//          if ( parNum == 0 )
+//          {
+//            result.push_back( carVec.at( i ) ) ; 
+//          } // if 
+//          parNum ++ ; 
+//        } // else if 
+//        else if ( parNum == 0 )
+//        {
+//          cout << "HERE" ; 
+//          result.push_back( carVec.at( i ) ) ; 
+//          i = carVec.size() ; // break for 迴圈
+//        } // if 
+//         
+//      } // for 
+//
+//      cout << endl << "Pretty : \n" << PrettyString( result ) << endl ; 
+//      emptyptr->vec.assign( result.begin(), result.end() ) ; 
+//    } // if 
+//    else
+//    {
+//      cout << "ERROR (car with incorrect argument type)" << endl ;
+//    } // else 
+//
+//  } // if CheckNumOfArg( 1 )
+//  else {
+//    cout << "ERROR (incorrect number of arguments)" << endl ;
+//  } // else 
+//
+//} // Car()  
 
 void Functions::Quote() {
   EXP* temp = exeNode->next ;
