@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="project2.cpp">
+    <ClCompile Include="2023.3.28_new.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
   </ItemGroup>

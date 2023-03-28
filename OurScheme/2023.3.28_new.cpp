@@ -204,6 +204,7 @@ class NonListException
     ss << "ERROR (non-list) : " << PrettyString(exp) ;
     mErrMsg = ss.str() ;   
   } // EofException() 
+
 }; // NonListException 
 
 string PrintType( Type type )
@@ -2889,7 +2890,7 @@ void Functions::Cdr() {
       cout << endl << "Find defined symbol" << endl ; 
       carVec.assign(new_vector.begin(), new_vector.end());
     } // else if 
-    else if ( NOT FindMap( next->token, new_vector ) )
+    else if ( next->type == SYMBOL )
     {
       throw UnboundException( next ) ; 
     } // else if 
@@ -2903,37 +2904,60 @@ void Functions::Cdr() {
       EXP * root = NULL ; 
 
       int parNum = 0 ; 
-      bool start = false ; 
+      bool isSkip = false ;  
+      cout << endl << "Pretty : \n" << PrettyString( carVec ) << endl ; 
       for ( int i = 0 ; i < carVec.size( ) ; i++ )
       {
         if ( carVec.at( i ).type == LEFT_PAREN )
         {
           parNum ++ ; 
         } // if 
-
-
-        cout << "\nParNum :" << parNum << " carVec :" << carVec.at( i ).token ; 
-        if ( parNum == 1 && ( carVec.at( i ).type == DOT || carVec.at( i ).type == RIGHT_PAREN ) ) 
-        {
-          start = true ; 
-        } // if
-        else if ( parNum > 1 && start )
-        {
-          result.push_back( carVec.at( i ) ) ; 
-        } // else 
-        else if ( carVec.at( i ).type != LEFT_PAREN && carVec.at( i ).type != RIGHT_PAREN )
-        {
-          start = true ; 
-        } // else 
-
-        if ( i < carVec.size() && carVec.at( i ).type == RIGHT_PAREN )
+        else if ( carVec.at( i ).type == RIGHT_PAREN )
         {
           parNum -- ; 
-        } // else 
+        } // else if 
+
+        if ( parNum == 1 && carVec.at(i).type != LEFT_PAREN ) // 第一個原子
+        {
+          isSkip = true ; 
+        } // if 
+        else if ( parNum == 2 && isSkip == false )
+        {
+          // 跳過第一個原子
+          while ( parNum != 1 )
+          {
+            if ( carVec.at( i ).type == LEFT_PAREN )
+            {
+              parNum ++ ; 
+            } // if 
+            else if ( carVec.at( i ).type == RIGHT_PAREN )
+            {
+              parNum -- ; 
+            } // else if 
+
+            i ++ ; 
+          } // while 
+
+          isSkip = true ; 
+
+        } // else if 
+        else if ( isSkip )
+        {
+          result.push_back( carVec.at( i ) ) ; 
+        } // else if 
       } // for 
 
-      cout << endl << "Pretty : \n" << PrettyString( result ) << endl ; 
-      emptyptr->vec.assign( result.begin(), result.end() ) ;
+      if ( result.empty( ) )
+      {
+        EXP nil ; 
+        nil.token = "nil" ; 
+        nil.type = NIL ; 
+        result.push_back( nil ) ;  
+      } // if 
+
+      /*cout << endl << "Pretty : \n" << PrettyString( result ) << endl ;*/ 
+      /*emptyptr->vec.assign( result.begin(), result.end() ) ; */
+
     } // if 
     else
     {
@@ -2972,57 +2996,73 @@ void Functions::Car() {
       cout << endl << "Find defined symbol" << endl ; 
       carVec.assign(new_vector.begin(), new_vector.end());
     } // else if 
-    else if ( NOT FindMap( next->token, new_vector ) )
+    else if ( next->type == SYMBOL ) 
     {
+      cout << "Throw Error " << endl ; 
       throw UnboundException( next ) ; 
     } // else if 
-    else {
+    else 
+    {
       cout << "ERROR (car with incorrect argument type)" << endl ;
     } // else
 
-    if ( NOT carVec.empty() )
+    if ( carVec.size() > 1 )
     {
       int i = 0 ; 
       EXP * root = NULL ; 
       
       int parNum = 0 ; 
 
-      for ( int i = 0 ; i < carVec.size( ) ; i++ )
-      {
-        if ( carVec.at( i ).type == LEFT_PAREN )
-        {
-          parNum ++ ; 
-        } // if 
-        
+      cout << endl << "Pretty : \n" << PrettyString( carVec ) << endl ;
+      // 刪除最外層括號
+      carVec.erase( carVec.begin() ) ; 
+      carVec.pop_back() ; 
+      // cout << endl << "Pretty : \n" << PrettyString( carVec ) << endl ; 
 
-        cout << "\nParNum :" << parNum << " carVec :" << carVec.at( i ).token ; 
-        
-        if ( parNum == 1 && ( carVec.at( i ).type == DOT || carVec.at( i ).type == RIGHT_PAREN ) ) 
+      for ( int i = 0 ; i < carVec.size() ; i++ )
+      {
+        if ( parNum == 1 )
         {
+          while ( parNum != 0 )
+          {
+            if ( carVec.at( i ).type == RIGHT_PAREN )
+            {
+              parNum -- ; 
+            } // if
+            else if ( carVec.at( i ).type == LEFT_PAREN )
+            {
+              parNum ++ ; 
+            } // else if 
+
+            result.push_back( carVec.at( i ) ) ;
+            i ++ ; 
+          } // while 
+
           i = carVec.size() ; 
         } // if
-        else if ( parNum > 1 )
+        else if ( carVec.at( i ).type == LEFT_PAREN )
         {
+          if ( parNum == 0 )
+          {
+            result.push_back( carVec.at( i ) ) ; 
+          } // if 
+          parNum ++ ; 
+        } // else if 
+        else if ( parNum == 0 )
+        {
+          cout << "HERE" ; 
           result.push_back( carVec.at( i ) ) ; 
-        } // else 
-        else if ( carVec.at( i ).type != LEFT_PAREN && carVec.at( i ).type != RIGHT_PAREN )
-        {
-          result.push_back( carVec.at( i ) ) ;
-          i = carVec.size() ;
-        } // else 
-        
-        if ( i < carVec.size() && carVec.at( i ).type == RIGHT_PAREN )
-        {
-          parNum -- ; 
-        } // else 
+          i = carVec.size() ; // break for 迴圈
+        } // if 
+         
       } // for 
-      
+
       cout << endl << "Pretty : \n" << PrettyString( result ) << endl ; 
       emptyptr->vec.assign( result.begin(), result.end() ) ; 
     } // if 
     else
     {
-      cout << "EMPTY VEC" ; 
+      cout << "ERROR (car with incorrect argument type)" << endl ;
     } // else 
 
   } // if CheckNumOfArg( 1 )
@@ -3200,9 +3240,9 @@ void Functions::Define() {
       } // else
       
     } // if
-    else {
+  else {
       cout << "ERROR (DEFINE format)" << endl ; // pretty print
-    } // else
+  } // else
     
     cout << str << " defined" ;
 
@@ -3420,6 +3460,7 @@ void test( vector<EXP> s_exp ) {
   cout << endl ;
   
 } // test
+
 int main() { 
 //  cin >> uTestNum ; 
 
