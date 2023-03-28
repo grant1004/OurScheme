@@ -187,7 +187,7 @@ class UnboundException
     mErrMsg = ss.str() ;   
   } // UnboundException() 
 
-}; // EofException
+}; // UnboundException
 
 class NonListException
 {
@@ -203,9 +203,35 @@ class NonListException
     stringstream ss ;
     ss << "ERROR (non-list) : " << PrettyString(exp) ;
     mErrMsg = ss.str() ;   
-  } // EofException() 
+  } // NonListException() 
 
 }; // NonListException 
+
+class IncorrectArgumentException
+{
+  string mErrMsg  ;
+  public:
+  const char* What()
+  {
+    return mErrMsg.c_str() ;       
+  } // What() 
+
+  IncorrectArgumentException( string func, EXP exp )  // EXP exp 
+  {
+    stringstream ss ;
+    ss << "ERROR (" << func <<" with incorrect argument type) : " << exp.token ;
+    mErrMsg = ss.str() ;   
+  } // IncorrectArgumentException() 
+
+  IncorrectArgumentException( string func2, vector<EXP> exp2 )  // vector exp2
+  {
+    stringstream ss ;
+    ss << "ERROR (" << func2 <<" with incorrect argument type) : " << PrettyString( exp2 ) ;
+    mErrMsg = ss.str() ;   
+  } // IncorrectArgumentException()
+
+}; //IncorrectArgumentException
+
 
 string PrintType( Type type )
 {
@@ -2911,14 +2937,16 @@ void Functions::Cdr() {
 
       } // if
       else {
-        cout << "ERROR (car with incorrect argument type)" << endl ;
+        throw IncorrectArgumentException( "cdr", new_vector ) ;
+        // cout << "ERROR (car with incorrect argument type)" << endl ;
 
       } // else
 
     } // if FindMap
     else if ( temp->type == SYMBOL ) {
 
-      cout << "ERROR (unbound symbol)" << endl ; 
+      throw UnboundException( temp ) ; 
+      // cout << "ERROR (unbound symbol)" << endl ; 
     } // else if 
     else if ( temp->type == EMPTYPTR && temp->listPtr->next->type == QUOTE && temp->listPtr->next->next->type == EMPTYPTR ) { 
       exeNode = temp ;
@@ -2958,7 +2986,8 @@ void Functions::Cdr() {
 
     } // if temp->type == EMPTYPTR
     else {
-      cout << "ERROR (cdr with incorrect argument type)" << endl ;
+      throw IncorrectArgumentException( "cdr", *temp ) ; 
+      //cout << "ERROR (cdr with incorrect argument type)" << endl ;
     } // else
   } // if CheckNumOfArg( 1 )
 
@@ -3697,8 +3726,14 @@ int main() {
         cout << ex.What() ; 
         readEXP = false ; 
       } // catch 
-
-    } // while ( readEXP )
+      catch ( IncorrectArgumentException ex )
+      {
+        funcClass.ResetLevel() ; 
+        cout << ex.What() ; 
+        readEXP = false ;
+      } // catch 
+    
+} // while ( readEXP )
 
   } // while ( NOT quit )  
   
