@@ -3081,8 +3081,8 @@ void Functions::Cdr() {
   } // if CheckNumOfArg( 1 )
 
   else {
-    throw IncorrectNumberException( "cdr" ) ;
-    // cout << "ERROR (incorrect number of arguments)" << endl ;
+    //    throw IncorrectNumberException( "cdr" ) ;
+    cout << "ERROR (incorrect number of arguments)" << endl ;
   } // else
 
 
@@ -3194,6 +3194,7 @@ void Functions::Quote() {
       if ( IsSystemPrimitive( temp->type ) ) {
         temp->type = SYMBOL ;
       } // if
+      
       if ( temp->type == EMPTYPTR ) {
         temp = temp->listPtr ;
       } // if
@@ -3209,10 +3210,10 @@ void Functions::Quote() {
         temp = temp->pre_listPtr ;
         if ( temp == emptyptr ) {
           bbreak = true ;
-        } 
+        } // if
         else {
           temp = temp->next ;
-        }
+        } // else
       } // else if 
       else {
         ex.token = temp->token ;
@@ -3252,9 +3253,10 @@ void Functions::Cons() {
         emptyptr->vec.push_back( ex ) ;
       } // if
       else if ( FindMap( temp->token, new_vector ) == true ) {
-        for ( int i = 0; i < new_vector.size(); i++ ) {
+        for ( int i = 0; i < new_vector.size() ; i++ ) {
           emptyptr->vec.push_back( new_vector.at( i ) ) ;
         } // for
+        
         new_vector.clear() ;
         
       } // else if
@@ -3264,7 +3266,7 @@ void Functions::Cons() {
       else if ( temp->type == EMPTYPTR ) {
         mexeNode = temp ;
         Eval() ;
-        for ( int i = 0; i < temp->vec.size(); i++ ) {
+        for ( int i = 0; i < temp->vec.size() ; i++ ) {
           emptyptr->vec.push_back( temp->vec.at( i ) ) ;
         } // for
         
@@ -3285,13 +3287,13 @@ void Functions::Cons() {
     ex.type = RIGHT_PAREN ;
     emptyptr->vec.push_back( ex ) ;
  
-  } // else if
+  } // if
   else {
     throw IncorrectNumberException( "cons" ) ;
     // cout << "incorrect number of arguments" << endl ; // function call Name
   } // else
   
-} // Cons()
+} // Functions::Cons()
 
 void Functions::Define() { 
   memNum++ ;
@@ -3309,56 +3311,59 @@ void Functions::Define() {
       if ( temp->type == EMPTYPTR ) { 
         mexeNode = temp ;
         Eval() ;
-        if ( FindMap( str, new_vector ) ){
+        if ( FindMap( str, new_vector ) ) {
           temp->vec.at( 0 ).memSpace = memNum ;
           msymbolMap[str] = temp->vec ;
         } // if
-        else{
+        else {
           temp->vec.at( 0 ).memSpace = memNum ;
-          msymbolMap.insert( pair< string,vector<EXP> >(str,temp->vec) ) ;
+          //          msymbolMap.insert( pair < string, vector < EXP > > ( str, temp->vec ) ) ;
+          msymbolMap[str] = temp->vec ;
         } // else
         
       } // if
       else if ( FindMap( temp->token, new_vector ) ) { 
-        if ( FindMap( str, new_vector2 ) ){
+        if ( FindMap( str, new_vector2 ) ) {
           new_vector.at( 0 ).memSpace = FindMemNum( temp->token ) ; 
           msymbolMap[str] = new_vector ;
         } // if
         else {
           new_vector.at( 0 ).memSpace = FindMemNum( temp->token ) ; 
-          msymbolMap.insert( pair< string,vector<EXP> >(str,new_vector) ) ;
+          // msymbolMap.insert( pair < string, vector < EXP > > ( str,new_vector ) ) ;
+          msymbolMap[str] = new_vector ;
         } // else
         
         
       } // else if
       else if ( temp->type == SYMBOL ) {
         throw UnboundException( temp ) ; 
-      } // else
+      } // else if
       else {
         ex.token = temp->token ;
         ex.type = temp->type ;
         ex.memSpace = memNum ;
         vs.push_back( ex ) ; 
-        if ( FindMap( str, new_vector ) ){
+        if ( FindMap( str, new_vector ) ) {
           msymbolMap[str] = vs ;
         } // if
         else {
-          msymbolMap.insert( pair< string,vector<EXP> >(str,vs) ) ;
+          // msymbolMap.insert( pair< string,vector<EXP> >(str,vs) ) ;
+          msymbolMap[str] = vs ;
         } // else
         
       } // else
       
-      } // else if
-      else {
-        cout << "ERROR (DEFINE format)" << endl ;
-      } // else
-      
     } // if
     else {
-      cout << "ERROR (DEFINE format)" << endl ; // pretty print
+      cout << "ERROR (DEFINE format)" << endl ;
     } // else
-    
-    cout << str << " defined" ;
+      
+  } // if
+  else {
+    cout << "ERROR (DEFINE format)" << endl ; // pretty print
+  } // else
+  
+  cout << str << " defined" ;
 
 
 } // Functions::Define()
@@ -3389,17 +3394,17 @@ void Functions::Eval() {
 
   mlevel ++ ; 
                                                                      
-  if ( IsATOM(temp) && temp->type != SYMBOL  )  {
+  if ( IsATOM( temp ) && temp->type != SYMBOL  )  {
     cout << "Is just an atom but not a symbol" << endl ; 
     hasError = true ; 
     mexeNode = temp ;
     cout << temp->token ;
     // ¥X°j°é 
-  } // else if
+  } // if
   else if ( temp->type == SYMBOL ) {
     cout << "Is a symbol without Paren: " ; 
     hasError = true ; 
-    if ( FindMap( temp->token, new_vector) == false ) // unbound symbol 
+    if ( FindMap( temp->token, new_vector ) == false ) // unbound symbol 
     { 
       throw UnboundException( temp ) ; 
       // cout << "Line :  2037 >> ERROR (unbound symbol) : " << temp->token << endl ;
@@ -3410,14 +3415,14 @@ void Functions::Eval() {
     } // else 
 
   } // else if 
-  else if ( IsSystemPrimitive ( temp->type ) )
+  else if ( IsSystemPrimitive( temp->type ) )
   {
     cout << temp->token << endl ; 
   } // else if 
   else 
   { // temp == emptyptr || temp == bounding symbol 
 
-    temp = temp->listPtr; // first LEFT_PAREN
+    temp = temp->listPtr ; // first LEFT_PAREN
     EXP* firstArgument = temp->next ; 
     cout << "First Argument [" << firstArgument->token << "] " ;
 
@@ -3442,19 +3447,19 @@ void Functions::Eval() {
     } // if 
     else if ( firstArgument->type == QUOTE ) {
       mexeNode = firstArgument ; 
-    } // if
+    } // else if
     else if ( IsNonList( temp ) ) // non list error 
     {
-        hasError = true ; 
-        throw NonListException( mnonListVec ) ; 
-    } // if 
+      hasError = true ; 
+      throw NonListException( mnonListVec ) ; 
+    } // else if 
     else if ( IsATOM( firstArgument ) 
               && firstArgument->type != SYMBOL 
               && NOT IsSystemPrimitive( firstArgument->type ) )  
     { // non known function
       hasError = true ; 
       cout << "ERROR (attempt to apply non-function) : " << firstArgument->token << endl ;
-    } // if 
+    } // else if 
     else if ( firstArgument->type == SYMBOL 
               || IsSystemPrimitive( firstArgument->type ) )  
     { 
@@ -3464,7 +3469,7 @@ void Functions::Eval() {
              << firstArgument->token << endl ;
         if ( ( firstArgument->type == DEFINE 
                || firstArgument->type == CLEAN_ENVIRONMENT ) 
-               && mlevel > 1 )
+             && mlevel > 1 )
                                                               
         {
           cout << "ERROR (level of " << firstArgument->token << ")" ; 
@@ -3506,7 +3511,7 @@ void Functions::Eval() {
         } // else if
         else  
         {
-            mexeNode = firstArgument ; 
+          mexeNode = firstArgument ; 
         } // else 
       } // if
       else // SYM is not the name of a known function
@@ -3548,7 +3553,7 @@ void Functions::Eval() {
         cout << "ERROR (attempt to apply non-function) : " ; 
         PrintVec( firstArgument->vec ) ; 
         hasError = true ; 
-      } // else 
+      } // else if 
       else
       {
         cout << "ERROR : the vec is empty" ;
@@ -3564,7 +3569,7 @@ void Functions::Eval() {
     Execute() ;
   } // if 
 
-} // Eval()
+} // Functions::Eval()
 
 bool PrintRoot() 
 {
@@ -3574,13 +3579,14 @@ bool PrintRoot()
     DeleteDotParen( gHead->vec ) ; 
     return PrintS_EXP( gHead->vec ) ; 
   } // if 
+  
   cout << endl << "gHead->vec is EMPTY" ;  
 
   return false ; 
 } // PrintRoot()
 
 int main() { 
-//  cin >> uTestNum ; 
+  cin >> uTestNum ; 
 
   int i = 0 ;
   bool syntaxIsTrue ;
@@ -3634,7 +3640,7 @@ int main() {
           throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
         } // if 
 
-        if ( nextToken.type == DOT && NOT s_exp.empty() && s_exp.back ( ).type == LEFT_PAREN )
+        if ( nextToken.type == DOT && NOT s_exp.empty() && s_exp.back().type == LEFT_PAREN )
         {
           throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
         } // if 
@@ -3843,6 +3849,6 @@ int main() {
   
   printf( "\nThanks for using OurScheme!" ) ;
 
-  return 0;
+  return 0 ;
     
 } // main()
