@@ -10,7 +10,7 @@
 # include <iomanip>
 # include <exception> 
 # include <sstream>
-# include <stdio.h>
+//# include <stdio.h>
 //# include <stdlib.h> 
 # include <stack>
 
@@ -176,10 +176,9 @@ class EofException // read EOF
   ! ERROR (car with incorrect argument type) : 3
   ! ERROR (attempt to apply non-function) : 3
   ! ERROR (division by zero) : / 
-  ERROR (DEFINE format) : 
-
-  ERROR (no return value) : 
-  ERROR (COND format) : 
+  ! ERROR (DEFINE format) : 
+  ! ERROR (no return value) : 
+  ! ERROR (COND format) : 
 */
 class UnboundException
 {
@@ -1968,6 +1967,8 @@ public : // 早安胖嘟嘟肥肥
   void List_qmark() ; // list?
   void Begin() ; // begin
   void Cond() ; // cond 
+  void If() ; // if
+
   vector<EXP> GetResult()
   {
     return mresult ; 
@@ -1987,7 +1988,7 @@ public : // 早安胖嘟嘟肥肥
 
     return true ; 
   } // TorF() 
-  //    EXP If() ; // if 
+   
 
 
   void Execute() { // ptr指在function call上面 
@@ -2064,6 +2065,8 @@ public : // 早安胖嘟嘟肥肥
       Begin() ; 
     else if ( mexeNode->type == COND  )
       Cond() ;
+    else if ( mexeNode->type == IF  )
+      If() ;
     else if ( mexeNode->type == EXIT )
       throw new ExitException( "EXIT" ) ;
     else 
@@ -2119,6 +2122,99 @@ bool Functions::FindMap( string str, vector<EXP> &new_vector ) {
   
 } // Functions::FindMap()
 
+void Functions::If()
+{
+  // mexeNode : if
+  // now : 變數 
+  // emptyptr : root 
+  // ( cond (...) (...) . . . . (else ...) ) 
+  EXP* now = mexeNode->next ;
+  EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
+  EXP* decide ;
+  EXP* answer ;
+
+  vector<EXP> new_vector ; 
+  decide = now ; 
+  if ( decide->type == EMPTYPTR )
+  {
+    mexeNode = decide ; 
+    Eval() ; 
+    emptyptr->vec.assign( decide->vec.begin(), decide->vec.end() ) ; 
+  } // if 
+  else if ( FindMap( decide->token, new_vector ) )
+  {
+    emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+  } // else if 
+  else if ( decide->type != SYMBOL )
+  {
+    cout << decide->token ; 
+    emptyptr->vec.clear() ;
+    emptyptr->vec.push_back( *decide ) ;
+  } // else if 
+  else
+  {
+    throw new UnboundException( decide ) ; 
+  } // else 
+  
+  if ( TorF( emptyptr->vec ) == true )
+  {
+
+    answer = decide->next ; 
+    if ( answer->type == EMPTYPTR )
+    {
+      mexeNode = answer ; 
+      Eval() ; 
+      emptyptr->vec.assign( answer->vec.begin(), answer->vec.end() ) ; 
+    } // if 
+    else if ( FindMap( answer->token, new_vector ) )
+    {
+      emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+    } // else if 
+    else if ( answer->type != SYMBOL )
+    {
+      emptyptr->vec.clear() ;
+      emptyptr->vec.push_back( *answer ) ;
+    } // else if 
+    else
+    {
+      throw new UnboundException( answer ) ; 
+    } // else 
+
+  } // if 
+  else
+  {
+    if ( decide->next->next->type != RIGHT_PAREN )
+    {
+      answer = decide->next->next ; 
+      if ( answer->type == EMPTYPTR )
+      {
+        mexeNode = answer ; 
+        Eval() ; 
+        emptyptr->vec.assign( answer->vec.begin(), answer->vec.end() ) ; 
+      } // if 
+      else if ( FindMap( answer->token, new_vector ) )
+      {
+        emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+      } // else if 
+      else if ( answer->type != SYMBOL )
+      {
+        emptyptr->vec.clear() ;
+        emptyptr->vec.push_back( *answer ) ;
+      } // else if 
+      else
+      {
+        throw new UnboundException( answer ) ; 
+      } // else
+    } // if 
+    else
+    {
+      mnonListVec.clear() ; 
+      TraversalEmpty( gRoot ) ; 
+      throw new NoReturnException( mnonListVec ) ; 
+    } // else 
+  } // else 
+
+} // Functions::If()
 
 void Functions::Cond()
 {
@@ -4172,6 +4268,7 @@ void Functions::Eval() {
         } // else if 
         else if ( firstArgument->type == IF )
         { 
+          mexeNode = firstArgument ; 
           if ( CheckNumOfArg( 2 ) || CheckNumOfArg( 3 ) ) 
           {
             mexeNode = firstArgument ; 
