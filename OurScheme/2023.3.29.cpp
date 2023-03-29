@@ -225,6 +225,25 @@ class IncorrectArgumentException
   } // IncorrectArgumentException()
 
 }; //IncorrectArgumentException
+
+class IncorrectNumberException
+{
+  string mErrMsg  ;
+  public:
+  const char* What()
+  {
+    return mErrMsg.c_str() ;       
+  } // What() 
+
+  IncorrectNumberException( string func )  // EXP exp 
+  {
+    stringstream ss ;
+    ss << "ERROR (incorrect number of arguments) : " << func ;
+    mErrMsg = ss.str() ;   
+  } // IncorrectNumberException() 
+
+}; //IncorrectNumberException
+
 string PrintType( Type type )
 {
   if ( type == LEFT_PAREN ) 
@@ -1646,9 +1665,10 @@ class Functions
     bool CheckNumOfArg( int num ) {
       EXP* temp = exeNode->next ;
       int arg = 0 ;
+
       while ( temp->type != RIGHT_PAREN ) {
         arg++ ;
-        temp = temp->next ;
+        temp = temp->next ; 
       } // while
       
       if ( arg != num ) 
@@ -1855,12 +1875,10 @@ public : // ¦­¦w­D¹Ê¹ÊªÎªÎ
         Eqv_qmark() ;
       else if ( exeNode->type == LIST ) 
         List() ; 
-      else if ( exeNode->type == AND ) {
-        cout << "4444444" << endl ;
-        And() ;
-        
-      }
-
+      else if ( exeNode->type == AND ) 
+        And() ;      
+      else if ( exeNode->type == OR ) 
+        Or() ;
       else if ( exeNode->type == CLEAN_ENVIRONMENT )
         Clean_Environment() ; 
       else 
@@ -1934,7 +1952,8 @@ void Functions::Clean_Environment() {
     cout << "environment cleaned" << endl ;
   } // if
   else {
-    cout << "ERROR (incorrect number of arguments) : clean-environment" << endl ;
+    throw IncorrectNumberException( "clean-environment" ) ; 
+    // cout << "ERROR (incorrect number of arguments) : clean-environment" << endl ;
   } // else
   
 } // Clean_Environment()
@@ -1948,7 +1967,8 @@ void Functions::Or() { // arg >= 2
   bool bbreak = false ;
   EXP ex ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
-    cout << "ERROR (incorrect number of arguments) : and" << endl ;
+    throw IncorrectNumberException( "or" ) ;
+    // cout << "ERROR (incorrect number of arguments) : and" << endl ;
   } // if
   else { 
     while ( temp->type != RIGHT_PAREN && bbreak == false ) { 
@@ -2014,7 +2034,8 @@ void Functions::And() { // arg >= 2
   EXP ex ;
   bool isNIL = false ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
-    cout << "ERROR (incorrect number of arguments) : and" << endl ;
+    throw IncorrectNumberException( "and" ) ;
+    // cout << "ERROR (incorrect number of arguments) : and" << endl ;
   } // if
   else { 
     while ( temp->type != RIGHT_PAREN ) { 
@@ -2185,7 +2206,8 @@ void Functions::Eqv_qmark() { // arg == 2
     
   } // if
   else {
-    cout << "ERROR (incorrect number of arguments) : equal?" << endl ;
+    throw IncorrectNumberException( "eqv?" ) ;
+    // cout << "ERROR (incorrect number of arguments) : equal?" << endl ;
   } // else 
   
 } // Eqv_qmark()
@@ -2259,7 +2281,8 @@ void Functions::Equal_qmark() { // arg == 2
     
   } // if
   else {
-    cout << "ERROR (incorrect number of arguments) : equal?" << endl ;
+    throw IncorrectNumberException( "=?" ) ;
+    // cout << "ERROR (incorrect number of arguments) : equal?" << endl ;
   } // else 
   
 } // Equal_qmark()
@@ -2296,7 +2319,8 @@ void Functions::Not() { // arg == 1
       
   } // if
   else {
-    cout << "ERROR (incorrect number of arguments) : not" << endl ;
+    throw IncorrectNumberException( "not" ) ;
+    // cout << "ERROR (incorrect number of arguments) : not" << endl ;
   } // else
   
   if ( isNIL == true ) {
@@ -2320,7 +2344,8 @@ void Functions::String_append() { // FixDoubleQuotes()
   bool isTrue = true ;
   EXP ex ;
   if ( CheckNumOfArg( 1 ) ) {
-    cout << "ERROR (incorrect number of arguments) : string-append" << endl ;
+    throw IncorrectNumberException( "string-append" ) ;
+    // cout << "ERROR (incorrect number of arguments) : string-append" << endl ;
   } // if
   else {
     while ( temp->type != RIGHT_PAREN ) { 
@@ -2382,7 +2407,8 @@ void Functions::CompareString( string whichOperator ) { // string>? , string<? ,
   bool isTrue = true ;
   bool isFirstArg = true ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
-    cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
+    throw IncorrectNumberException( whichOperator ) ;
+    // cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
   } // if
   else {
     while ( temp->type != RIGHT_PAREN ) { 
@@ -2527,7 +2553,8 @@ void Functions::CompareNum( string whichOperator ) { // arg >= 2
   bool isFirstArg = true ;
   
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
-    cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
+    throw IncorrectNumberException( whichOperator ) ;
+    // cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
   } // if
   else {
     while ( temp->type != RIGHT_PAREN ) { 
@@ -2714,7 +2741,8 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
   bool hasFloat = false ;
   
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
-    cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
+    throw IncorrectNumberException( whichOperator ) ;
+    // cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
   } // if
   else {
     while ( temp->type != RIGHT_PAREN && noError == true ) {
@@ -2948,7 +2976,8 @@ void Functions::Qmark( string whichQmark ) { // atom? , null? , integer? , real?
     
   } // if
   else {
-    cout << "problem with the number of parameters" << endl ;
+    throw IncorrectNumberException( whichQmark ) ;
+    // cout << "problem with the number of parameters" << endl ;
   } // else 
   
 } // Qmark()
@@ -3055,7 +3084,8 @@ void Functions::Cdr() {
   } // if CheckNumOfArg( 1 )
 
   else {
-    cout << "ERROR (incorrect number of arguments)" << endl ;
+    throw IncorrectNumberException( "cdr" ) ;
+    // cout << "ERROR (incorrect number of arguments)" << endl ;
   } // else
 
 
@@ -3152,7 +3182,8 @@ void Functions::Car() {
     } // else
   } // if CheckNumOfArg( 1 )
   else {
-    cout << "ERROR (incorrect number of arguments)" << endl ;
+    throw IncorrectNumberException( "car" ) ; 
+    // cout << "ERROR (incorrect number of arguments)" << endl ;
   } // else 
 
 } // Car() 
@@ -3202,7 +3233,8 @@ void Functions::Quote() {
 
   } // if
   else {
-    cout << "ERROR (incorrect number of arguments)" << endl ;
+    throw IncorrectNumberException( "\'" ) ;
+    // cout << "ERROR (incorrect number of arguments)" << endl ;
   } // else
 
 } // Quote()
@@ -3261,7 +3293,8 @@ void Functions::Cons() {
  
   } // else if
   else {
-    cout << "incorrect number of arguments" << endl ; // function call Name
+    throw IncorrectNumberException( "cons" ) ;
+    // cout << "incorrect number of arguments" << endl ; // function call Name
   } // else
   
 } // Cons()
@@ -3452,20 +3485,26 @@ void Functions::Eval() {
           else
           {
             hasError = true ;
-            cout << "ERROR (incorrect number of arguments) : if" << endl ; 
+            throw IncorrectNumberException( "if" ) ;
+            // cout << "ERROR (incorrect number of arguments) : if" << endl ; 
           } // else 
         } // else if 
         else if ( firstArgument->type == AND || firstArgument->type == OR )
         { 
+          exeNode = firstArgument ; 
           if ( NOT CheckNumOfArg( 1 ) && NOT CheckNumOfArg( 0 ) ) // >= 2 
           {
+            cout << "bbbbbbbbbbbbb" << endl ;
             exeNode = firstArgument ; 
           } // if 
           else
           {
             hasError = true ;
+                                                                    
             cout << "ERROR (incorrect number of arguments) : " << firstArgument->token << endl ; 
           } // else
+
+                             
         } // else if
         else  
         {
@@ -3547,6 +3586,7 @@ void test( vector<EXP> s_exp ) {
   cout << endl ;
   
 } // test
+
 int main() { 
 //  cin >> uTestNum ; 
 
@@ -3578,6 +3618,7 @@ int main() {
 
     while ( readEXP == true )
     {
+
       try
       {
 
@@ -3797,7 +3838,14 @@ int main() {
         cout << ex.What() ; 
         readEXP = false ;
       } // catch 
-    
+      catch ( IncorrectNumberException ex )
+      {
+        funcClass.ResetLevel() ; 
+        cout << ex.What() ; 
+        readEXP = false ;
+      } // catch 
+
+
 } // while ( readEXP )
 
   } // while ( NOT quit )  
