@@ -176,9 +176,10 @@ class EofException // read EOF
   ! ERROR (car with incorrect argument type) : 3
   ! ERROR (attempt to apply non-function) : 3
   ! ERROR (division by zero) : / 
-  ! ERROR (DEFINE format) : 
-  ! ERROR (no return value) : 
-  ! ERROR (COND format) : 
+  ERROR (DEFINE format) : 
+
+  ERROR (no return value) : 
+  ERROR (COND format) : 
 */
 class UnboundException
 {
