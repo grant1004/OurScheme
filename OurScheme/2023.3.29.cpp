@@ -11,7 +11,7 @@
 # include <exception> 
 # include <sstream>
 # include <stdio.h>
-# include <stdlib.h>
+//# include <stdlib.h> 
 # include <stack>
 
 using namespace std ;
@@ -320,6 +320,24 @@ class DefineFormatException
 
 }; // DefineFormatException
 
+class CondFormatException
+{
+  string mErrMsg  ;
+  public:
+  const char* What()
+  {
+    return mErrMsg.c_str() ;       
+  } // What() 
+
+  CondFormatException( vector<EXP> exp )  // EXP exp 
+  {
+    stringstream ss ;
+    ss << "ERROR (COND format) : " << PrettyString( exp ) ; 
+    mErrMsg = ss.str() ;   
+  } // CondFormatException()
+
+}; // CondFormatException
+
 class ErrorLevelException
 {
   string mErrMsg  ;
@@ -337,6 +355,24 @@ class ErrorLevelException
   } // ErrorLevelException()
 
 }; // ErrorLevelException
+
+class NoReturnException
+{ 
+  string mErrMsg  ;
+  public:
+  const char* What()
+  {
+    return mErrMsg.c_str() ;       
+  } // What() 
+
+  NoReturnException( vector<EXP> exp )  // EXP exp 
+  {
+    stringstream ss ;
+    ss << "ERROR (no return value) : " << PrettyString( exp ) ; 
+    mErrMsg = ss.str() ;   
+  } // NoReturnException()
+
+}; // NoReturnException
 
 class ExitException
 {
@@ -1942,6 +1978,15 @@ public : // 早安胖嘟嘟肥肥
     mresult.clear() ; 
   } // GetResult() 
   
+  bool TorF( vector<EXP> exp ) 
+  {
+    if ( exp.size() == 1 && exp.at( 0 ).type == NIL )
+    {
+      return false ; 
+    } // if 
+
+    return true ; 
+  } // TorF() 
   //    EXP If() ; // if 
 
 
@@ -2077,6 +2122,247 @@ bool Functions::FindMap( string str, vector<EXP> &new_vector ) {
 
 void Functions::Cond()
 {
+  // mexeNode : cond
+  // now : 變數 
+  // emptyptr : root 
+  // ( cond (...) (...) . . . . (else ...) ) 
+  EXP* now = mexeNode->next ;
+  EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
+  EXP* node ;
+  bool getResult = false ; 
+  bool isLast = false ; 
+  if ( NOT CheckNumOfArg( 0 ) ) // >= 1 
+  {
+    while ( now->type != RIGHT_PAREN )
+    { 
+      if ( now->next->type == RIGHT_PAREN )
+      {
+        isLast = true ; 
+      } // if 
+
+      // cout << "這裡是第一個參數 : " << now->token << endl ;
+      if ( NOT isLast )
+      {
+        if ( now->type == EMPTYPTR )
+        { 
+          node = now->listPtr->next ; // first augument 
+          if ( IsNonList( now->listPtr) )
+          {
+            mnonListVec.clear() ; 
+            TraversalEmpty( gRoot ) ;
+            throw new CondFormatException( mnonListVec ) ;
+          } // if 
+          bool TrueOdFalse = true ; 
+          int cnt = 0 ; 
+          bool jump = false ; 
+          while ( NOT jump && node->type != RIGHT_PAREN )
+          {
+            // cout << endl << endl << "RUN" << endl ;
+            if ( node->type == EMPTYPTR )
+            {
+              mexeNode = node ; 
+              Eval() ; 
+              if ( NOT getResult )
+              { 
+                emptyptr->vec.assign( node->vec.begin(), node->vec.end() ) ;
+                // cout << "Pretty1 : " << PrettyString( emptyptr->vec ) ; 
+              } // if 
+            } // if 
+            else
+            {
+
+              mexeNode = node ; 
+              // cout << "mexeNode : " << mexeNode->token << endl ;
+              vector<EXP> new_vector ; 
+
+              if ( FindMap( mexeNode->token, new_vector ) ) 
+              {
+                if ( NOT getResult )
+                { 
+                  emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+                  // cout << "Pretty2 : " << PrettyString( emptyptr->vec ) ;
+                } // if
+              } // if 
+              else if ( isLast )
+              {
+                if ( NOT getResult )
+                { 
+                  emptyptr->vec.clear() ; 
+                  emptyptr->vec.push_back( *mexeNode ) ;
+                  // cout << "Pretty0 : " << PrettyString( emptyptr->vec ) ;
+                } // if
+              } // else if
+              else if ( mexeNode->type == SYMBOL )
+              {
+                throw new UnboundException( mexeNode ) ; 
+              } // else if 
+              else 
+              {
+                if ( NOT getResult )
+                { 
+                  emptyptr->vec.clear() ; 
+                  emptyptr->vec.push_back( *mexeNode ) ;
+                  // cout << "Pretty3 : " << PrettyString( emptyptr->vec ) ;
+                } // if
+              } // else 
+
+            } // else 
+
+            if ( cnt == 0 )
+            {
+
+              TrueOdFalse = TorF( emptyptr->vec ) ; 
+              // cout << " Check : " << TrueOdFalse << endl ;
+              if ( TrueOdFalse == false )
+              {
+                jump = true ; 
+              } // if 
+            } // if 
+            cnt ++ ; 
+            node = node->next ;
+            // cout << "next : " << node->token << endl ; 
+          } // while 
+
+          if ( cnt == 1 && NOT jump )
+          {
+            // cout << "ERROR" ; 
+            mnonListVec.clear() ; 
+            TraversalEmpty( gRoot ) ;
+            throw new CondFormatException( mnonListVec ) ;
+          } // if 
+
+          if ( TrueOdFalse == true )
+          {
+            // cout << "Get result : " << PrettyString( emptyptr->vec ) << endl ;
+            getResult = true ; 
+          } // if 
+
+        } // if 
+        else
+        {
+          mnonListVec.clear() ; 
+          TraversalEmpty( gRoot ) ;
+          throw new CondFormatException( mnonListVec ) ;
+        } // else 
+      } // if 
+      else
+      {
+        if ( now->type == EMPTYPTR )
+        { 
+          node = now->listPtr->next ; // first augument 
+          if ( IsNonList( now->listPtr) )
+          {
+            mnonListVec.clear() ; 
+            TraversalEmpty( gRoot ) ;
+            throw new CondFormatException( mnonListVec ) ;
+          } // if 
+          bool TrueOdFalse = true ; 
+          int cnt = 0 ; 
+          while ( node->type != RIGHT_PAREN )
+          {
+            // cout << endl << endl << "RUN" << endl ;
+            if ( node->type == EMPTYPTR )
+            {
+              mexeNode = node ; 
+              Eval() ; 
+              if ( NOT getResult )
+              { 
+                emptyptr->vec.assign( node->vec.begin(), node->vec.end() ) ;
+                cout << "Pretty1 : " << PrettyString( emptyptr->vec ) ; 
+              } // if 
+            } // if 
+            else
+            {
+
+              mexeNode = node ; 
+              // cout << "mexeNode : " << mexeNode->token << endl ;
+              vector<EXP> new_vector ; 
+              if ( FindMap( mexeNode->token, new_vector ) ) 
+              {
+                if ( NOT getResult )
+                { 
+                  emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+                  // cout << "Pretty2 : " << PrettyString( emptyptr->vec ) ;
+                } // if
+              } // if 
+              else if ( mexeNode->token == "else" )
+              {
+                if ( NOT getResult )
+                { 
+                  emptyptr->vec.clear() ; 
+                  emptyptr->vec.push_back( *mexeNode ) ;
+                  // cout << "else : " << PrettyString( emptyptr->vec ) ;
+                } // if
+              } // else if 
+              else if ( mexeNode->type == SYMBOL )
+              {
+                throw new UnboundException( mexeNode ) ; 
+              } // else if 
+              else 
+              {
+                if ( NOT getResult )
+                { 
+                  emptyptr->vec.clear() ; 
+                  emptyptr->vec.push_back( *mexeNode ) ;
+                  // cout << "Pretty3 : " << PrettyString( emptyptr->vec ) ;
+                } // if
+              } // else 
+
+            } // else 
+
+            if ( cnt == 0 )
+            {
+
+              TrueOdFalse = TorF( emptyptr->vec ) ; 
+              // cout << " Check : " << TrueOdFalse << endl ; 
+
+              if ( TrueOdFalse == false )
+              {
+                mnonListVec.clear() ; 
+                TraversalEmpty( gRoot ) ;
+                throw new NoReturnException( mnonListVec ) ; 
+              } // if 
+            } // if 
+            cnt ++ ; 
+            node = node->next ;
+            // cout << "next : " << node->token << endl ; 
+          } // while 
+
+          if ( cnt == 1 )
+          {
+            // cout << "ERROR" ; 
+            mnonListVec.clear() ; 
+            TraversalEmpty( gRoot ) ;
+            throw new CondFormatException( mnonListVec ) ;
+          } // if 
+
+          if ( TrueOdFalse == true )
+          {
+            // cout << "Get result : " << PrettyString( emptyptr->vec ) << endl ;
+            getResult = true ; 
+          } // if 
+
+        } // if 
+        else
+        {
+          mnonListVec.clear() ; 
+          TraversalEmpty( gRoot ) ;
+          throw new CondFormatException( mnonListVec ) ;
+        } // else 
+
+      } // else 
+      
+
+      now = now->next ; 
+    } // while 
+
+  } // if 
+  else
+  {
+    mnonListVec.clear() ; 
+    TraversalEmpty( gRoot ) ;
+    throw new CondFormatException( mnonListVec ) ;
+  } // else 
 
 } // Cond() 
 
@@ -2162,7 +2448,7 @@ void Functions::List_qmark()
   if ( CheckNumOfArg( 1 ) )
   {
     Pair_qmark() ;  
-    cout << "Pretty : " << PrettyString( mnonListVec ) ;
+    // cout << "Pretty : " << PrettyString( mnonListVec ) ;
     if ( emptyptr->vec.at( 0 ).token == "#t" )
     {
       if ( IsList( mnonListVec ) ) 
@@ -2206,7 +2492,7 @@ void Functions::Clean_Environment() {
     temp.type = CLEAN_ENVIRONMENT ; 
     mresult.clear() ; 
     mresult.push_back( temp ) ; 
-    cout << "environment cleaned" << endl ;
+    // cout << "environment cleaned" << endl ;
   } // if
   else {
     throw new IncorrectNumberException( "clean-environment" ) ; 
@@ -3065,8 +3351,9 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
             sum = sum * atof( new_vector.at( 0 ).token.c_str() ) ;
           else if ( whichOperator == "/" ) {
             if ( new_vector.at( 0 ).token == "0" ) {
-              cout << "ERROR (division by zero) : /" << endl ;
-              noError = false ;
+              throw new DivByZeroException() ; 
+              // cout << "ERROR (division by zero) : /" << endl ;
+              // noError = false ;
             } // if
             else {
               sum = sum / atof( new_vector.at( 0 ).token.c_str() ) ;
@@ -3106,8 +3393,9 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
             sum = sum * atof( temp->vec.at( 0 ).token.c_str() ) ;
           else if ( whichOperator == "/" ) {
             if ( temp->vec.at( 0 ).token == "0" ) {
-              cout << "ERROR (division by zero) : /" << endl ;
-              noError = false ;
+              throw new DivByZeroException() ;
+              // cout << "ERROR (division by zero) : /" << endl ;
+              // noError = false ;
             } // if
             else {
               sum = sum / atof( temp->vec.at( 0 ).token.c_str() ) ;
@@ -3144,7 +3432,7 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
         ex.type = INT ;
       } // else
         
-      cout << "ex.token:  " << ex.token << endl ;                    
+      // cout << "ex.token:  " << ex.token << endl ;                    
                    
       emptyptr->vec.push_back( ex ) ;
     } // if
@@ -4269,7 +4557,7 @@ int main() {
         cout << ex->What() ; 
         readEXP = false ;
       } // catch 
-      catch ( ErrorLevelException* ex )
+      catch ( ErrorLevelException * ex )
       {
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
@@ -4281,8 +4569,20 @@ int main() {
         readEXP = false ;
         quit = true ; 
       } // catch 
-
-    } // while ( readEXP )
+      catch ( CondFormatException * ex )
+      {
+        funcClass.ResetLevel() ; 
+        cout << ex->What() ; 
+        readEXP = false ;
+      } // catch 
+      catch ( NoReturnException * ex )
+      {
+        funcClass.ResetLevel() ; 
+        cout << ex->What() ; 
+        readEXP = false ;
+      } // catch 
+    
+} // while ( readEXP )
 
   } // while ( NOT quit )  
   
