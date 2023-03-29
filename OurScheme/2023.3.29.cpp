@@ -1,4 +1,5 @@
 # include <map>
+# include <cstdio>
 # include <cctype>
 # include <cstdlib>
 # include <cstring>
@@ -31,7 +32,7 @@ enum Type
   
   FLOAT, STRING, NIL, T, DOT, QUOTE, 
   
-  EMPTYPTR, NONE, ERROR,
+  EXIT, EMPTYPTR, NONE, ERROR,
   
   CONS, LIST, DEFINE, CAR, CDR, ATOM_QMARK,
   
@@ -166,6 +167,20 @@ class EofException // read EOF
 
 }; // EofException
 
+
+/*
+  Error : 
+  ! ERROR (unbound symbol) : 
+  ! ERROR (non-list) : 
+  ! ERROR (incorrect number of arguments) : cons
+  ! ERROR (car with incorrect argument type) : 3
+  ! ERROR (attempt to apply non-function) : 3
+  ! ERROR (division by zero) : / 
+  ERROR (DEFINE format) : 
+
+  ERROR (no return value) : 
+  ERROR (COND format) : 
+*/
 class UnboundException
 {
   string mErrMsg  ;
@@ -243,6 +258,104 @@ class IncorrectNumberException
   } // IncorrectNumberException() 
 
 }; // IncorrectNumberException
+
+class NonFunctionException
+{
+  string mErrMsg  ;
+  public:
+  const char* What()
+  {
+    return mErrMsg.c_str() ;       
+  } // What() 
+
+  NonFunctionException( string token )  // EXP exp 
+  {
+    stringstream ss ;
+    ss << "ERROR (attempt to apply non-function) : " << token ;
+    mErrMsg = ss.str() ;   
+  } // NonFunctionException() 
+
+  NonFunctionException( vector<EXP> exp )  // EXP exp 
+  {
+    stringstream ss ;
+    ss << "ERROR (attempt to apply non-function) : " << PrettyString( exp )  ;
+    mErrMsg = ss.str() ;   
+  } // NonFunctionException() 
+
+}; // NonFunctionException
+
+class DivByZeroException
+{
+  string mErrMsg  ;
+  public:
+  const char* What()
+  {
+    return mErrMsg.c_str() ;       
+  } // What() 
+
+  DivByZeroException()  // EXP exp 
+  {
+    stringstream ss ;
+    ss << "ERROR (division by zero) : /" ;
+    mErrMsg = ss.str() ;   
+  } // DivByZeroException()
+
+}; // DivByZeroException
+
+class DefineFormatException
+{
+  string mErrMsg  ;
+  public:
+  const char* What()
+  {
+    return mErrMsg.c_str() ;       
+  } // What() 
+
+  DefineFormatException( vector<EXP> exp )  // EXP exp 
+  {
+    stringstream ss ;
+    ss << "ERROR (DEFINE format) : " << PrettyString( exp ) ; 
+    mErrMsg = ss.str() ;   
+  } // DefineFormatException()
+
+}; // DefineFormatException
+
+class ErrorLevelException
+{
+  string mErrMsg  ;
+  public:
+  const char* What()
+  {
+    return mErrMsg.c_str() ;       
+  } // What() 
+
+  ErrorLevelException( string token )  // EXP exp 
+  {
+    stringstream ss ;
+    ss << "ERROR (level of " << token << ")" ;  
+    mErrMsg = ss.str() ;   
+  } // ErrorLevelException()
+
+}; // ErrorLevelException
+
+class ExitException
+{
+  string mErrMsg  ;
+  public:
+  const char* What()
+  {
+    return mErrMsg.c_str() ;       
+  } // What() 
+
+  ExitException( string token )  
+  {
+    stringstream ss ;
+    ss << "EXIT" ;  
+    mErrMsg = ss.str() ;   
+  } // ExitException()
+
+
+}; // ExitException
 
 string PrintType( Type type )
 {
@@ -494,6 +607,10 @@ Type IdentifyType( string token )
   {
     return NONE ; 
   } // if 
+  else if ( token == "exit" )
+  {
+    return EXIT ; 
+  } // else if 
   else if ( IsDelimiter( token, type ) )
   {
     return type ; 
@@ -592,12 +709,12 @@ string GetString()
   if ( ch == '\n' )
   {
 
-    throw NotAStringException( line, gNowColumn ) ;
+    throw new NotAStringException( line, gNowColumn ) ;
       
   } // if  
   else if ( ch == -1 )
   {
-    throw NotAStringException( line, gNowColumn ) ; 
+    throw new NotAStringException( line, gNowColumn ) ; 
 
   } // else if   
 
@@ -619,7 +736,7 @@ void SkipComment()
 
   if ( ch == -1 || ch == EOF )
   {
-    throw EofException() ; 
+    throw new EofException() ; 
   } // if 
 
   gNowRow ++ ; 
@@ -749,7 +866,7 @@ EXP GetToken()
   if ( gg.token == "\0" ) // EOF 
   {
     // cout << "Get EOF" << endl ; 
-    throw EofException() ; 
+    throw new EofException() ; 
   } // if
   else
   {
@@ -768,7 +885,7 @@ bool IsATOM( EXP ex )
   if ( ex.type == SYMBOL || ex.type == INT  || ex.type == FLOAT  || 
        ex.type == STRING  || ex.type == NIL || ex.type == T )
     return true ;
-  else if ( ex.type == CONS || ex.type == LIST || ex.type == QUOTE || 
+  else if ( ex.type == EXIT || ex.type == CONS || ex.type == LIST || ex.type == QUOTE || 
             ex.type == DEFINE || ex.type == CAR || ex.type == CDR || 
             ex.type == ATOM_QMARK || ex.type == PAIR_QMARK || 
             ex.type == LIST_QMARK || ex.type == NULL_QMARK || 
@@ -798,7 +915,7 @@ bool IsATOM( EXP * temp )
   if ( temp->type == SYMBOL || temp->type == INT  || temp->type == FLOAT  || 
        temp->type == STRING  || temp->type == NIL || temp->type == T )
     return true ;
-  else if ( temp->type == CONS || temp->type == LIST || temp->type == QUOTE || 
+  else if ( temp->type == EXIT || temp->type == CONS || temp->type == LIST || temp->type == QUOTE || 
             temp->type == DEFINE || temp->type == CAR || temp->type == CDR || 
             temp->type == ATOM_QMARK || temp->type == PAIR_QMARK || 
             temp->type == LIST_QMARK || temp->type == NULL_QMARK || 
@@ -873,7 +990,7 @@ DOT 5
   else if ( temp->type == RIGHT_PAREN ) {
     //    cout << "cc" << endl ;
     gnum = -1 ;
-    throw SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ; 
+    throw new SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ; 
     return false ; // temp 應該是s_EXP 
   } // else if
   else if ( IsATOM( temp ) == true && gnum == 0 && temp->next == NULL && temp->listPtr == NULL ) {
@@ -886,7 +1003,7 @@ DOT 5
     if ( temp->pre_next != NULL && temp->pre_next->dotCnt != 0 ) {
       //      cout << "ee" << endl ;
       temp->dotCnt = temp->pre_next->dotCnt+1 ;
-      throw SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
+      throw new SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
       return false ; // 應該是右括號 ex: . 3 3 
     } // if
     else {
@@ -908,7 +1025,7 @@ DOT 5
       //      cout << "mm" << endl ;
       temp->dotCnt = temp->pre_next->dotCnt+1 ;
       temp = temp->listPtr ; 
-      throw SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
+      throw new SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
       return false ; // 應該是右括號 ex: . (1) (1)  
     } // if
     else {
@@ -929,7 +1046,7 @@ DOT 5
   } // else if
   else if ( gnum == 0 && temp->type == DOT ) {
     //    cout << "rr" << endl ;
-    throw SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ;
+    throw new SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ;
     return false ; // ex: .
   } // else if
   else if ( temp->type == DOT &&  
@@ -950,7 +1067,7 @@ DOT 5
     } // if
     else {
       //      cout << "vv" << endl ;
-      throw SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
+      throw new SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
       return false ; // ex: (1 . 3 . 3 ) // 出現第二個.了 
     } // else 
 
@@ -958,7 +1075,7 @@ DOT 5
   else if ( temp->type == DOT ) {  
     //    cout << "ww" << endl ;
     gnum = -1 ;
-    throw SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ;
+    throw new SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ;
     return false ; // 忘記這是甚麼ERROR了先放著 
   } // else if
   else if ( temp->type == QUOTE ) { 
@@ -970,7 +1087,7 @@ DOT 5
   else {
     //    cout << "yy" << endl ;
     gnum = -1 ;
-    throw SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ;
+    throw new SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ;
     return false ; // 沒有這種東西 
   } // else 
 
@@ -1698,6 +1815,46 @@ private:
     
   } // SetDotPair()
 
+  bool IsList( vector<EXP> vec )
+  {
+    int i = 0 ;
+    bool isList = true ; 
+    int parNum = 0 ; 
+    while ( i < vec.size() )
+    {
+      if ( vec.at( i ).type == LEFT_PAREN )
+      {
+        parNum ++ ; 
+      } // if 
+      else if ( vec.at( i ).type == RIGHT_PAREN )
+      {
+        parNum -- ; 
+      } // else if 
+
+      if ( parNum > 1 )
+      {
+        // skip ( ... ) 
+        while ( parNum != 1 )
+        {
+          i ++ ; 
+          if ( vec.at( i ).type == RIGHT_PAREN )
+          {
+            parNum -- ; 
+          } // if 
+        } // 
+      } // if 
+      else if ( vec.at( i ).type == DOT )
+      {
+        return false ; 
+      } // else if 
+
+      i ++ ; 
+    } // while 
+
+    return true ; 
+
+  } // IsNonList()
+
   bool IsNonList( EXP* temp )
   {
     EXP* listHead = temp ; // '(' 
@@ -1771,20 +1928,25 @@ public : // 早安胖嘟嘟肥肥
   {
     mlevel = 0 ; 
   } // ResetLevel()
-  
-  vector<EXP> GetResult( )
+  void Pair_qmark() ; // pair?
+  void List_qmark() ; // list?
+  void Begin() ; // begin
+  void Cond() ; // cond 
+  vector<EXP> GetResult()
   {
     return mresult ; 
   } // GetResult() 
     
-  //    EXP Pair_qmark() ; // pair?
-  //    EXP List_qmark() ; // list?
-  //    EXP Begin() ; // begin
+  void ClearResult()
+  {
+    mresult.clear() ; 
+  } // GetResult() 
+  
   //    EXP If() ; // if 
-  //    EXP Cond() ; // cond 
+
 
   void Execute() { // ptr指在function call上面 
-  
+
     if ( mexeNode->type == DEFINE )
       Define() ;
     else if ( mexeNode->type == CONS )
@@ -1803,6 +1965,10 @@ public : // 早安胖嘟嘟肥肥
       Qmark( "string?" ) ;
     else if ( mexeNode->type == SYMBOL_QMARK )
       Qmark( "symbol?" ) ; 
+    else if ( mexeNode->type == PAIR_QMARK ) 
+      Pair_qmark() ; 
+    else if ( mexeNode->type == LIST_QMARK )
+      List_qmark() ; 
     else if ( mexeNode->type == QUOTE ) 
       Quote() ;
     else if ( mexeNode->type == CAR )
@@ -1848,25 +2014,18 @@ public : // 早安胖嘟嘟肥肥
     else if ( mexeNode->type == OR ) 
       Or() ;
     else if ( mexeNode->type == CLEAN_ENVIRONMENT )
-      Clean_Environment() ; 
+      Clean_Environment() ;
+    else if ( mexeNode->type == BEGIN )
+      Begin() ; 
+    else if ( mexeNode->type == COND  )
+      Cond() ;
+    else if ( mexeNode->type == EXIT )
+      throw new ExitException( "EXIT" ) ;
     else 
-      cout << "ERROR (unbound symbol) : 1879" << endl ;
+      cout << "ERROR (unbound symbol) : " << mexeNode->token << endl ;
+ 
+    // ================= Grant ================================            
 
-     
-    // ================= Grant ===============================          
-
-    //    else if ( mexeNode->type == "pair?" )
-    //    {
-    //      Pair_qmark() ;
-    //    } // else if 
-    //    else if ( mexeNode->type == "list?" )
-    //    {
-    //      List_qmark() ;
-    //    } // else if               
-    //    else if ( mexeNode->type == "begin" )
-    //    {
-    //      Begin() ; 
-    //    } // else if 
     //    else if ( mexeNode->type == "if" )
     //    {
     //      If() ;
@@ -1901,6 +2060,8 @@ void Functions::SetRoot() {
 //  } // for 
 // } // PrintMap()
 
+
+
 bool Functions::FindMap( string str, vector<EXP> &new_vector ) {
   map< string,vector<EXP> > :: iterator item = msymbolMap.find( str ) ;
   if ( item != msymbolMap.end() ) {
@@ -1913,13 +2074,142 @@ bool Functions::FindMap( string str, vector<EXP> &new_vector ) {
   
 } // Functions::FindMap()
 
+
+void Functions::Cond()
+{
+
+} // Cond() 
+
+void Functions::Begin()
+{
+  // mexeNode : begin 
+  // now : 變數 
+  // emptyptr : root 
+  EXP* now = mexeNode->next ;
+  EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
+
+  if ( NOT CheckNumOfArg( 0 ) ) // >= 1 
+  {
+    while ( now->type != RIGHT_PAREN )
+    {
+      if ( now->type == EMPTYPTR )
+      {
+        mexeNode = now ; 
+        Eval() ; 
+        emptyptr->vec.assign( now->vec.begin(), now->vec.end() ) ; 
+      } // if 
+      else
+      {
+        mexeNode = now ; 
+        Eval() ;
+        emptyptr->vec.assign( mresult.begin(), mresult.end() ) ;
+      } // else 
+      
+      now = now->next ; 
+    } // while 
+
+  } // if 
+  else
+  {
+    throw new IncorrectNumberException( "begin" ) ;
+  } // else 
+
+} // Functions::Begin()
+
+void Functions::Pair_qmark()
+{
+  /*
+    只要不是atom 就是 true 
+  */
+  EXP* temp = mexeNode->next ;
+  EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
+  EXP ex ;
+  if ( CheckNumOfArg( 1 ) )
+  {
+    Qmark( "atom?" ) ; 
+    if ( emptyptr->vec.at( 0 ).type == NIL )
+    { emptyptr->vec.clear() ; 
+      ex.token = "#t" ;
+      ex.type = T ;
+      emptyptr->vec.push_back( ex ) ;
+    } // if 
+    else
+    {
+      emptyptr->vec.clear() ;
+      ex.token = "nil" ;
+      ex.type = NIL ;
+      emptyptr->vec.push_back( ex ) ;
+    } // else
+
+  } // if 
+  else
+  {
+    throw new IncorrectNumberException( "pair?" ) ; 
+  } // else 
+
+} // Functions::Pair_qmark()
+
+void Functions::List_qmark()
+{
+  /*
+    如果是pair就檢查是不是 list  
+  */
+
+  EXP* temp = mexeNode->next ;
+  EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
+  vector<EXP> new_vector ; 
+  EXP ex ;
+  if ( CheckNumOfArg( 1 ) )
+  {
+    Pair_qmark() ;  
+    cout << "Pretty : " << PrettyString( mnonListVec ) ;
+    if ( emptyptr->vec.at( 0 ).token == "#t" )
+    {
+      if ( IsList( mnonListVec ) ) 
+      {
+        emptyptr->vec.clear() ;
+        ex.token = "#t" ;
+        ex.type = T ;
+        emptyptr->vec.push_back( ex ) ;
+      } // if 
+      else
+      {
+        emptyptr->vec.clear() ;
+        ex.token = "nil" ;
+        ex.type = NIL ;
+        emptyptr->vec.push_back( ex ) ;
+      } // else
+    } // if 
+    else
+    {
+      emptyptr->vec.clear() ;
+      ex.token = "nil" ;
+      ex.type = NIL ;
+      emptyptr->vec.push_back( ex ) ;
+    } // else 
+    
+
+  } // if 
+  else
+  {
+    throw new IncorrectNumberException( "list?" ) ; 
+  } // else 
+
+
+} // Functions::List_qmark()
+
 void Functions::Clean_Environment() {
   if ( CheckNumOfArg( 0 ) ) {
     msymbolMap.clear() ;
+    EXP temp ; 
+    temp.token = "environment cleaned" ; 
+    temp.type = CLEAN_ENVIRONMENT ; 
+    mresult.clear() ; 
+    mresult.push_back( temp ) ; 
     cout << "environment cleaned" << endl ;
   } // if
   else {
-    throw IncorrectNumberException( "clean-environment" ) ; 
+    throw new IncorrectNumberException( "clean-environment" ) ; 
     // cout << "ERROR (incorrect number of arguments) : clean-environment" << endl ;
   } // else
   
@@ -1934,7 +2224,7 @@ void Functions::Or() { // arg >= 2
   bool bbreak = false ;
   EXP ex ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
-    throw IncorrectNumberException( "or" ) ;
+    throw new IncorrectNumberException( "or" ) ;
     // cout << "ERROR (incorrect number of arguments) : and" << endl ;
   } // if
   else { 
@@ -1950,7 +2240,7 @@ void Functions::Or() { // arg >= 2
            
       } // if
       else if ( temp->type == SYMBOL ) {
-        throw UnboundException( temp ) ; 
+        throw new UnboundException( temp ) ; 
       } // else if 
       else if (  temp->type == EMPTYPTR ) {
         mexeNode = temp ;
@@ -2001,7 +2291,7 @@ void Functions::And() { // arg >= 2
   EXP ex ;
   bool isNIL = false ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
-    throw IncorrectNumberException( "and" ) ;
+    throw new IncorrectNumberException( "and" ) ;
     // cout << "ERROR (incorrect number of arguments) : and" << endl ;
   } // if
   else { 
@@ -2018,7 +2308,7 @@ void Functions::And() { // arg >= 2
            
       } // else if
       else if ( temp->type == SYMBOL ) {
-        throw UnboundException( temp ) ; 
+        throw new UnboundException( temp ) ; 
       } // else if 
       else if (  temp->type == EMPTYPTR ) {
         mexeNode = temp ;
@@ -2069,7 +2359,7 @@ void Functions::List() {
 
     } // if 
     else if ( temp->type == SYMBOL ) {
-      throw UnboundException( temp ) ; 
+      throw new UnboundException( temp ) ; 
     } // else if 
     else if (  temp->type == EMPTYPTR ) {
       mexeNode = temp ;
@@ -2127,7 +2417,7 @@ void Functions::Eqv_qmark() { // arg == 2
 
       } // if
       else if ( temp->type == SYMBOL ) {                            
-        throw UnboundException( temp ) ; 
+        throw new UnboundException( temp ) ; 
         noError = false ;
       } // else if
       else if ( temp->type == EMPTYPTR ) {
@@ -2176,7 +2466,7 @@ void Functions::Eqv_qmark() { // arg == 2
     
   } // if
   else {
-    throw IncorrectNumberException( "eqv?" ) ;
+    throw new IncorrectNumberException( "eqv?" ) ;
     // cout << "ERROR (incorrect number of arguments) : equal?" << endl ;
   } // else 
   
@@ -2202,7 +2492,7 @@ void Functions::Equal_qmark() { // arg == 2
           secondArg.vec.assign( new_vector.begin(), new_vector.end() ) ;
       } // if
       else if ( temp->type == SYMBOL ) {                            
-        throw UnboundException( temp ) ; 
+        throw new UnboundException( temp ) ; 
         isTrue = false ;
       } // else if
       else if ( temp->type == EMPTYPTR ) {
@@ -2252,7 +2542,7 @@ void Functions::Equal_qmark() { // arg == 2
     
   } // if
   else {
-    throw IncorrectNumberException( "=?" ) ;
+    throw new IncorrectNumberException( "=?" ) ;
     // cout << "ERROR (incorrect number of arguments) : equal?" << endl ;
   } // else 
   
@@ -2276,7 +2566,7 @@ void Functions::Not() { // arg == 1
       } // if
     } // else if
     else if ( temp->type == SYMBOL ) {                            
-      throw UnboundException( temp ) ; 
+      throw new UnboundException( temp ) ; 
     } // else if
     else if ( temp->type == EMPTYPTR ) {
       mexeNode = temp ;
@@ -2290,7 +2580,7 @@ void Functions::Not() { // arg == 1
       
   } // if
   else {
-    throw IncorrectNumberException( "not" ) ;
+    throw new IncorrectNumberException( "not" ) ;
     // cout << "ERROR (incorrect number of arguments) : not" << endl ;
   } // else
   
@@ -2315,7 +2605,7 @@ void Functions::String_append() { // FixDoubleQuotes()
   bool isTrue = true ;
   EXP ex ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
-    throw IncorrectNumberException( "string-append" ) ;
+    throw new IncorrectNumberException( "string-append" ) ;
     // cout << "ERROR (incorrect number of arguments) : string-append" << endl ;
   } // if
   else {
@@ -2329,13 +2619,14 @@ void Functions::String_append() { // FixDoubleQuotes()
         } // if
         else {
           isTrue = false ;
-          cout << "ERROR (string-append with incorrect argument type) : " << endl ;
+          throw new IncorrectArgumentException( "string-append", new_vector ); 
+          // cout << "ERROR (string-append with incorrect argument type) : " << endl ;
         } // else
 
       } // else if 
       else if ( temp->type == SYMBOL ) {
         isTrue = false ;
-        throw UnboundException( temp ) ; 
+        throw new UnboundException( temp ) ; 
       } // else if 
       else if (  temp->type == EMPTYPTR ) {
         mexeNode = temp ;
@@ -2346,13 +2637,15 @@ void Functions::String_append() { // FixDoubleQuotes()
         } // if
         else {
           isTrue = false ;
-          cout << "ERROR (string-append with incorrect argument type) : " << endl ;
+          throw new IncorrectArgumentException( "string-append", temp->vec );
+          // cout << "ERROR (string-append with incorrect argument type) : " << endl ;
         } // else
         
       } // else if
       else {
         isTrue = false ;
-        cout << "ERROR (string-append with incorrect argument type) : " << endl ;
+        throw new IncorrectArgumentException( "string-append", *temp );
+        // cout << "ERROR (string-append with incorrect argument type) : " << endl ;
       } // else
 
       temp = temp->next ;
@@ -2375,7 +2668,7 @@ void Functions::CompareString( string whichOperator ) { // string>? , string<? ,
   bool isTrue = true ;
   bool isFirstArg = true ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
-    throw IncorrectNumberException( whichOperator ) ;
+    throw new IncorrectNumberException( whichOperator ) ;
     // cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
   } // if
   else {
@@ -2440,13 +2733,15 @@ void Functions::CompareString( string whichOperator ) { // string>? , string<? ,
         } // if
         else {
           isTrue = false ;
-          cout << "ERROR (" << whichOperator << " wit4h incorrect argument type)" << endl ;
+          throw new IncorrectArgumentException( whichOperator, new_vector ) ; 
+          // cout << "ERROR (" << whichOperator << " wit4h incorrect argument type)" << endl ;
         } // else
 
       } // else if 
       else if ( temp->type == SYMBOL ) {
         isTrue = false ;
-        cout << "ERROR (unbound symbol)" << endl ; 
+        throw new UnboundException( temp ) ; 
+        // cout << "ERROR (unbound symbol)" << endl ; 
       } // else if 
       else if (  temp->type == EMPTYPTR ) {
         mexeNode = temp ;
@@ -2484,13 +2779,15 @@ void Functions::CompareString( string whichOperator ) { // string>? , string<? ,
         } // if
         else {
           isTrue = false ;
-          cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
+          throw new IncorrectArgumentException( whichOperator, temp->vec ) ; 
+          // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
         } // else
         
       } // else if
       else {
         isTrue = false ;
-        cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
+        throw new IncorrectArgumentException( whichOperator, *temp ) ; 
+        // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
       } // else
 
       temp = temp->next ;
@@ -2522,7 +2819,7 @@ void Functions::CompareNum( string whichOperator ) { // arg >= 2
   bool isFirstArg = true ;
   
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
-    throw IncorrectNumberException( whichOperator ) ;
+    throw new IncorrectNumberException( whichOperator ) ;
     // cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
   } // if
   else {
@@ -2618,13 +2915,14 @@ void Functions::CompareNum( string whichOperator ) { // arg >= 2
         } // if
         else {
           isTrue = false ;
-          cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
+          throw new IncorrectArgumentException( whichOperator, new_vector ) ; 
+          // cout << "ERROR (" << whichOperator << " with incorrect argument type )" << endl ;
         } // else
 
       } // else if 
       else if ( temp->type == SYMBOL ) {
         isTrue = false ;
-        throw UnboundException( temp ) ; 
+        throw new UnboundException( temp ) ; 
       } // else if 
       else if (  temp->type == EMPTYPTR ) {
         mexeNode = temp ;
@@ -2676,13 +2974,15 @@ void Functions::CompareNum( string whichOperator ) { // arg >= 2
         } // if
         else {
           isTrue = false ;
-          cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
+          throw new IncorrectArgumentException( whichOperator, temp->vec ) ; 
+          // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
         } // else
         
       } // else if
       else {
         isTrue = false ;
-        cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
+        throw new IncorrectArgumentException( whichOperator, *temp ) ; 
+        // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
       } // else
 
       temp = temp->next ;
@@ -2715,7 +3015,7 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
   bool hasFloat = false ;
   
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
-    throw IncorrectNumberException( whichOperator ) ;
+    throw new IncorrectNumberException( whichOperator ) ;
     // cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
   } // if
   else {
@@ -2736,8 +3036,9 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
           sum = sum * atof( temp->token.c_str() ) ;
         else if ( whichOperator == "/" ) {
           if ( temp->token == "0" ) {
-            cout << "ERROR (division by zero) : /" << endl ;
-            noError = false ;
+            throw new DivByZeroException() ; 
+            // cout << "ERROR (division by zero) : /" << endl ;
+            // noError = false ;
           } // if
           else {
             sum = sum / atof( temp->token.c_str() ) ;
@@ -2775,12 +3076,13 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
         } // if
         else {
           noError = false ;
-          cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
+          throw new IncorrectArgumentException( whichOperator, new_vector ) ; 
+          // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
         } // else
       } // else if
       else if ( temp->type == SYMBOL ) {
         noError = false ;
-        throw UnboundException( temp ) ; 
+        throw new UnboundException( temp ) ; 
       } // else if 
       else if (  temp->type == EMPTYPTR ) {
         mexeNode = temp ;
@@ -2815,12 +3117,14 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
         } // if
         else {
           noError = false ;
-          cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
+          throw new IncorrectArgumentException( whichOperator, temp->vec ) ; 
+          // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
         } // else
         
       } // else if
       else {
-        cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
+        throw new IncorrectArgumentException( whichOperator, *temp ) ; 
+        // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
         noError = false ;
       } // else 
       
@@ -2887,7 +3191,8 @@ void Functions::Qmark( string whichQmark ) {
       isTrue = true ;
     } // else if
     else if ( FindMap( temp->token, new_vector ) == true ) {
-      
+      mnonListVec.clear() ; 
+      mnonListVec.assign( new_vector.begin(), new_vector.end() ) ; 
       if ( new_vector.size() == 1 ) {
         ex.token = new_vector.at( 0 ).token ;
         ex.type = new_vector.at( 0 ).type ;
@@ -2920,12 +3225,15 @@ void Functions::Qmark( string whichQmark ) {
       
     } // else if
     else if ( temp->type == SYMBOL ) {
-      throw UnboundException( temp ) ; 
+      throw new UnboundException( temp ) ; 
     } // else if
     else if ( temp->type == EMPTYPTR ) {
       mexeNode = temp ;
       Eval() ;
       
+      mnonListVec.clear() ; 
+      mnonListVec.assign( temp->vec.begin(), temp->vec.end() ) ; 
+
       if ( temp->vec.size() == 1 ) {
         ex.token = temp->vec.at( 0 ).token ;
         ex.type = temp->vec.at( 0 ).type ;
@@ -2974,7 +3282,7 @@ void Functions::Qmark( string whichQmark ) {
     
   } // if
   else {
-    throw IncorrectNumberException( whichQmark ) ;
+    throw new IncorrectNumberException( whichQmark ) ;
     // cout << "problem with the number of parameters" << endl ;
   } // else 
   
@@ -3026,13 +3334,13 @@ void Functions::Cdr() {
 
       } // if
       else {
-        throw IncorrectArgumentException( "cdr", new_vector ) ;
+        throw new IncorrectArgumentException( "cdr", new_vector ) ;
         // cout << "ERROR (car with incorrect argument type)" << endl ;
       } // else
 
     } // if 
     else if ( temp->type == SYMBOL ) {
-      throw UnboundException( temp ) ; 
+      throw new UnboundException( temp ) ; 
       // cout << "ERROR (unbound symbol)" << endl ; 
     } // else if 
     else if ( temp->type == EMPTYPTR 
@@ -3073,16 +3381,56 @@ void Functions::Cdr() {
         } // while
       } // else
 
-    } // if temp->type == EMPTYPTR
+    } // if temp->type == EMPTYPTR  
+    else if ( temp->type == EMPTYPTR )
+    {
+      mexeNode = temp ; 
+      Eval() ; 
+      if ( temp->vec.size() <= 1 )
+      {
+        throw new IncorrectArgumentException( "cdr", temp->vec ) ;
+      } // if 
+      ex.token = "(" ;
+      ex.type = LEFT_PAREN ;
+      emptyptr->vec.push_back( ex ) ;
+      if ( temp->vec.size() >= 2 && temp->vec.at( 1 ).type == LEFT_PAREN ) {
+        int parnum = 1 ;
+        i = 2 ;  
+
+        while ( parnum != 0 ) {
+          if ( temp->vec.at( i ).type == LEFT_PAREN )
+            parnum++ ;
+          else if ( temp->vec.at( i ).type == RIGHT_PAREN )
+            parnum-- ;
+          i++ ;  
+        } // while
+
+        while ( i < temp->vec.size() ) {
+          ex.token = temp->vec.at( i ).token ;
+          ex.type = temp->vec.at( i ).type ;
+          emptyptr->vec.push_back( ex ) ;
+          i++ ;
+        } // while
+      } // if
+      else {
+        i = 2 ;
+        while ( i < temp->vec.size() ) {
+          ex.token = temp->vec.at( i ).token ;
+          ex.type = temp->vec.at( i ).type ;
+          emptyptr->vec.push_back( ex ) ;
+          i++ ;
+        } // while
+      } // else
+    } // else if 
     else {
-      throw IncorrectArgumentException( "cdr", *temp ) ; 
+      throw new IncorrectArgumentException( "cdr", *temp ) ; 
       // cout << "ERROR (cdr with incorrect argument type)" << endl ;
     } // else
   } // if CheckNumOfArg( 1 )
 
   else {
-    //    throw IncorrectNumberException( "cdr" ) ;
-    cout << "ERROR (incorrect number of arguments)" << endl ;
+    throw new IncorrectNumberException( "cdr" ) ;
+    // cout << "ERROR (incorrect number of arguments)" << endl ;
   } // else
 
 
@@ -3133,12 +3481,15 @@ void Functions::Car() {
 
       } // if
       else {
-        cout << "ERROR (car with incorrect argument type)" << endl ;
+        throw new IncorrectArgumentException( "car", new_vector ) ; 
+        // cout << "ERROR (car with incorrect argument type)" << endl ;
       } // else
 
     } // if FindMap
     else if ( temp->type == SYMBOL ) {
-      cout << "ERROR (unbound symbol)" << endl ;
+      throw new UnboundException( temp ) ; 
+      // cout << "ERROR (unbound symbol)" << endl ;
+
     } // else if 							  
     else if ( temp->type == EMPTYPTR 
               && temp->listPtr->next->type == QUOTE 
@@ -3165,18 +3516,49 @@ void Functions::Car() {
         } // while
       } // if
       else {
-        ex.token = temp->vec.at( 1 ).token ;
-        ex.type = temp->vec.at( 1 ).type ;
-        emptyptr->vec.push_back( ex ) ;
+        emptyptr->vec.push_back( temp->vec.at( 1 ) ) ; 
       } // else
 
     } // if temp->type == EMPTYPTR
+    else if ( temp->type == EMPTYPTR )
+    {
+      mexeNode = temp ;
+      Eval() ;
+      if ( temp->vec.size() <= 1 )
+      {
+        throw new IncorrectArgumentException( "car", temp->vec ) ; 
+      } // if 
+      else if ( temp->vec.size() >= 2 && temp->vec.at( 1 ).type == LEFT_PAREN ) {
+        int parnum = 1 ;
+        int i = 2 ;
+        ex.token = "(" ;
+        ex.type = LEFT_PAREN ;
+        emptyptr->vec.push_back( ex ) ;
+
+        while ( parnum != 0 ) {
+          if ( temp->vec.at( i ).type == LEFT_PAREN ) 
+            parnum++ ;
+          else if ( temp->vec.at( i ).type == RIGHT_PAREN )
+            parnum-- ;
+
+          ex.token = temp->vec.at( i ).token ;
+          ex.type = temp->vec.at( i ).type ;
+          emptyptr->vec.push_back( ex ) ;
+          i++ ;
+        } // while
+      } // else if
+      else {
+        emptyptr->vec.push_back( temp->vec.at( 1 ) ) ; 
+      } // else
+
+    } // else if 
     else {
-      cout << "ERROR (car with incorrect argument type)" << endl ;
+      throw new IncorrectArgumentException( "car", *temp ) ; 
+      // cout << "ERROR (car with incorrect argument type)" << endl ;
     } // else
   } // if CheckNumOfArg( 1 )
   else {
-    throw IncorrectNumberException( "car" ) ; 
+    throw new IncorrectNumberException( "car" ) ; 
     // cout << "ERROR (incorrect number of arguments)" << endl ;
   } // else 
 
@@ -3228,7 +3610,7 @@ void Functions::Quote() {
 
   } // if
   else {
-    throw IncorrectNumberException( "\'" ) ;
+    throw new IncorrectNumberException( "\'" ) ;
     // cout << "ERROR (incorrect number of arguments)" << endl ;
   } // else
 
@@ -3261,7 +3643,7 @@ void Functions::Cons() {
         
       } // else if
       else if ( temp->type == SYMBOL ) {
-        throw UnboundException( temp ) ; 
+        throw new UnboundException( temp ) ; 
       } // else if 
       else if ( temp->type == EMPTYPTR ) {
         mexeNode = temp ;
@@ -3289,7 +3671,7 @@ void Functions::Cons() {
  
   } // if
   else {
-    throw IncorrectNumberException( "cons" ) ;
+    throw new IncorrectNumberException( "cons" ) ;
     // cout << "incorrect number of arguments" << endl ; // function call Name
   } // else
   
@@ -3336,7 +3718,7 @@ void Functions::Define() {
         
       } // else if
       else if ( temp->type == SYMBOL ) {
-        throw UnboundException( temp ) ; 
+        throw new UnboundException( temp ) ; 
       } // else if
       else {
         ex.token = temp->token ;
@@ -3355,21 +3737,31 @@ void Functions::Define() {
       
     } // if
     else {
-      cout << "ERROR (DEFINE format)" << endl ;
+      mnonListVec.clear() ; 
+      TraversalEmpty( gRoot ) ; 
+      throw new DefineFormatException( mnonListVec ) ; 
+      // cout << "ERROR (DEFINE format)" << endl ;
     } // else
       
   } // if
   else {
-    cout << "ERROR (DEFINE format)" << endl ; // pretty print
+    mnonListVec.clear() ; 
+    TraversalEmpty( gRoot ) ;
+    throw new DefineFormatException( mnonListVec ) ;
+    // cout << "ERROR (DEFINE format)" << endl ; // pretty print
   } // else
   
-  cout << str << " defined" ;
+  mresult.clear() ; 
+  EXP tt ; 
+  tt.token = str + " defined" ; 
+  mresult.push_back( tt ) ; 
+  // cout << str << " defined" ;
 
 
 } // Functions::Define()
 
-bool Functions:: IsSystemPrimitive( Type type ) {
-  if ( type == CONS || type == LIST || type == QUOTE || type == DEFINE || type == CAR 
+bool Functions::IsSystemPrimitive( Type type ) {
+  if ( type == EXIT || type == CONS || type == LIST || type == QUOTE || type == DEFINE || type == CAR 
        || type == CDR || type == ATOM_QMARK || type == PAIR_QMARK || type == LIST_QMARK 
        || type == NULL_QMARK || type == INTEGER_QMARK || type == REAL_QMARK 
        || type == NUMBER_QMARK || type == STRING_QMARK || type == BOOLEAN_QMARK 
@@ -3398,7 +3790,9 @@ void Functions::Eval() {
     cout << "Is just an atom but not a symbol" << endl ; 
     hasError = true ; 
     mexeNode = temp ;
-    cout << temp->token ;
+    // cout << temp->token ;
+    mresult.clear() ; 
+    mresult.push_back( *temp ) ; 
     // 出迴圈 
   } // if
   else if ( temp->type == SYMBOL ) {
@@ -3406,18 +3800,22 @@ void Functions::Eval() {
     hasError = true ; 
     if ( FindMap( temp->token, new_vector ) == false ) // unbound symbol 
     { 
-      throw UnboundException( temp ) ; 
+      throw new UnboundException( temp ) ; 
       // cout << "Line :  2037 >> ERROR (unbound symbol) : " << temp->token << endl ;
     } // if  
     else
     {
-      PrintVec( new_vector ) ;                                                    
+      mresult.clear() ; 
+      mresult.assign( new_vector.begin(), new_vector.end() ) ; 
+      // PrintVec( mresult ) ;                                                     
     } // else 
 
   } // else if 
   else if ( IsSystemPrimitive( temp->type ) )
   {
-    cout << temp->token << endl ; 
+    mresult.clear() ; 
+    mresult.assign( new_vector.begin(), new_vector.end() ) ; 
+    // cout << temp->token << endl ; 
   } // else if 
   else 
   { // temp == emptyptr || temp == bounding symbol 
@@ -3438,12 +3836,14 @@ void Functions::Eval() {
     if ( firstArgument->token == "exit" )
     {
       if ( mlevel > 1 )
+      { 
+        throw new ErrorLevelException( firstArgument->token ) ; 
+      } // if
+      else if ( firstArgument->token == "exit" )
       {
-        cout << "ERROR (level of exit)" ; 
-         
-      } // if 
+        throw new ExitException( "exit" ) ;
+      } // else if 
 
-      hasError = true ; 
     } // if 
     else if ( firstArgument->type == QUOTE ) {
       mexeNode = firstArgument ; 
@@ -3451,29 +3851,32 @@ void Functions::Eval() {
     else if ( IsNonList( temp ) ) // non list error 
     {
       hasError = true ; 
-      throw NonListException( mnonListVec ) ; 
+      throw new NonListException( mnonListVec ) ; 
     } // else if 
-    else if ( IsATOM( firstArgument ) 
-              && firstArgument->type != SYMBOL 
-              && NOT IsSystemPrimitive( firstArgument->type ) )  
+    else if ( IsATOM( firstArgument ) && firstArgument->type != SYMBOL && 
+              NOT IsSystemPrimitive( firstArgument->type ) )  
     { // non known function
       hasError = true ; 
-      cout << "ERROR (attempt to apply non-function) : " << firstArgument->token << endl ;
+      throw new NonFunctionException( firstArgument->token ) ; 
+      // cout << "ERROR (attempt to apply non-function) : " << firstArgument->token << endl ;
     } // else if 
-    else if ( firstArgument->type == SYMBOL 
-              || IsSystemPrimitive( firstArgument->type ) )  
+
+    else if ( firstArgument->type == SYMBOL || IsSystemPrimitive( firstArgument->type ) )
     { 
       if ( IsSystemPrimitive( firstArgument->type ) )
       { 
-        cout << "is a primitive function : " 
-             << firstArgument->token << endl ;
-        if ( ( firstArgument->type == DEFINE 
-               || firstArgument->type == CLEAN_ENVIRONMENT ) 
-             && mlevel > 1 )
-                                                              
+        cout << "primitive function : " << firstArgument->token << endl ;
+        
+        if ( firstArgument->type == DEFINE || 
+             firstArgument->type == CLEAN_ENVIRONMENT || 
+             firstArgument->token == "exit" )
         {
-          cout << "ERROR (level of " << firstArgument->token << ")" ; 
-          hasError = true ; 
+          if ( mlevel > 1 )
+          { 
+            throw new ErrorLevelException( firstArgument->token ) ; 
+          } // if 
+
+          mexeNode = firstArgument ; 
         } // if 
         else if ( firstArgument->type == DEFINE || firstArgument->type == COND ) // 未完成
         { 
@@ -3488,7 +3891,7 @@ void Functions::Eval() {
           else
           {
             hasError = true ;
-            throw IncorrectNumberException( "if" ) ;
+            throw new IncorrectNumberException( "if" ) ;
             // cout << "ERROR (incorrect number of arguments) : if" << endl ; 
           } // else 
         } // else if 
@@ -3497,14 +3900,14 @@ void Functions::Eval() {
           mexeNode = firstArgument ; 
           if ( NOT CheckNumOfArg( 1 ) && NOT CheckNumOfArg( 0 ) ) // >= 2 
           {
-            cout << "bbbbbbbbbbbbb" << endl ;
+            // cout << "bbbbbbbbbbbbb" << endl ;
             mexeNode = firstArgument ; 
           } // if 
           else
           {
             hasError = true ;
-                                                                    
-            cout << "ERROR (incorrect number of arguments) : " << firstArgument->token << endl ; 
+            throw new IncorrectNumberException( firstArgument->token ) ; 
+            // cout << "ERROR (incorrect number of arguments) : " << firstArgument->token << endl ; 
           } // else
 
                              
@@ -3519,13 +3922,14 @@ void Functions::Eval() {
         hasError = true ; 
         if ( FindMap( firstArgument->token, new_vector ) == false )
         {
-          throw UnboundException( firstArgument ) ; 
+          throw new UnboundException( firstArgument ) ; 
           // cout << "ERROR (unbound symbol) : " << firstArgument->token << endl ; 
         } // if 
         else
         {
-          cout << "ERROR (attempt to apply non-function) : " ; 
-          PrintVec( new_vector ) ; 
+          throw new NonFunctionException( new_vector ) ; 
+          // cout << "ERROR (attempt to apply non-function) : " ; 
+          // PrintVec( new_vector ) ; 
         } // else 
       } // else 
     } // else if 
@@ -3537,9 +3941,9 @@ void Functions::Eval() {
       Eval() ;
 
       
-      if ( NOT firstArgument->vec.empty() 
-           && firstArgument->vec.size() == 1 
-           && IsSystemPrimitive( firstArgument->vec.at( 0 ).type ) ) 
+      if ( NOT firstArgument->vec.empty() && 
+           firstArgument->vec.size() == 1 && 
+           IsSystemPrimitive( firstArgument->vec.at( 0 ).type ) ) 
       {
         cout << "Return Eval() and argument is changed to : " << firstArgument->vec.at( 0 ).token << endl ;
 
@@ -3550,9 +3954,10 @@ void Functions::Eval() {
       else if ( NOT firstArgument->vec.empty() 
                 && NOT IsSystemPrimitive( firstArgument->vec.at( 0 ).type ) )
       {
-        cout << "ERROR (attempt to apply non-function) : " ; 
-        PrintVec( firstArgument->vec ) ; 
-        hasError = true ; 
+        throw new NonFunctionException( firstArgument->vec ) ; 
+        // cout << "ERROR (attempt to apply non-function) : " ; 
+        // PrintVec( firstArgument->vec ) ; 
+        // hasError = true ; 
       } // else if 
       else
       {
@@ -3565,6 +3970,7 @@ void Functions::Eval() {
   } // else if
 
   if ( hasError == false ) {
+    
     cout << "Execute Start : " << mexeNode->token  << endl << endl ;
     Execute() ;
   } // if 
@@ -3577,16 +3983,15 @@ bool PrintRoot()
   {
     cout << "========= root: =========" << endl ;
     DeleteDotParen( gHead->vec ) ; 
-    return PrintS_EXP( gHead->vec ) ; 
+    PrintS_EXP( gHead->vec ) ; 
+    return true ; 
   } // if 
-  
-  cout << endl << "gHead->vec is EMPTY" ;  
 
   return false ; 
 } // PrintRoot()
 
 int main() { 
-  cin >> uTestNum ; 
+  //cin >> uTestNum ; 
 
   int i = 0 ;
   bool syntaxIsTrue ;
@@ -3630,19 +4035,19 @@ int main() {
           if ( nextToken.type != RIGHT_PAREN )
           {
             // cout << "ERROR" ; 
-            throw SyntaxErrorException( SYNERR_RIGHTPAREN, nextToken ) ; 
+            throw new SyntaxErrorException( SYNERR_RIGHTPAREN, nextToken ) ; 
           } // if 
         
         } // if 
 
         if ( nextToken.type == RIGHT_PAREN && NOT s_exp.empty() && s_exp.back().type == DOT )
         {
-          throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
+          throw new SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
         } // if 
 
         if ( nextToken.type == DOT && NOT s_exp.empty() && s_exp.back().type == LEFT_PAREN )
         {
-          throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
+          throw new SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
         } // if 
 
         s_exp.push_back( nextToken ) ; 
@@ -3659,7 +4064,7 @@ int main() {
           if ( myStack.empty( ) )
           {
             // cout << "RIGHT PAREN Exception line : " << nextToken.row  ;
-            throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
+            throw new SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
           } // else if 
           else if ( myStack.back() == LEFT_PAREN )
           {
@@ -3701,12 +4106,12 @@ int main() {
           if ( myStack.empty() ) 
           {
             // cout << " has Exception" << endl ; 
-            throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
+            throw new SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
           } // if 
           else if ( myStack.back() == DOT ) 
           {
             // cout << " has Exception" << endl ; 
-            throw SyntaxErrorException( SYNERR_RIGHTPAREN, nextToken ) ; 
+            throw new SyntaxErrorException( SYNERR_RIGHTPAREN, nextToken ) ; 
           } // else if 
           else
           {
@@ -3756,15 +4161,20 @@ int main() {
             // 可能會丟出 syntax execepiton  
             // preOrderTraversal(gHead) ; 
             
-            
+            gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
+
             funcClass.SetRoot() ;
             funcClass.Eval() ;
             funcClass.ResetLevel() ; 
             //  funcClass.PrintMap() ; // test
             
-            PrintRoot() ;
+            if ( PrintRoot() == false )
+            {
+              cout << PrettyString( funcClass.GetResult() ) ;
+              funcClass.ClearResult() ; 
+            } // if 
             // 一些印出指令前的處裡 
-            gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
+
              
             readEXP = false ;
 
@@ -3772,13 +4182,13 @@ int main() {
         } // if 
         else if ( myStack.back() == DOT && myStack.size() == 1 )
         {
-          throw SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
+          throw new SyntaxErrorException( SYNERR_ATOM_PAR, nextToken ) ; 
         } // else if 
 
       } // try 
-      catch ( NotAStringException ex ) // has no closing quote exception 
+      catch ( NotAStringException * ex ) // has no closing quote exception 
       {
-        cout << ex.What() << endl ; 
+        cout << ex->What() << endl ; 
 
         // After print an String Error Message
         // we should break the while( readEXP ) 
@@ -3786,11 +4196,11 @@ int main() {
 
         gLastRow = gNowRow ;
       } // catch  the No Closing Quote Exception 
-      catch ( SyntaxErrorException ex ) // SyntaxError 
+      catch ( SyntaxErrorException * ex ) // SyntaxError 
       {
         
 
-        cout << ex.What() << endl ; 
+        cout << ex->What() << endl ; 
         // After print an Syntax Error Message
         // we should break the while( readEXP )
         readEXP = false ; 
@@ -3811,37 +4221,66 @@ int main() {
         gNowColumn = 0 ; 
 
       } // catch Syntax Exception
-      catch ( EofException ex )
+      catch ( EofException * ex )
       {
-        cout << ex.What() ; 
+        cout << ex->What() ; 
         readEXP = false ; 
         quit = true ; 
       } // catch 
-      catch ( UnboundException ex )
+      catch ( UnboundException * ex )
       {
         funcClass.ResetLevel() ; 
-        cout << ex.What() ; 
+        cout << ex->What() ; 
         readEXP = false ; 
       } // catch 
-      catch ( NonListException ex )
+      catch ( NonListException * ex )
       {
         funcClass.ResetLevel() ; 
-        cout << ex.What() ; 
+        cout << ex->What() ; 
         readEXP = false ; 
       } // catch 
-      catch ( IncorrectArgumentException ex )
+      catch ( IncorrectArgumentException * ex )
       {
         funcClass.ResetLevel() ; 
-        cout << ex.What() ; 
+        cout << ex->What() ; 
         readEXP = false ;
       } // catch 
-      catch ( IncorrectNumberException ex )
+      catch ( IncorrectNumberException * ex )
       {
         funcClass.ResetLevel() ; 
-        cout << ex.What() ; 
+        cout << ex->What() ; 
+        readEXP = false ;
+      } // catch
+      catch ( NonFunctionException * ex )
+      {
+        funcClass.ResetLevel() ; 
+        cout << ex->What() ; 
         readEXP = false ;
       } // catch 
-
+      catch ( DivByZeroException * ex )
+      {
+        funcClass.ResetLevel() ; 
+        cout << ex->What() ; 
+        readEXP = false ;
+      } // catch 
+      catch ( DefineFormatException * ex )
+      {
+        funcClass.ResetLevel() ; 
+        cout << ex->What() ; 
+        readEXP = false ;
+      } // catch 
+      catch ( ErrorLevelException* ex )
+      {
+        funcClass.ResetLevel() ; 
+        cout << ex->What() ; 
+        readEXP = false ;
+      } // catch 
+      catch ( ExitException * ex )
+      {
+        funcClass.ResetLevel() ;  
+        readEXP = false ;
+        quit = true ; 
+      } // catch 
 
     } // while ( readEXP )
 
