@@ -232,6 +232,19 @@ a
 
 ; 9. Conditionals
 
+(if (> 3 2) 'good 'bad)
+(if (> 3 2) 'good)
+(define a 5)
+(if a 'good 'bad)
+(if (not a) 'good 'bad)
+(define a nil)
+(if a '(1 2) '(3 4))
+(if (not a) '((1 (2) 1) 1) '((3) (4 3)))
+(if (not a) '((1 (2) 1) 1) )
+(if 1 2 3)
+(if (cons 1 2) 3 4)
+(if nil 3 4)
+(if #t 3 4)
 (define b 4)
 (cond ((> 3 b) 'bad)
       ((> b 3) 'good)
@@ -296,6 +309,167 @@ else ; should get >>(1 2)<<
       (else 2)
       (else else)
 ) ; should get nil
+
+
+; =============== Problem 4 可見數據 ====================
+(define a "=============== Problem 4 viewable case =================")
+a
+
+(clean-environment)
+
+(begin 3)
+(begin 3 4 5)
+
+(begin 
+   (car '(1 2 3))
+   (cdr '(1 2 3))
+)
+
+(begin
+   (list '(1 2 3))
+)
+
+(define a 5)
+
+( and        ; 'and' either returns the evaluated result of
+  (pair? 3)  ; the first one that is evaluated to nil
+  a          ; or the evaluated result of the last one
+)                          
+
+( and #t a )
+
+( or         ; 'or' either returns the evaluated result of
+  a          ; the first one that is not evaluated to nil
+  (null? ()) ; or the evaluated result of the last one
+)
+
+; ------- functional compositions (same category) -------
+
+(define hello "\"CYCU ICE\"")
+(define there "Number One!")
+(cons (car (list hello there)) there)
+
+(define a '(30 40))
+(cons 5 a)
+a
+(define a (cons 3 a))
+(cons (cons 5 a) a)
+a
+(car (car (cons a a)))
+(cdr (list a a (car (car (cons a a)))))
+(define a (cdr (list a a (car (car (cons a a)))))
+)
+(car (cdr a))
+(cons (car (cdr (cdr (car a))))
+      (cdr a)
+)
+(define a
+ (list (car (cdr a))
+       (cons (car (cdr (cdr (car a))))
+             (cdr a)
+       )
+       (car (cdr a))
+ )
+)
+a
+(define b a)
+(define b (cons (list a b) a))
+b
+(cons (car b) (car (cdr b)))
+
+; ------- functional compositions (same category) -------
+
+(define a 5)
+(define b 10)
+(define c 20)
+(define list1 '(11 22 33))
+(define list2 '(12 23 34))
+(define str1 "abc")
+(define str2 (string-append "d" "de"))
+(define var1
+ (- ( + (- a b) (* c a 3) 
+    )
+    (* a (+ b c (car list1)))
+    (car (cdr list2))
+ )
+)
+(>= var1 (car (cdr (cdr list2))))
+(string>? (string-append "Hello" str1)
+          str2
+)
+(not (> a 3))
+; etc.
+
+; ------- functional compositions (different categories) -------
+
+(cons
+  (cons (+ 30 50)
+        (cdr '(The sun shines bright))
+  )
+  (list (null? '())
+        (pair? '(30 (40)))
+        (- (+ 5 7) (+ 2 3))
+        '(1 2 . (3))
+  )
+)
+(if (> a b)
+    (* a
+      (+ (car list1)
+         (car (cdr list2)))
+    )
+    (* b
+      (+ (car list2)
+         (car (cdr list1)))
+    )
+)
+(if (not (> a b))
+    (* a
+      (+ (car list1)
+         (car (cdr list2)))
+    )
+    (* b
+      (+ (car list2)
+         (car (cdr list1)))
+    )
+)
+
+(define d 20)
+(begin
+   3 4 d)
+(begin
+   (+ 3 5)
+   (- 4 5)
+   (* d d)
+)
+(define a 20)
+(define b 40)
+(list
+     ( if (> a b)
+          (+ a (* a b))
+          (- b (+ a a))
+     )
+
+          ( begin
+            (- b (+ a a))
+            (> 70 b)
+          )
+)
+(if #t (begin 3 4 5))
+(cond ((> 5 3) 'good 'better 'best) (#t 'OK?)   )
+(define a (+ a b a))
+
+(cond ( (> a b) (+ a b) (- a b) (* a b) ) 
+      (  else 'OK? )   
+)
+
+(cond ( (< a b) 
+        (+ a b) (- a b) (- a Look!) (* a b)
+      ) 
+      (  else
+         ( list 'OK? 'Correct? )
+         ( cons 'OK? 'Correct? ) 
+      )   
+)
 
 <<
 
@@ -798,12 +972,209 @@ else ; should get >>(1 2)<<
 
 > nil
 
+> a defined
+
+> "=============== Problem 4 viewable case ================="
+
+> environment cleaned
+
+> 3
+
+> 5
+
+> ( 2
+  3
+)
+
+> ( ( 1
+    2
+    3
+  )
+)
+
+> a defined
+
+> nil
+
+> 5
+
+> 5
+
+> hello defined
+
+> there defined
+
+> ( ""CYCU ICE""
+  .
+  "Number One!"
+)
+
+> a defined
+
+> ( 5
+  30
+  40
+)
+
+> ( 30
+  40
+)
+
+> a defined
+
+> ( ( 5
+    3
+    30
+    40
+  )
+  3
+  30
+  40
+)
+
+> ( 3
+  30
+  40
+)
+
+> 3
+
+> ( ( 3
+    30
+    40
+  )
+  3
+)
+
+> a defined
+
+> 3
+
+> ( 40
+  3
+)
+
+> a defined
+
+> ( 3
+  ( 40
+    3
+  )
+  3
+)
+
+> b defined
+
+> b defined
+
+> ( ( ( 3
+      ( 40
+        3
+      )
+      3
+    )
+    ( 3
+      ( 40
+        3
+      )
+      3
+    )
+  )
+  3
+  ( 40
+    3
+  )
+  3
+)
+
+> ( ( ( 3
+      ( 40
+        3
+      )
+      3
+    )
+    ( 3
+      ( 40
+        3
+      )
+      3
+    )
+  )
+  .
+  3
+)
+
+> a defined
+
+> b defined
+
+> c defined
+
+> list1 defined
+
+> list2 defined
+
+> str1 defined
+
+> str2 defined
+
+> var1 defined
+
+> #t
+
+> nil
+
+> nil
+
+> ( ( 80
+    sun
+    shines
+    bright
+  )
+  #t
+  #t
+  7
+  ( 1
+    2
+    3
+  )
+)
+
+> 340
+
+> 170
+
+> d defined
+
+> 20
+
+> 400
+
+> a defined
+
+> b defined
+
+> ( 0
+  #t
+)
+
+> 5
+
+> best
+
+> a defined
+
+> 3200
+
+> ( OK?
+  .
+  Correct?
+)
+
 > ERROR (no more input) : END-OF-FILE encountered
 Thanks for using OurScheme!<<
 
-你的程式的輸出是>>
-(There was a run-time error :
-Welcome to OurScheme!
+你的程式的輸出是>>Welcome to OurScheme!
 
 > a defined
 
@@ -1248,13 +1619,13 @@ Welcome to OurScheme!
   1
 )
 
-> 12
+> 2
 
 > 3
 
-> nil4
+> 4
 
-> #t3
+> 3
 
 > b defined
 
@@ -1266,33 +1637,252 @@ Welcome to OurScheme!
 
 > else defined
 
-> Pretty1 : #t
-Pretty1 : ok
-ok
+> ok
 
-> ERROR (no return value) : ( cond
-  ( ( >
-      3
-      b
-    )
-    ( quote
-      bad
-    )
-  )
-  ( ( >
-      b
-      5
-    )
-    ( quote
-      bad
-    )
-  )
-  ( else
-    "What happened?"
+> "What happened?"
+
+> "What happened?"
+
+> 3
+
+> good
+
+> bad
+
+> bad
+
+> a defined
+
+> b defined
+
+> 5
+
+> else defined
+
+> ( 1
+  2
+)
+
+> 4
+
+> ( 1
+  2
+)
+
+> else defined
+
+> nil
+
+> a defined
+
+> "=============== Problem 4 viewable case ================="
+
+> environment cleaned
+
+> 3
+
+> 5
+
+> ( 2
+  3
+)
+
+> ( ( 1
+    2
+    3
   )
 )
 
+> a defined
 
->
+> nil
 
-A SAFECode fault has occurred. Line number unknown..)<<
+> 5
+
+> 5
+
+> hello defined
+
+> there defined
+
+> ( ""CYCU ICE""
+  .
+  "Number One!"
+)
+
+> a defined
+
+> ( 5
+  30
+  40
+)
+
+> ( 30
+  40
+)
+
+> a defined
+
+> ( ( 5
+    3
+    30
+    40
+  )
+  3
+  30
+  40
+)
+
+> ( 3
+  .
+  ( 30
+    40
+  )
+)
+
+> 3
+
+> ( ( 3
+    30
+    40
+  )
+  3
+)
+
+> a defined
+
+> 3
+
+> ( 40
+  3
+)
+
+> a defined
+
+> ( 3
+  ( 40
+    .
+    ( 3
+    )
+  )
+  3
+)
+
+> b defined
+
+> b defined
+
+> ( ( ( 3
+      ( 40
+        .
+        ( 3
+        )
+      )
+      3
+    )
+    ( 3
+      ( 40
+        .
+        ( 3
+        )
+      )
+      3
+    )
+  )
+  .
+  ( 3
+    ( 40
+      .
+      ( 3
+      )
+    )
+    3
+  )
+)
+
+> ( ( ( 3
+      ( 40
+        3
+      )
+      3
+    )
+    ( 3
+      ( 40
+        3
+      )
+      3
+    )
+  )
+  .
+  3
+)
+
+> a defined
+
+> b defined
+
+> c defined
+
+> list1 defined
+
+> list2 defined
+
+> str1 defined
+
+> str2 defined
+
+> var1 defined
+
+> #t
+
+> nil
+
+> nil
+
+> ( ( 80
+    sun
+    shines
+    bright
+  )
+  #t
+  #t
+  7
+  ( 1
+    2
+    3
+  )
+)
+
+> 340
+
+> 170
+
+> d defined
+
+> 20
+
+> 400
+
+> a defined
+
+> b defined
+
+> ( 0
+  #t
+)
+
+> 5
+
+> best
+
+> a defined
+
+> 3200
+
+> ( OK?
+  .
+  Correct?
+)
+
+> ERROR (no more input) : END-OF-FILE encountered
+Thanks for using OurScheme!<<

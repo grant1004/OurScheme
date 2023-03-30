@@ -1,222 +1,126 @@
-Welcome to OurScheme!
-
-> a defined
-
-> "=============== Problem 1 viewable case ================="
+> "=============== Problem 5 viewable case ================="
 
 > environment cleaned
 
-> 3
+> #<procedure cons>
 
-> 3
+> #<procedure car>
 
-> 3.500
+> myCons defined
 
-> -0.125
+> myCar defined
 
-> "Hi
-""
+> #<procedure cons>
 
-> ""
-
-> ( 3
+> ( #<procedure cons>
   .
-  4
-)
-
-> ( 3
-)
-
-> ( 30
-)
-
-> ( 300
-)
-
-> nil
-
-> ( nil
-)
-
-> ( nil
-)
-
-> ( nil
-)
-
-> ( 1
-  2
-  3
-)
-
-> ( nil
-  2
-  3
-  nil
+  #<procedure car>
 )
 
 > ( 3
   4
-  5
+  myCar
 )
 
-> nil
+> ( ( 10
+  )
+  .
+  20
+)
 
-> ( 3
-  ( 4
-    5
+> ( 20
+  myCons
+)
+
+> ( ( 1
+    #<procedure ->
+    3
+    #<procedure +>
+  )
+  ( 25
+    .
+    #<procedure car>
   )
 )
 
-> ( 3
-  4321
-  5
+> ( ( ( it
+    )
+    going
+    ?
+  )
+  ( How
+    is
+  )
+  ( it
+  )
+  going
+  ?
 )
 
-> ( 3
-  ( 4
-    5
-  )
+> >? defined
+
+> <? defined
+
+> =? defined
+
+> first defined
+
+> second defined
+
+> third defined
+
+> cc defined
+
+> "Bad"
+
+> "OK."
+
+> ( Whether
+  or
+  not
+  to
+  be
+  ?
 )
 
-> ( 3
-  ( 4
-    5
-  )
-  6
-  ( 7
-    8
-  )
+> ( is
+  the
+  question
+  !
+)
+
+> ( "Wake up!"
+)
+
+> sun-shine defined
+
+> money defined
+
+> ( 40
+  shines
+  bright
 )
 
 > a defined
+
+> d defined
 
 > b defined
 
-> ( 3
-  .
-  5
-)
+> #<procedure />
 
-> 5
+> 20
 
-> x defined
+> 90
 
-> ( ( 3
-    4
-  )
-  5
-)
+> 20
 
-> hello defined
-
-> ( 1
-  2
-  .
-  3
-)
-
-> ( ( 1
-    2
-    .
-    3
-  )
-  .
-  4
-)
-
-> ( 10
-)
-
-> ( ( 1
-    2
-    .
-    3
-  )
-  4
-)
-
-> ( ( 1
-    2
-    .
-    3
-  )
-  ( 1
-    2
-    .
-    3
-  )
-)
-
-> hello defined
-
-> ( ""CYCU ICE""
-  ""CYCU ICE""
-  ( 100
-  )
-)
-
-> ( ""CYCU ICE""
-  400
-  ( 5000
-    600
-  )
-  70
-)
-
-> there defined
-
-> ( ""CYCU ICE""
-  "Number One!"
-)
+> "Best"
 
 > a defined
 
-> ( 5
-  30
-  40
-)
+> ERROR (unbound symbol) : Look!
 
-> ( 30
-  40
-)
+>
 
-> 3
-
-> 4
-
-> 3
-
-> ( 4
-  5
-)
-
-> ( 3
-  4
-)
-
-> ( "Happy New Year!"
-)
-
-> ( 3
-  4
-)
-
-> ( "Merry Christmas!"
-  .
-  6
-)
-
-> ( 3
-  4
-)
-
-> "Happy New Year!"
-
-> 30
-
-> ( 40
-)
-
-> ERROR (no more input) : END-OF-FILE encountered
-Thanks for using OurScheme!
+A SAFECode fault has occurred. Line number unknown..)

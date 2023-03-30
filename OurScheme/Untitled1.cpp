@@ -1,17 +1,27 @@
 #include <iostream>
 #include <string>
+#include <map>
+#include <vector>
+
+using namespace std ; 
 
 int main() {
-  std::string input_string;
-  std::cin >> input_string;
+  map< string, vector<int>* > msymbolMap ;
   
-  for (int i = 0; i < input_string.length(); ++i) {
-    if (input_string[i] >= 'a' && input_string[i] <= 'z') {
-      input_string[i] = input_string[i] - 'a' + 'A';
-    }
-  }
+  vector<int> aa ; 
   
-  std::cout << input_string << std::endl;
+  aa.push_back( 1 ) ; 
+  aa.push_back( 1 ) ; 
+  aa.push_back( 1 ) ; 
+  aa.push_back( 1 ) ; 
+  aa.push_back( 1 ) ; 
+  aa.push_back( 1 ) ; 
   
-  return 0;
+  msymbolMap[ "aa" ] = &aa ; 
+  
+  
+  vector<int> * bb = msymbolMap[ "aa" ] ;
+  
+  for ( int i = 0 ; i < bb->size() ; i ++ )
+    cout << bb->at( i ) << endl ; 
 }

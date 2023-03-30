@@ -226,7 +226,7 @@ class NonListException
   NonListException( vector<EXP> exp )  
   {
     stringstream ss ;
-    ss << "ERROR (non-list) : " << PrettyString( exp ) << endl ;
+    ss << "ERROR (non-list) : " << PrettyString( exp ) ;
     mErrMsg = ss.str() ;   
   } // NonListException() 
 }; // NonListException 
@@ -250,7 +250,7 @@ class IncorrectArgumentException
   IncorrectArgumentException( string func2, vector<EXP> exp2 )  // vector exp2
   {
     stringstream ss ;
-    ss << "ERROR (" << func2 << " with incorrect argument type) : " << PrettyString( exp2 ) << endl ;
+    ss << "ERROR (" << func2 << " with incorrect argument type) : " << PrettyString( exp2 ) ;
     mErrMsg = ss.str() ;   
   } // IncorrectArgumentException()
 
@@ -293,7 +293,7 @@ class NonFunctionException
   NonFunctionException( vector<EXP> exp )  // EXP exp 
   {
     stringstream ss ;
-    ss << "ERROR (attempt to apply non-function) : " << PrettyString( exp ) << endl ;
+    ss << "ERROR (attempt to apply non-function) : " << PrettyString( exp ) ;
     mErrMsg = ss.str() ;   
   } // NonFunctionException() 
 
@@ -329,7 +329,7 @@ class DefineFormatException
   DefineFormatException( vector<EXP> exp )  // EXP exp 
   {
     stringstream ss ;
-    ss << "ERROR (DEFINE format) : " << PrettyString( exp ) << endl ; 
+    ss << "ERROR (DEFINE format) : " << PrettyString( exp ) ; 
     mErrMsg = ss.str() ;   
   } // DefineFormatException()
 
@@ -347,7 +347,7 @@ class CondFormatException
   CondFormatException( vector<EXP> exp )  // EXP exp 
   {
     stringstream ss ;
-    ss << "ERROR (COND format) : " << PrettyString( exp ) << endl ; 
+    ss << "ERROR (COND format) : " << PrettyString( exp ) ; 
     mErrMsg = ss.str() ;   
   } // CondFormatException()
 
@@ -384,7 +384,7 @@ class NoReturnException
   NoReturnException( vector<EXP> exp )  // EXP exp 
   {
     stringstream ss ;
-    ss << "ERROR (no return value) : " << PrettyString( exp ) << endl ; 
+    ss << "ERROR (no return value) : " << PrettyString( exp ) ; 
     mErrMsg = ss.str() ;   
   } // NoReturnException()
 
@@ -1214,90 +1214,83 @@ bool PrintS_EXP( vector<EXP> s_exp )
   int tab = 0 ; 
   int parnum = 0 ;  
   // (1 . (2 . (3 . 4))) --> ( 1 2 3 . 4 ) 
-  if ( s_exp.at( 0 ).token == "("  && s_exp.at( 1 ).token == "exit" && s_exp.at( 2 ).token == ")" )
+  for ( int i = 0 ; i < s_exp.size() ; i++ )
   {
-    return true ; 
-  } // if 
-  else 
-  {
-    for ( int i = 0 ; i < s_exp.size() ; i++ )
+    // cout << "Line :" << s_exp.at( i ).nowRow << " " ;
+    if ( s_exp.at( i ).type == LEFT_PAREN )
     {
-      // cout << "Line :" << s_exp.at( i ).nowRow << " " ;
-      if ( s_exp.at( i ).type == LEFT_PAREN )
+      parnum ++ ; 
+      try
       {
-        parnum ++ ; 
-        try
+        if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
         {
-          if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
-          {
-            PrintTab( 0 ); 
-          } // if 
-          else
-          {
-            PrintTab( tab ); 
-          } // else  
-        } // try 
-        catch ( exception ex )
+          PrintTab( 0 ); 
+        } // if 
+        else
         {
-          PrintTab( 0 ) ; 
-        } // catch 
+          PrintTab( tab ); 
+        } // else  
+      } // try 
+      catch ( exception ex )
+      {
+        PrintTab( 0 ) ; 
+      } // catch 
         
   
-        cout << "(" << " " ;
-        tab += 2 ; 
-      } // if 
-      else if ( s_exp.at( i ).type == QUOTE )
+      cout << "(" << " " ;
+      tab += 2 ; 
+    } // if 
+    else if ( s_exp.at( i ).type == QUOTE )
+    {
+      try
       {
-        try
+        if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
         {
-          if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
-          {
-            PrintTab( 0 ); 
-          } // if 
-          else
-          {
-            PrintTab( tab ); 
-          } // else 
-        } // try 
-        catch ( exception ex ) 
+          PrintTab( 0 ); 
+        } // if 
+        else
         {
-          PrintTab( 0 );
-        } // catch 
-        cout << "quote" << endl ; 
-      } // else if 
-      else if ( s_exp.at( i ).type == RIGHT_PAREN )
+          PrintTab( tab ); 
+        } // else 
+      } // try 
+      catch ( exception ex ) 
       {
-        parnum -- ;
+        PrintTab( 0 );
+      } // catch 
+      cout << "quote" << endl ; 
+    } // else if 
+    else if ( s_exp.at( i ).type == RIGHT_PAREN )
+    {
+      parnum -- ;
         
-        tab -= 2 ; 
-        PrintTab( tab ) ;
-        cout << ")" << endl ; 
-      } // else if 
-      else
+      tab -= 2 ; 
+      PrintTab( tab ) ;
+      cout << ")" << endl ; 
+    } // else if 
+    else
+    {
+      try
       {
-        try
+        if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
         {
-          if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
-          {
-            PrintTab( 0 ); 
-          } // if 
-          else
-          {
-            PrintTab( tab ); 
-          } // else 
-        } // try 
-        catch ( exception ex ) 
+          PrintTab( 0 ); 
+        } // if 
+        else
         {
-          PrintTab( 0 );
-        } // catch 
+          PrintTab( tab ); 
+        } // else 
+      } // try 
+      catch ( exception ex ) 
+      {
+        PrintTab( 0 );
+      } // catch 
         
         
-        cout << s_exp.at( i ).token << endl ; 
-      } // else 
-    } // for 
-  } // else 
-
-  return false ;
+      cout << s_exp.at( i ).token << endl ; 
+    } // else 
+  } // for 
+  
+  return true ;
 } // PrintS_EXP() 
 
 
@@ -1316,7 +1309,7 @@ string PrettyString( vector<EXP> s_exp )
   int parnum = 0 ; 
   string str = "" ;
   // (1 . (2 . (3 . 4))) --> ( 1 2 3 . 4 ) 
-
+  DeleteDotParen( s_exp ) ;
   if ( s_exp.empty() )
   {
     return "Empty Root!" ; 
@@ -2193,7 +2186,6 @@ void Functions::If()
   } // else if 
   else if ( decide->type != SYMBOL )
   {
-    cout << decide->token ; 
     emptyptr->vec.clear() ;
     emptyptr->vec.push_back( *decide ) ;
   } // else if 
@@ -2204,7 +2196,7 @@ void Functions::If()
   
   if ( TorF( emptyptr->vec ) == true )
   {
-
+    emptyptr->vec.clear() ; 
     answer = decide->next ; 
     if ( answer->type == EMPTYPTR )
     {
@@ -2231,6 +2223,7 @@ void Functions::If()
   {
     if ( decide->next->next->type != RIGHT_PAREN )
     {
+      emptyptr->vec.clear() ; 
       answer = decide->next->next ; 
       if ( answer->type == EMPTYPTR )
       {
@@ -2273,9 +2266,10 @@ void Functions::Cond()
   EXP* node ;
   bool getResult = false ; 
   bool isLast = false ; 
+
   if ( NOT CheckNumOfArg( 0 ) ) // >= 1 
   {
-    while ( now->type != RIGHT_PAREN )
+    while ( NOT getResult && now->type != RIGHT_PAREN )
     { 
       if ( now->next->type == RIGHT_PAREN )
       {
@@ -2298,7 +2292,7 @@ void Functions::Cond()
           bool trueOdFalse = true ; 
           int cnt = 0 ; 
           bool jump = false ; 
-          while ( NOT jump && node->type != RIGHT_PAREN )
+          while ( trueOdFalse == true && node->type != RIGHT_PAREN )
           {
             // cout << endl << endl << "RUN" << endl ;
             if ( node->type == EMPTYPTR )
@@ -2326,15 +2320,6 @@ void Functions::Cond()
                   // cout << "Pretty2 : " << PrettyString( emptyptr->vec ) ;
                 } // if
               } // if 
-              else if ( isLast )
-              {
-                if ( NOT getResult )
-                { 
-                  emptyptr->vec.clear() ; 
-                  emptyptr->vec.push_back( *mexeNode ) ;
-                  // cout << "Pretty0 : " << PrettyString( emptyptr->vec ) ;
-                } // if
-              } // else if
               else if ( mexeNode->type == SYMBOL )
               {
                 throw new UnboundException( mexeNode ) ; 
@@ -2403,6 +2388,7 @@ void Functions::Cond()
 
           bool trueOdFalse = true ; 
           int cnt = 0 ; 
+          int e = 0 ;
           while ( node->type != RIGHT_PAREN )
           {
             // cout << endl << endl << "RUN" << endl ;
@@ -2413,7 +2399,7 @@ void Functions::Cond()
               if ( NOT getResult )
               { 
                 emptyptr->vec.assign( node->vec.begin(), node->vec.end() ) ;
-                cout << "Pretty1 : " << PrettyString( emptyptr->vec ) ; 
+                // cout << "Pretty1 : " << PrettyString( emptyptr->vec ) ; 
               } // if 
             } // if 
             else
@@ -2422,21 +2408,22 @@ void Functions::Cond()
               mexeNode = node ; 
               // cout << "mexeNode : " << mexeNode->token << endl ;
               vector<EXP> new_vector ; 
-              if ( FindMap( mexeNode->token, new_vector ) ) 
+              if ( mexeNode->token == "else" && e == 0 )
               {
-                if ( NOT getResult )
-                { 
-                  emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
-                  // cout << "Pretty2 : " << PrettyString( emptyptr->vec ) ;
-                } // if
-              } // if 
-              else if ( mexeNode->token == "else" )
-              {
+                e++ ; 
                 if ( NOT getResult )
                 { 
                   emptyptr->vec.clear() ; 
                   emptyptr->vec.push_back( *mexeNode ) ;
                   // cout << "else : " << PrettyString( emptyptr->vec ) ;
+                } // if
+              } // if
+              else if ( FindMap( mexeNode->token, new_vector ) ) 
+              {
+                if ( NOT getResult )
+                { 
+                  emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+                  // cout << "Pretty2 : " << PrettyString( emptyptr->vec ) ;
                 } // if
               } // else if 
               else if ( mexeNode->type == SYMBOL )
@@ -4045,6 +4032,7 @@ void Functions::Quote() {
     
     emptyptr->vec.erase( emptyptr->vec.end() - 1 ) ;
 
+
   } // if
   else {
     throw new IncorrectNumberException( "\'" ) ;
@@ -4662,80 +4650,111 @@ int main() {
       } // catch 
       catch ( UnboundException * ex )
       {
-        gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
+        // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ; 
+        gNowRow ++ ;
+        gLastRow = gNowRow ; 
+        gNowColumn = 0 ;
       } // catch 
       catch ( NonListException * ex )
       {
-        gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
+        // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
-        readEXP = false ; 
+        readEXP = false ;
+        gNowRow ++ ;
+        gLastRow = gNowRow ; 
+        gNowColumn = 0 ;
       } // catch 
       catch ( IncorrectArgumentException * ex )
       {
-        gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
+        // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
+        gNowRow ++ ;
+        gLastRow = gNowRow ; 
+        gNowColumn = 0 ;
       } // catch 
       catch ( IncorrectNumberException * ex )
       {
-        gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
+        // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
+        gNowRow ++ ;
+        gLastRow = gNowRow ; 
+        gNowColumn = 0 ;
       } // catch
       catch ( NonFunctionException * ex )
       {
-        gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
+        // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
+        gNowRow ++ ;
+        gLastRow = gNowRow ; 
+        gNowColumn = 0 ;
       } // catch 
       catch ( DivByZeroException * ex )
       {
-        gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
+        // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
+        gNowRow ++ ;
+        gLastRow = gNowRow ; 
+        gNowColumn = 0 ;
       } // catch 
       catch ( DefineFormatException * ex )
       {
-        gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
+        // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
+        gNowRow ++ ;
+        gLastRow = gNowRow ; 
+        gNowColumn = 0 ;
       } // catch 
       catch ( ErrorLevelException * ex )
       {
-        gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
+        // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
+        gNowRow ++ ;
+        gLastRow = gNowRow ; 
+        gNowColumn = 0 ;
       } // catch 
       catch ( ExitException * ex )
       {
-        gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
+        // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
         funcClass.ResetLevel() ;  
         readEXP = false ;
         quit = true ; 
+
       } // catch 
       catch ( CondFormatException * ex )
       {
-        gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
+        // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
+        gNowRow ++ ;
+        gLastRow = gNowRow ; 
+        gNowColumn = 0 ;
       } // catch 
       catch ( NoReturnException * ex )
       {
-        gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
+        // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
-        readEXP = false ;
+        readEXP = false ; 
+        gNowRow ++ ;
+        gLastRow = gNowRow ; 
+        gNowColumn = 0 ;
       } // catch 
     
     } // while ( readEXP )
