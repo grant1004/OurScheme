@@ -10,10 +10,9 @@
 # include <iomanip>
 # include <exception> 
 # include <sstream>
-//# include <stdio.h>
-//# include <stdlib.h> 
+# include <stdio.h>
+# include <stdlib.h> 
 # include <stack>
-#include <algorithm>
 
 using namespace std ;
 
@@ -80,6 +79,22 @@ EXP * gRoot = NULL ;
 EXP * gHead = NULL ;
 
 string PrettyString( vector<EXP> exp ) ; 
+
+string ToUppder( string str )
+{
+  for ( int i = 0 ; i < str.length() ; ++i ) {
+
+    if ( str[i] >= 'a' && str[i] <= 'z' ) {
+
+      str[i] = str[i] - 'a' + 'A';
+
+    } // if 
+
+  } // for 
+
+
+  return str ; 
+} // ToUppder() 
 
 enum ExceptionType 
 { 
@@ -349,9 +364,9 @@ class ErrorLevelException
 
   ErrorLevelException( string token )  // EXP exp 
   {
-    transform(token.begin(), token.end(), token.begin(), ::toupper) ; 
+    
     stringstream ss ;
-    ss << "ERROR (level of " << token << ")" << endl ;  
+    ss << "ERROR (level of " << ToUppder( token ) << ")" << endl ;  
     mErrMsg = ss.str() ;   
   } // ErrorLevelException()
 
@@ -1773,11 +1788,12 @@ void FixSystemPrimitiveAndNil( vector<EXP> &s_exp ) {
       s_exp.erase( s_exp.begin()+i+1 ) ;
       
     } // else if 
+    
     i++ ;
       
   } // while
     
-} // FixSystemPrimitive() 
+} // FixSystemPrimitiveAndNil() 
 
 class Functions {
 
@@ -1897,7 +1913,7 @@ private:
           {
             parNum -- ; 
           } // if 
-        } // 
+        } // while
       } // if 
       else if ( vec.at( i ).type == DOT )
       {
@@ -1909,7 +1925,7 @@ private:
 
     return true ; 
 
-  } // IsNonList()
+  } // IsList()
 
   bool IsNonList( EXP* temp )
   {
@@ -1984,6 +2000,7 @@ public : // 早安胖嘟嘟肥肥
   {
     mlevel = 0 ; 
   } // ResetLevel()
+
   void Pair_qmark() ; // pair?
   void List_qmark() ; // list?
   void Begin() ; // begin
@@ -2001,7 +2018,7 @@ public : // 早安胖嘟嘟肥肥
   void ClearResult()
   {
     mresult.clear() ; 
-  } // GetResult() 
+  } // ClearResult() 
   
   bool TorF( vector<EXP> exp ) 
   {
@@ -2149,7 +2166,7 @@ void Functions::Exit()
     throw new IncorrectNumberException( "exit" ) ; 
   } // else 
 
-} // Exit() 
+} // Functions::Exit() 
 
 void Functions::If()
 {
@@ -2271,13 +2288,14 @@ void Functions::Cond()
         if ( now->type == EMPTYPTR )
         { 
           node = now->listPtr->next ; // first augument 
-          if ( IsNonList( now->listPtr) )
+          if ( IsNonList( now->listPtr ) )
           {
             mnonListVec.clear() ; 
             TraversalEmpty( gRoot ) ;
             throw new CondFormatException( mnonListVec ) ;
           } // if 
-          bool TrueOdFalse = true ; 
+          
+          bool trueOdFalse = true ; 
           int cnt = 0 ; 
           bool jump = false ; 
           while ( NOT jump && node->type != RIGHT_PAREN )
@@ -2336,13 +2354,14 @@ void Functions::Cond()
             if ( cnt == 0 )
             {
 
-              TrueOdFalse = TorF( emptyptr->vec ) ; 
-              // cout << " Check : " << TrueOdFalse << endl ;
-              if ( TrueOdFalse == false )
+              trueOdFalse = TorF( emptyptr->vec ) ; 
+              // cout << " Check : " << trueOdFalse << endl ;
+              if ( trueOdFalse == false )
               {
                 jump = true ; 
               } // if 
             } // if 
+            
             cnt ++ ; 
             node = node->next ;
             // cout << "next : " << node->token << endl ; 
@@ -2356,7 +2375,7 @@ void Functions::Cond()
             throw new CondFormatException( mnonListVec ) ;
           } // if 
 
-          if ( TrueOdFalse == true )
+          if ( trueOdFalse == true )
           {
             // cout << "Get result : " << PrettyString( emptyptr->vec ) << endl ;
             getResult = true ; 
@@ -2375,13 +2394,14 @@ void Functions::Cond()
         if ( now->type == EMPTYPTR )
         { 
           node = now->listPtr->next ; // first augument 
-          if ( IsNonList( now->listPtr) )
+          if ( IsNonList( now->listPtr ) )
           {
             mnonListVec.clear() ; 
             TraversalEmpty( gRoot ) ;
             throw new CondFormatException( mnonListVec ) ;
           } // if 
-          bool TrueOdFalse = true ; 
+
+          bool trueOdFalse = true ; 
           int cnt = 0 ; 
           while ( node->type != RIGHT_PAREN )
           {
@@ -2438,16 +2458,17 @@ void Functions::Cond()
             if ( cnt == 0 )
             {
 
-              TrueOdFalse = TorF( emptyptr->vec ) ; 
-              // cout << " Check : " << TrueOdFalse << endl ; 
+              trueOdFalse = TorF( emptyptr->vec ) ; 
+              // cout << " Check : " << trueOdFalse << endl ; 
 
-              if ( TrueOdFalse == false )
+              if ( trueOdFalse == false )
               {
                 mnonListVec.clear() ; 
                 TraversalEmpty( gRoot ) ;
                 throw new NoReturnException( mnonListVec ) ; 
               } // if 
             } // if 
+            
             cnt ++ ; 
             node = node->next ;
             // cout << "next : " << node->token << endl ; 
@@ -2461,7 +2482,7 @@ void Functions::Cond()
             throw new CondFormatException( mnonListVec ) ;
           } // if 
 
-          if ( TrueOdFalse == true )
+          if ( trueOdFalse == true )
           {
             // cout << "Get result : " << PrettyString( emptyptr->vec ) << endl ;
             getResult = true ; 
@@ -2489,7 +2510,7 @@ void Functions::Cond()
     throw new CondFormatException( mnonListVec ) ;
   } // else 
 
-} // Cond() 
+} // Functions::Cond() 
 
 void Functions::Begin()
 {
@@ -2529,9 +2550,9 @@ void Functions::Begin()
 
 void Functions::Pair_qmark()
 {
-  /*
+/*
     只要不是atom 就是 true 
-  */
+*/
   EXP* temp = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP ex ;
@@ -2562,9 +2583,9 @@ void Functions::Pair_qmark()
 
 void Functions::List_qmark()
 {
-  /*
+/*
     如果是pair就檢查是不是 list  
-  */
+*/
 
   EXP* temp = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
@@ -3805,6 +3826,7 @@ void Functions::Cdr() {
       {
         throw new IncorrectArgumentException( "cdr", temp->vec ) ;
       } // if 
+      
       ex.token = "(" ;
       ex.type = LEFT_PAREN ;
       emptyptr->vec.push_back( ex ) ;
@@ -4352,7 +4374,6 @@ void Functions::Eval() {
            firstArgument->vec.size() == 1 && 
            IsSystemPrimitive( firstArgument->vec.at( 0 ).type ) ) 
       {
-        // cout << "Return Eval() and argument is changed to : " << firstArgument->vec.at( 0 ).token << endl ;
 
         firstArgument->token = firstArgument->vec.at( 0 ).token ; 
         firstArgument->type = firstArgument->vec.at( 0 ).type ;
@@ -4717,7 +4738,7 @@ int main() {
         readEXP = false ;
       } // catch 
     
-} // while ( readEXP )
+    } // while ( readEXP )
 
   } // while ( NOT quit )  
   

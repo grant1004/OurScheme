@@ -1,34 +1,17 @@
-# include <iostream> 
-# include <vector> 
+#include <iostream>
+#include <string>
 
-using namespace std ; 
-
-int main()
-{
-  vector<int> i ; 
-  i.push_back( 1 ) ; 
-  i.push_back( 1 ) ; 
-  i.push_back( 1 ) ; 
-  i.push_back( 1 ) ; 
-  i.push_back( 1 ) ; 
-  i.push_back( 1 ) ; 
-  i.push_back( 1 ) ; 
-  // 1 * 7 
+int main() {
+  std::string input_string;
+  std::cin >> input_string;
   
-  vector<int> ii ; 
-  ii.push_back( 2 ) ; 
-  ii.push_back( 2 ) ;
-  ii.push_back( 2 ) ;
-  ii.push_back( 2 ) ;
-  ii.push_back( 2 ) ;
-  ii.push_back( 2 ) ;
-  ii.push_back( 2 ) ;
-  ii.push_back( 2 ) ;
-  ii.push_back( 2 ) ;
-  ii.push_back( 2 ) ;
+  for (int i = 0; i < input_string.length(); ++i) {
+    if (input_string[i] >= 'a' && input_string[i] <= 'z') {
+      input_string[i] = input_string[i] - 'a' + 'A';
+    }
+  }
   
-  ii.assign( i.begin(), i.end() ) ; 
+  std::cout << input_string << std::endl;
   
-  for ( int a = 0 ; a < ii.size(); a ++ ) 
-    cout << ii.at( a ) << endl ; 
-} // main() 
+  return 0;
+}

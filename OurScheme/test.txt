@@ -4,6 +4,8 @@
 (define a "=============== Problem 1 viewable case =================")
 a
 
+( ( define ) ) 
+
 (clean-environment)
 
 ; when the being evaluated S-expr is an atom, the result is that atom
