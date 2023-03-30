@@ -75,6 +75,22 @@ struct EXP {
 
 }; // struct EXP 
 
+void InitExp( EXP & ex )
+{
+  ex.token = "\0";
+  ex.column = 0 ;
+  ex.row = 0 ; 
+  ex.nowRow = 0 ; // 紀錄有效字元行數
+  ex.type = NONE ; 
+  ex.next = NULL ;
+  ex.pre_next = NULL ;
+  ex.listPtr = NULL ;
+  ex.pre_listPtr = NULL ;
+  ex.dotCnt = 0 ;
+  ex.memSpace = 0 ;
+
+} // InitExp() 
+
 EXP * gRoot = NULL ;
 EXP * gHead = NULL ;
 
@@ -108,18 +124,19 @@ enum ExceptionType
 
 class SyntaxErrorException
 {
-  string mErrMsg  ;
+  string mErrMsg ;
 
   public : 
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
 
   SyntaxErrorException( ExceptionType ErrType, EXP token ) 
   {
+    mErrMsg = "" ;
     stringstream ss ;
-    if ( ErrType == SYNERR_ATOM_PAR ) // ( �U�@��token���ӭn�� ATOM �άO '(' )
+    if ( ErrType == SYNERR_ATOM_PAR ) // ( 下一個token應該要接 ATOM 或是 '(' )
     {
       ss << "ERROR (unexpected token) : "
         << "atom or '(' expected when token at "
@@ -127,7 +144,7 @@ class SyntaxErrorException
         << " Column " << token.column << " is >>" << token.token << "<<" ;  
       mErrMsg = ss.str() ;
     } // if 
-    else if ( ErrType == SYNERR_RIGHTPAREN ) // (  ���ӭn���k�A���o�S���k�A��  )
+    else if ( ErrType == SYNERR_RIGHTPAREN ) // (  應該要接右括號卻沒有右括號  )
     {
       ss << "ERROR (unexpected token) : "
         << "')' expected when token at "
@@ -141,7 +158,7 @@ class SyntaxErrorException
 
 class NotAStringException
 {  
-  string mErrMsg  ;
+  string mErrMsg ;
    
   public : 
   const char* What()
@@ -151,6 +168,7 @@ class NotAStringException
   
   NotAStringException( int line, int column ) 
   {
+    mErrMsg = "" ;
     stringstream ss ;
     gNowRow ++ ; 
     // cout << endl << "ERROR END LINE " << gNowRow ; 
@@ -166,7 +184,7 @@ class NotAStringException
 
 class EofException // read EOF 
 {
-  string mErrMsg  ;
+  string mErrMsg ;
 
   public : 
   const char* What()
@@ -176,6 +194,7 @@ class EofException // read EOF
 
   EofException() 
   {
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "ERROR (no more input) : END-OF-FILE encountered" ;
     mErrMsg = ss.str() ;   
@@ -198,7 +217,7 @@ class EofException // read EOF
 */
 class UnboundException
 {
-  string mErrMsg  ;
+  string mErrMsg ;
   public:
   const char* What()
   {
@@ -207,6 +226,7 @@ class UnboundException
 
   UnboundException( EXP * token )  
   {
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "ERROR (unbound symbol) : " << token->token << endl ;
     mErrMsg = ss.str() ;   
@@ -216,7 +236,7 @@ class UnboundException
 
 class NonListException
 {
-  string mErrMsg  ;
+  string mErrMsg ;
   public:
   const char* What()
   {
@@ -225,6 +245,7 @@ class NonListException
 
   NonListException( vector<EXP> exp )  
   {
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "ERROR (non-list) : " << PrettyString( exp ) ;
     mErrMsg = ss.str() ;   
@@ -233,7 +254,7 @@ class NonListException
 
 class IncorrectArgumentException
 {
-  string mErrMsg  ;
+  string mErrMsg ;
   public:
   const char* What()
   {
@@ -242,6 +263,7 @@ class IncorrectArgumentException
 
   IncorrectArgumentException( string func, EXP exp )  // EXP exp 
   {
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "ERROR (" << func << " with incorrect argument type) : " << exp.token << endl ;
     mErrMsg = ss.str() ;   
@@ -249,6 +271,7 @@ class IncorrectArgumentException
 
   IncorrectArgumentException( string func2, vector<EXP> exp2 )  // vector exp2
   {
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "ERROR (" << func2 << " with incorrect argument type) : " << PrettyString( exp2 ) ;
     mErrMsg = ss.str() ;   
@@ -257,8 +280,8 @@ class IncorrectArgumentException
 }; // IncorrectArgumentException
 
 class IncorrectNumberException
-{         
-  string mErrMsg  ;
+{
+  string mErrMsg ;
   public:
   const char* What()
   {
@@ -267,6 +290,7 @@ class IncorrectNumberException
 
   IncorrectNumberException( string func )  // EXP exp 
   {
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "ERROR (incorrect number of arguments) : " << func << endl ;
     mErrMsg = ss.str() ;   
@@ -276,7 +300,7 @@ class IncorrectNumberException
 
 class NonFunctionException
 {
-  string mErrMsg  ;
+  string mErrMsg ;
   public:
   const char* What()
   {
@@ -285,6 +309,7 @@ class NonFunctionException
 
   NonFunctionException( string token )  // EXP exp 
   {
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "ERROR (attempt to apply non-function) : " << token << endl ;
     mErrMsg = ss.str() ;   
@@ -292,6 +317,7 @@ class NonFunctionException
 
   NonFunctionException( vector<EXP> exp )  // EXP exp 
   {
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "ERROR (attempt to apply non-function) : " << PrettyString( exp ) ;
     mErrMsg = ss.str() ;   
@@ -301,7 +327,7 @@ class NonFunctionException
 
 class DivByZeroException
 {
-  string mErrMsg  ;
+  string mErrMsg ;
   public:
   const char* What()
   {
@@ -310,6 +336,7 @@ class DivByZeroException
 
   DivByZeroException()  // EXP exp 
   {
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "ERROR (division by zero) : /" << endl ;
     mErrMsg = ss.str() ;   
@@ -319,7 +346,7 @@ class DivByZeroException
 
 class DefineFormatException
 {
-  string mErrMsg  ;
+  string mErrMsg ;
   public:
   const char* What()
   {
@@ -328,6 +355,7 @@ class DefineFormatException
 
   DefineFormatException( vector<EXP> exp )  // EXP exp 
   {
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "ERROR (DEFINE format) : " << PrettyString( exp ) ; 
     mErrMsg = ss.str() ;   
@@ -337,7 +365,7 @@ class DefineFormatException
 
 class CondFormatException
 {
-  string mErrMsg  ;
+  string mErrMsg ;
   public:
   const char* What()
   {
@@ -346,6 +374,7 @@ class CondFormatException
 
   CondFormatException( vector<EXP> exp )  // EXP exp 
   {
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "ERROR (COND format) : " << PrettyString( exp ) ; 
     mErrMsg = ss.str() ;   
@@ -355,7 +384,7 @@ class CondFormatException
 
 class ErrorLevelException
 {
-  string mErrMsg  ;
+  string mErrMsg ;
   public:
   const char* What()
   {
@@ -364,7 +393,7 @@ class ErrorLevelException
 
   ErrorLevelException( string token )  // EXP exp 
   {
-    
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "ERROR (level of " << ToUppder( token ) << ")" << endl ;  
     mErrMsg = ss.str() ;   
@@ -374,7 +403,7 @@ class ErrorLevelException
 
 class NoReturnException
 { 
-  string mErrMsg  ;
+  string mErrMsg ;
   public:
   const char* What()
   {
@@ -383,6 +412,7 @@ class NoReturnException
 
   NoReturnException( vector<EXP> exp )  // EXP exp 
   {
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "ERROR (no return value) : " << PrettyString( exp ) ; 
     mErrMsg = ss.str() ;   
@@ -392,7 +422,7 @@ class NoReturnException
 
 class ExitException
 {
-  string mErrMsg  ;
+  string mErrMsg ;
   public:
   const char* What()
   {
@@ -401,6 +431,7 @@ class ExitException
 
   ExitException( string token )  
   {
+    mErrMsg = "" ;
     stringstream ss ;
     ss << "EXIT" ;  
     mErrMsg = ss.str() ;   
@@ -480,7 +511,7 @@ bool IsComment( char ch )
   return false ; 
 } // IsComment()
 
-bool IsInt( string token ) // �}�Y�i�H�O0��???
+bool IsInt( string token ) // 開頭可以是0嗎???
 {  
   bool cont = false ; // continue ; 
   for ( int i = 0 ; i < token.size() ; i ++ ) 
@@ -511,7 +542,7 @@ bool IsInt( string token ) // �}�Y�i�H�O0��???
   return true ; 
 } // IsInt() 
 
-bool IsFloat( string token ) // �}�Y�i�H�O0��??
+bool IsFloat( string token ) // 開頭可以是0嗎??
 {
   bool cont = false ; // continue ; 
   int numOfDot = 0 ; 
@@ -647,7 +678,7 @@ bool IsEOF( char ch )
 
 /* 
   IdentifyType ( string token ) 
-*  ���� token �O���� type 
+*  分辨 token 是什麼 type 
 */ 
 
 Type IdentifyType( string token )
@@ -688,8 +719,8 @@ Type IdentifyType( string token )
 
 /* 
   GetString ( ) 
-*  ���� string Ū�X�� ���� ('\n') �άO�t�@�� ('\"')
-*  �p�GŪ�� '\n' �S��Ū�� '\"' ���N�O error  
+*  把整個 string 讀出來 直到 ('\n') 或是另一個 ('\"')
+*  如果讀到 '\n' 沒有讀到 '\"' 那就是 error  
 */
 
 // void printRoot() {
@@ -700,7 +731,7 @@ Type IdentifyType( string token )
 
 string GetString()
 {
-  string str = "\0" ; 
+  string str = "" ; 
   str += '\"' ;
   char ch = '\0';
   bool valid = true ; 
@@ -709,9 +740,9 @@ string GetString()
     ch = getchar() ; 
     gNowColumn ++ ; 
     // cout << ch ; 
-    if ( ch == '\\' ) // ����r�� \"
+    if ( ch == '\\' ) // 跳脫字元 \"
     {
-      // �J�����r���n�� \ �R���A�ïd�U�U�@�Ӧr�� 
+      // 遇到跳脫字元要把 \ 刪掉，並留下下一個字元 
       // EX:  '\"' --> '"', '\\"' --> '\"' 
       char peek = cin.peek() ; 
       if ( peek == 'n' || peek == 't' || peek == '\'' || peek == '\"' || peek == '\\' )
@@ -774,7 +805,7 @@ string GetString()
 
 /* 
   SkipComment ( ) 
-* �� ; �᭱������Ū�� 
+* 把 ; 後面的全部讀掉 
 */ 
 
 void SkipComment()
@@ -797,7 +828,7 @@ void SkipComment()
 
 /* 
    GetFirstChar ( ) 
-*  ���L�ť�Ū��Ĥ@�Ӧr��
+*  跳過空白讀到第一個字元
 */ 
 
 char GetFirstChar() // skip white space to get First char 
@@ -832,24 +863,25 @@ char GetFirstChar() // skip white space to get First char
  
 /* 
   GetToken ( ) 
-* ���Utoken �çP�_�e�� type  
+* 切下token 並判斷牠的 type  
 */ 
 
 EXP GetToken() 
 {
   // (1 . (2 . (3 . nil)))
-  // ���ιJ�쪺�Ĥ@��token �çP�_�e��type 
+  // 切割遇到的第一個token 並判斷牠的type 
 
-  EXP gg ;
+  EXP gg ; 
+  InitExp( gg ) ; 
 
   char ch = GetFirstChar() ;
   
   char peek = '\0' ;  
-  bool valid = true ; // true : ���O delimiter string EOF�A false : �N���i��O delimiter string EOF 
+  bool valid = true ; // true : 不是 delimiter string EOF， false : 代表可能是 delimiter string EOF 
   
   bool skipComment = false ; 
   
-  while ( NOT skipComment ) // ���٨S�����������ѡA�N�i�hwhile�A�p�G�������L�F�~���U��
+  while ( NOT skipComment ) // 當還沒跳完全部註解，就進去while，如果全部跳過了才往下走
   {
     if ( IsComment( ch ) )
     {
@@ -864,7 +896,6 @@ EXP GetToken()
   } // while 
   
   gg.column = gNowColumn ;
-
   if ( gNowRow == gLastRow ) // on same line 
   {
     // cout << "  SUB  " ; 
@@ -1030,7 +1061,7 @@ DOT 5
   else if ( temp->type == RIGHT_PAREN && ( gnum == 1 || gnum == 2 ) ) { 
     //      cout << "bb" << endl ;
     gnum = 2 ; // list
-    while ( temp->type != LEFT_PAREN ) { // ���^�h 
+    while ( temp->type != LEFT_PAREN ) { // 走回去 
       temp = temp->pre_next ; 
     } // while
     
@@ -1042,7 +1073,7 @@ DOT 5
     //    cout << "cc" << endl ;
     gnum = -1 ;
     throw new SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ; 
-    return false ; // temp ���ӬOs_EXP 
+    return false ; // temp 應該是s_EXP 
   } // else if
   else if ( IsATOM( temp ) == true && gnum == 0 && temp->next == NULL && temp->listPtr == NULL ) {
     //    cout << "dd" << endl ;
@@ -1055,10 +1086,10 @@ DOT 5
       //      cout << "ee" << endl ;
       temp->dotCnt = temp->pre_next->dotCnt+1 ;
       throw new SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
-      return false ; // ���ӬO�k�A�� ex: . 3 3 
+      return false ; // 應該是右括號 ex: . 3 3 
     } // if
     else {
-      if ( gnum == 5 ) { // �e���ODOT 
+      if ( gnum == 5 ) { // 前面是DOT 
         //        cout << "hh" << endl ;
         gAfterDotCnt++ ;
         temp->dotCnt = gAfterDotCnt ;
@@ -1077,7 +1108,7 @@ DOT 5
       temp->dotCnt = temp->pre_next->dotCnt+1 ;
       temp = temp->listPtr ; 
       throw new SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
-      return false ; // ���ӬO�k�A�� ex: . (1) (1)  
+      return false ; // 應該是右括號 ex: . (1) (1)  
     } // if
     else {
       //      cout << "oo" << endl ;
@@ -1127,7 +1158,7 @@ DOT 5
     //    cout << "ww" << endl ;
     gnum = -1 ;
     throw new SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ;
-    return false ; // �ѰO�o�O�ƻ�ERROR�F����� 
+    return false ; // 忘記這是甚麼ERROR了先放著 
   } // else if
   else if ( temp->type == QUOTE ) { 
     //    cout << "xx" << endl ;
@@ -1139,7 +1170,7 @@ DOT 5
     //    cout << "yy" << endl ;
     gnum = -1 ;
     throw new SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ;
-    return false ; // �S���o�تF�� 
+    return false ; // 沒有這種東西 
   } // else 
 
   return true ;     
@@ -1162,8 +1193,9 @@ void PrintVec( vector<EXP> vec )
 void DeleteDotParen( vector<EXP> & s_exp )
 {
   int parnum = 0 ;
-  int row = s_exp.at( s_exp.size()-1 ).row ; 
-  int col = s_exp.at( s_exp.size()-1 ).column ; 
+  int nowRow = s_exp.at( s_exp.size() - 1 ).nowRow ; 
+  int row = s_exp.at( s_exp.size() - 1 ).row ;
+  int col = s_exp.at( s_exp.size() - 1 ).column ; 
   for ( int i = 0 ; i < s_exp.size() ; i++ )
   {
     if ( s_exp.at( i ).type == DOT )
@@ -1207,9 +1239,9 @@ void DeleteDotParen( vector<EXP> & s_exp )
   } // for
 
 
-  s_exp.at( s_exp.size()-1 ).row = row ; 
-  s_exp.at( s_exp.size()-1 ).column = col ;
-  s_exp.at( s_exp.size()-1 ).nowRow = gNowRow ;
+  s_exp.at( s_exp.size() - 1 ).nowRow = nowRow ; 
+  s_exp.at( s_exp.size() - 1 ).row = row ; 
+  s_exp.at( s_exp.size() - 1 ).column = col ; 
 } // DeleteDotParen()
 
 bool PrintS_EXP( vector<EXP> s_exp ) 
@@ -1402,6 +1434,7 @@ string PrettyString( vector<EXP> s_exp )
 
 EXP *GetValue( vector<EXP> vec, int &i ) {
   EXP * ptr = new EXP() ;
+  InitExp( *ptr ) ; 
   ptr -> token = vec.at( i ).token ; 
   ptr -> type = vec.at( i ).type ;
   ptr -> column = vec.at( i ).column ;
@@ -1488,7 +1521,7 @@ void BuildTree( vector<EXP> s_exp, int &i ) {
   
 } // BuildTree()
 
-string Rounding( string str ) { // �p���I��|��+�|�ˤ��J 
+string Rounding( string str ) { // 小數點後四位+四捨五入 
   stringstream ss ;
   ss << fixed << setprecision( 3 ) << atof( str.c_str() ) ;
   return ss.str() ;
@@ -1509,8 +1542,10 @@ string FloatToString( float value ) {
 void FixToken( vector<EXP> & s_exp ) {
 
   int i = 0 ;
-  int col = s_exp.at( s_exp.size()-1 ).column  ; 
-  int row = s_exp.at( s_exp.size()-1 ).row ; 
+
+  int nowRow = s_exp.at( s_exp.size() - 1 ).nowRow ; 
+  int row = s_exp.at( s_exp.size() - 1 ).row ; 
+  int col = s_exp.at( s_exp.size() - 1 ).column ; 
   while ( i < s_exp.size() ) {
     if ( s_exp.at( i ).type == FLOAT ) {
       s_exp.at( i ).token = Rounding( s_exp.at( i ).token ) ;
@@ -1616,18 +1651,20 @@ void FixToken( vector<EXP> & s_exp ) {
   } // while
   
 
-  s_exp.at( s_exp.size()-1 ).column = col ; 
-  s_exp.at( s_exp.size()-1 ).row = row ;
-  s_exp.at( s_exp.size()-1 ).nowRow = gNowRow ;
+  s_exp.at( s_exp.size() - 1 ).nowRow = nowRow ; 
+  s_exp.at( s_exp.size() - 1 ).row = row ; 
+  s_exp.at( s_exp.size() - 1 ).column = col ; 
 } // FixToken()
 
 void FixQuote( vector<EXP> & s_exp ) { // '(1 '4) , '(1), (1 '2 4 5)
   int i = 0 ;
   EXP temp ;
+  InitExp( temp ) ; 
   int parnum = 0 ;
-  
-  int col = s_exp.at( s_exp.size()-1 ).column  ; 
-  int row = s_exp.at( s_exp.size()-1 ).row ; 
+
+  int nowRow = s_exp.at( s_exp.size() - 1 ).nowRow ; 
+  int row = s_exp.at( s_exp.size() - 1 ).row ; 
+  int col = s_exp.at( s_exp.size() - 1 ).column ; 
   while ( i < s_exp.size() ) {
     if ( s_exp.at( i ).token == "\'" && i+1 < s_exp.size() && s_exp.at( i+1 ).type == LEFT_PAREN ) { // '(
       s_exp.at( i ).token = "(" ;
@@ -1649,11 +1686,11 @@ void FixQuote( vector<EXP> & s_exp ) { // '(1 '4) , '(1), (1 '2 4 5)
           parnum-- ;
         } // else if
         
-        if ( parnum == 0 ) { // �J�쥿�T���k�A�� 
+        if ( parnum == 0 ) { // 遇到正確的右括號 
           temp.token = ")" ;
           temp.type = RIGHT_PAREN ;
           s_exp.insert( s_exp.begin()+k+1, temp ) ;
-          k = s_exp.size() ; // �X�j�� 
+          k = s_exp.size() ; // 出迴圈 
         } // if
 
         k++ ;
@@ -1683,9 +1720,10 @@ void FixQuote( vector<EXP> & s_exp ) { // '(1 '4) , '(1), (1 '2 4 5)
     i++ ;
   } // while
 
-  s_exp.at( s_exp.size()-1 ).column = col ; 
-  s_exp.at( s_exp.size()-1 ).row = row ;
-  s_exp.at( s_exp.size()-1 ).nowRow = gNowRow ;
+
+  s_exp.at( s_exp.size() - 1 ).nowRow = nowRow ; 
+  s_exp.at( s_exp.size() - 1 ).row = row ; 
+  s_exp.at( s_exp.size() - 1 ).column = col ; 
 } // FixQuote()
 
 struct DotCheck 
@@ -1805,7 +1843,17 @@ void FixSystemPrimitiveAndNil( vector<EXP> &s_exp ) {
 } // FixSystemPrimitiveAndNil() 
 
 class Functions {
-
+public : 
+  void InitFunc()
+  {
+    mlevel = 0 ; 
+    memNum = 0 ;
+    msymbolMap.clear() ; 
+    mexeNode = NULL ; 
+    mnonListVec.clear() ; 
+    mresult.clear() ; 
+  } // InitFunc()
+  
 private: 
   map< string, vector<EXP> > msymbolMap ; // map symbol
   EXP* mexeNode ; 
@@ -1816,8 +1864,9 @@ private:
 
   int FindMemNum( string str ) {
     map< string,vector<EXP> > :: iterator item = msymbolMap.find( str ) ;
+    
     if ( item != msymbolMap.end() ) {
-      return item->second.at( 0 ).memSpace ;
+      return msymbolMap[str].at( 0 ).memSpace ; 
     } // if
     else {
       return -1 ;
@@ -1980,7 +2029,7 @@ private:
     return false ; 
   } // IsInternalFunction()
   
-public : // ���w�D�ʹʪΪ� 
+public : // 早安胖嘟嘟肥肥 
   void SetRoot() ; // iris
   void Eval() ; // iris
   void Define() ; // iris
@@ -2041,7 +2090,7 @@ public : // ���w�D�ʹʪΪ�
    
 
 
-  void Execute() { // ptr���bfunction call�W�� 
+  void Execute() { // ptr指在function call上面 
 
     if ( mexeNode->type == DEFINE )
       Define() ;
@@ -2180,7 +2229,7 @@ void Functions::Exit()
 void Functions::If()
 {
   // mexeNode : if
-  // now : �ܼ� 
+  // now : 變數 
   // emptyptr : root 
   // ( cond (...) (...) . . . . (else ...) ) 
   EXP* now = mexeNode->next ;
@@ -2274,7 +2323,7 @@ void Functions::If()
 void Functions::Cond()
 {
   // mexeNode : cond
-  // now : �ܼ� 
+  // now : 變數 
   // emptyptr : root 
   // ( cond (...) (...) . . . . (else ...) ) 
   EXP* now = mexeNode->next ;
@@ -2292,7 +2341,7 @@ void Functions::Cond()
         isLast = true ; 
       } // if 
 
-      // cout << "�o�̬O�Ĥ@�ӰѼ� : " << now->token << endl ;
+      // cout << "這裡是第一個參數 : " << now->token << endl ;
       if ( NOT isLast )
       {
         if ( now->type == EMPTYPTR )
@@ -2518,7 +2567,7 @@ void Functions::Cond()
 void Functions::Begin()
 {
   // mexeNode : begin 
-  // now : �ܼ� 
+  // now : 變數 
   // emptyptr : root 
   EXP* now = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
@@ -2554,11 +2603,12 @@ void Functions::Begin()
 void Functions::Pair_qmark()
 {
 /*
-    �u�n���Oatom �N�O true 
+    只要不是atom 就是 true 
 */
   EXP* temp = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP ex ;
+  InitExp( ex ) ; 
   if ( CheckNumOfArg( 1 ) )
   {
     Qmark( "atom?" ) ; 
@@ -2587,13 +2637,14 @@ void Functions::Pair_qmark()
 void Functions::List_qmark()
 {
 /*
-    �p�G�Opair�N�ˬd�O���O list  
+    如果是pair就檢查是不是 list  
 */
 
   EXP* temp = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   vector<EXP> new_vector ; 
   EXP ex ;
+  InitExp( ex ) ;
   if ( CheckNumOfArg( 1 ) )
   {
     Pair_qmark() ;  
@@ -2637,6 +2688,7 @@ void Functions::Clean_Environment() {
   if ( CheckNumOfArg( 0 ) ) {
     msymbolMap.clear() ;
     EXP temp ; 
+    InitExp( temp ) ;
     temp.token = "environment cleaned" ; 
     temp.type = SYMBOL ; 
     mresult.clear() ; 
@@ -2651,13 +2703,14 @@ void Functions::Clean_Environment() {
 } // Functions::Clean_Environment()
 
 void Functions::Or() { // arg >= 2 
-  // �^�ǲĤ@�Ӥ��Onil��arg �p�G���Onil �^�ǳ̫�@��arg 
+  // 回傳第一個不是nil的arg 如果都是nil 回傳最後一個arg 
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP* temp = mexeNode->next ;
   vector<EXP> new_vector ;
   vector<EXP> lastStmt ;
   bool bbreak = false ;
   EXP ex ;
+  InitExp( ex ) ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
     throw new IncorrectNumberException( "or" ) ;
     // cout << "ERROR (incorrect number of arguments) : and" << endl ;
@@ -2718,12 +2771,13 @@ void Functions::Or() { // arg >= 2
 } // Functions::Or()
 
 void Functions::And() { // arg >= 2 
-  // �^�ǲĤ@�ӥX�{��nil �p�G�S�� �^�ǳ̫�@��arg 
+  // 回傳第一個出現的nil 如果沒有 回傳最後一個arg 
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP* temp = mexeNode->next ;
   vector<EXP> new_vector ;
   vector<EXP> lastStmt ;
   EXP ex ;
+  InitExp( ex ) ;
   bool isNIL = false ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
     throw new IncorrectNumberException( "and" ) ;
@@ -2782,6 +2836,7 @@ void Functions::List() {
   EXP* temp = mexeNode->next ;
   vector<EXP> new_vector ;
   EXP ex ;
+  InitExp( ex ) ;
   ex.token = "(" ;
   ex.type = LEFT_PAREN ;
   emptyptr->vec.push_back( ex ) ;
@@ -2821,18 +2876,21 @@ void Functions::List() {
 } // Functions::List()
 
 void Functions::Eqv_qmark() { // arg == 2 
-  // �u��������F��Oatom(����Ostring)�� �άO���object���ۦP��mem space �Otrue 
+  // 只有比較的東西是atom(不能是string)時 或是兩個object有相同的mem space 是true 
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ; 
   EXP* temp = mexeNode->next ;         
   EXP ex ;
+  InitExp( ex ) ;
   vector<EXP> new_vector ;
   int argNum = 1 ;    
   EXP firstArg ;
+  InitExp( firstArg ) ;
   EXP secondArg ;
+  InitExp( secondArg ) ;
   bool noError = true ;
   bool sameMap = false ;
   bool isNil = false ;
-  string symbolDefined ;
+  string symbolDefined = "" ;
   if ( CheckNumOfArg( 2 ) ) {
 
     while ( temp->type != RIGHT_PAREN ) {
@@ -2879,6 +2937,7 @@ void Functions::Eqv_qmark() { // arg == 2
     } // while
     
     EXP ex ;
+    InitExp( ex ) ;
     if ( noError == false ) {
       ;
     } // if
@@ -2913,10 +2972,13 @@ void Functions::Equal_qmark() { // arg == 2
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ; 
   EXP* temp = mexeNode->next ;         
   EXP ex ;
+  InitExp( ex ) ;
   vector<EXP> new_vector ;
   int argNum = 1 ;    
   EXP firstArg ;
+  InitExp( firstArg ) ;
   EXP secondArg ;
+  InitExp( secondArg ) ;
   bool isTrue = true ;
   
   if ( CheckNumOfArg( 2 ) ) {
@@ -2960,7 +3022,7 @@ void Functions::Equal_qmark() { // arg == 2
     } // while
     
     EXP ex ;
-    
+    InitExp( ex ) ;
     if ( isTrue == false ) {
       ;
     } // if
@@ -2989,6 +3051,7 @@ void Functions::Not() { // arg == 1
   EXP* temp = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;          
   EXP ex ;
+  InitExp( ex ) ;
   vector<EXP> new_vector ;
   bool isNIL = false ;
   if ( CheckNumOfArg( 1 ) ) {
@@ -3041,6 +3104,7 @@ void Functions::String_append() { // FixDoubleQuotes()
   string str = "\"" ;
   bool isTrue = true ;
   EXP ex ;
+  InitExp( ex ) ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
     throw new IncorrectNumberException( "string-append" ) ;
     // cout << "ERROR (incorrect number of arguments) : string-append" << endl ;
@@ -3099,9 +3163,10 @@ void Functions::String_append() { // FixDoubleQuotes()
 void Functions::CompareString( string whichOperator ) { // string>? , string<? , string=?
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP* temp = mexeNode->next ;
-  string previous_string ;
+  string previous_string = "" ;
   vector<EXP> new_vector ;
   EXP ex ;
+  InitExp( ex ) ;
   bool isTrue = true ;
   bool isFirstArg = true ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
@@ -3252,6 +3317,7 @@ void Functions::CompareNum( string whichOperator ) { // arg >= 2
   float previous_number = 0 ;
   vector<EXP> new_vector ;
   EXP ex ;
+  InitExp( ex ) ;
   bool isTrue = true ;
   bool isFirstArg = true ;
   
@@ -3573,6 +3639,7 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
     
     if ( noError == true ) {
       EXP ex ;
+      InitExp( ex ) ;
       if ( hasFloat == true ) {
         
         ex.token = Rounding( FloatToString( sum ) ) ;
@@ -3599,6 +3666,7 @@ void Functions::Qmark( string whichQmark ) {
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
                        
   EXP ex ;
+  InitExp( ex ) ;
   vector<EXP> new_vector ;
   bool isTrue = false ;
   if ( CheckNumOfArg( 1 ) ) { // 1
@@ -3733,6 +3801,7 @@ void Functions::Cdr() {
   EXP* temp = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP ex ;
+  InitExp( ex ) ;
   int i = 0 ;
 
   if ( CheckNumOfArg( 1 ) ) {
@@ -3888,6 +3957,7 @@ void Functions::Car() {
   EXP* temp = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP ex ;
+  InitExp( ex ) ;
   if ( CheckNumOfArg( 1 ) ) {
     if ( FindMap( temp->token, new_vector ) == true ) {
 
@@ -4008,6 +4078,7 @@ void Functions::Quote() {
   EXP* temp = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP ex ;
+  InitExp( ex ) ;
   bool bbreak = false ;
   
   if ( CheckNumOfArg( 1 ) ) {
@@ -4058,8 +4129,9 @@ void Functions::Quote() {
 } // Functions::Quote()
 
 void Functions::Cons() { 
-  string str ;
+  string str = "" ;
   EXP ex ;
+  InitExp( ex ) ;
   int argNum = 0 ;
   vector<EXP> new_vector ;
   EXP* temp = mexeNode->next ;
@@ -4120,11 +4192,12 @@ void Functions::Cons() {
 
 void Functions::Define() { 
   memNum++ ;
-  string str ;
+  string str = "" ;
   vector<EXP> vs ;
   vector<EXP> new_vector ; 
   vector<EXP> new_vector2 ; 
   EXP ex ;
+  InitExp( ex ) ;
   EXP* temp = mexeNode->next ;
   
   if ( CheckNumOfArg( 2 ) ) { 
@@ -4193,7 +4266,8 @@ void Functions::Define() {
   } // else
   
   mresult.clear() ; 
-  EXP tt ; 
+  EXP tt ;
+  InitExp( tt ) ;
   tt.token = str + " defined" ; 
   tt.type = SYMBOL ;
   mresult.push_back( tt ) ;
@@ -4225,7 +4299,7 @@ bool Functions::IsSystemPrimitive( Type type ) {
 void Functions::Eval() {
 
   bool hasError = false ;
-  vector<EXP> new_vector ; // map�� 
+  vector<EXP> new_vector ; // map用 
   EXP* temp = mexeNode ;
 
   mlevel ++ ; 
@@ -4237,7 +4311,7 @@ void Functions::Eval() {
     // cout << temp->token ;
     mresult.clear() ; 
     mresult.push_back( *temp ) ; 
-    // �X�j�� 
+    // 出迴圈 
   } // if
   else if ( temp->type == SYMBOL ) {
     // cout << "Is a symbol without Paren: " ; 
@@ -4310,7 +4384,7 @@ void Functions::Eval() {
 
           mexeNode = firstArgument ; 
         } // if 
-        else if ( firstArgument->type == DEFINE || firstArgument->type == COND ) // ������
+        else if ( firstArgument->type == DEFINE || firstArgument->type == COND ) // 未完成
         { 
           mexeNode = firstArgument ; 
         } // else if 
@@ -4366,7 +4440,7 @@ void Functions::Eval() {
         } // else 
       } // else 
     } // else if 
-    else // the first argument of ( ... ) is ( �C�C�C ), i.e., it is ( ( �C�C�C ) ...... )
+    else // the first argument of ( ... ) is ( 。。。 ), i.e., it is ( ( 。。。 ) ...... )
     {
       // firstArgument->type == EMPTYPTR 
       // cout << "Now is : " << firstArgument->token << ", then Call Eval() " << endl ;
@@ -4441,10 +4515,13 @@ int main() {
   
   vector<EXP> s_exp ;
   EXP nextToken ;
+  InitExp( nextToken ) ; 
   EXP lastToken ; 
+  InitExp( lastToken ) ;
 
   Functions funcClass ; 
-  funcClass.ResetMemNum() ; 
+  funcClass.InitFunc() ; 
+  funcClass.ResetMemNum() ;
 
   while ( NOT quit )
   {
@@ -4462,9 +4539,7 @@ int main() {
       try
       {
 
-        nextToken = GetToken() ; // ���i��|��XstringException �M EofException
-        // cout << endl << "NOW : " << gNowRow << ", Last : " << gLastRow << endl ;
-        // cout << endl << nextToken.token << " token col : " << nextToken.column << ", token row : " << nextToken.row << endl ;
+        nextToken = GetToken() ; // 有可能會丟出stringException 和 EofException
 
         if ( NOT dotStack.empty() && dotStack.back().isCheck == true )
         {
@@ -4575,12 +4650,12 @@ int main() {
           {
             readEXP = true ; 
           } // if 
-          else // �o�����O�����F expend
+          else // 這條指令結束了 expend
           {
             
-            // cout << "1row: " << s_exp.at( s_exp.size() - 1 ).nowRow  << endl  ;
+            
             FixQuote( s_exp ) ; 
-            FixToken( s_exp ) ; // �󥿤@��token t, (), nil, function  call ...
+            FixToken( s_exp ) ; // 更正一些token t, (), nil, function  call ...
             DeleteDotParen( s_exp ) ;
 
             // cout << "2row: " << s_exp.at( s_exp.size() - 1 ).nowRow  << endl  ;  
@@ -4593,8 +4668,7 @@ int main() {
             BuildTree( s_exp, i ) ;
             gHead = gRoot ; // new
 
-            // �P�_��k 
-            // cout << "3row: " << s_exp.at( s_exp.size() - 1 ).nowRow  << endl  ;
+            // 判斷文法 
             gnum = 0 ;
             S_EXP( gHead ) ; 
             // cout << "4row: " << s_exp.at( s_exp.size() - 1 ).nowRow  << endl  ;
@@ -4611,7 +4685,7 @@ int main() {
               cout << PrettyString( result ) ;
               funcClass.ClearResult() ; 
             } // if 
-            // �@�ǦL�X���O�e���B�� 
+            // 一些印出指令前的處裡 
 
              
             readEXP = false ;
@@ -4671,9 +4745,7 @@ int main() {
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ; 
-        gNowRow ++ ;
-        gLastRow = gNowRow ; 
-        gNowColumn = 0 ;
+        gLastRow = gNowRow ;
       } // catch 
       catch ( NonListException * ex )
       {
@@ -4681,9 +4753,7 @@ int main() {
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
-        gNowRow ++ ;
-        gLastRow = gNowRow ; 
-        gNowColumn = 0 ;
+        gLastRow = gNowRow ;
       } // catch 
       catch ( IncorrectArgumentException * ex )
       {
@@ -4691,9 +4761,7 @@ int main() {
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
-        gNowRow ++ ;
-        gLastRow = gNowRow ; 
-        gNowColumn = 0 ;
+        gLastRow = gNowRow ;
       } // catch 
       catch ( IncorrectNumberException * ex )
       {
@@ -4701,9 +4769,7 @@ int main() {
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
-        gNowRow ++ ;
-        gLastRow = gNowRow ; 
-        gNowColumn = 0 ;
+        gLastRow = gNowRow ;
       } // catch
       catch ( NonFunctionException * ex )
       {
@@ -4711,9 +4777,7 @@ int main() {
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
-        gNowRow ++ ;
-        gLastRow = gNowRow ; 
-        gNowColumn = 0 ;
+        gLastRow = gNowRow ;
       } // catch 
       catch ( DivByZeroException * ex )
       {
@@ -4721,9 +4785,7 @@ int main() {
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
-        gNowRow ++ ;
-        gLastRow = gNowRow ; 
-        gNowColumn = 0 ;
+        gLastRow = gNowRow ;
       } // catch 
       catch ( DefineFormatException * ex )
       {
@@ -4731,9 +4793,7 @@ int main() {
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
-        gNowRow ++ ;
-        gLastRow = gNowRow ; 
-        gNowColumn = 0 ;
+        gLastRow = gNowRow ;
       } // catch 
       catch ( ErrorLevelException * ex )
       {
@@ -4741,9 +4801,7 @@ int main() {
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
-        gNowRow ++ ;
-        gLastRow = gNowRow ; 
-        gNowColumn = 0 ;
+        gLastRow = gNowRow ;
       } // catch 
       catch ( ExitException * ex )
       {
@@ -4751,7 +4809,7 @@ int main() {
         funcClass.ResetLevel() ;  
         readEXP = false ;
         quit = true ; 
-
+        gLastRow = gNowRow ;
       } // catch 
       catch ( CondFormatException * ex )
       {
@@ -4759,9 +4817,7 @@ int main() {
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
-        gNowRow ++ ;
-        gLastRow = gNowRow ; 
-        gNowColumn = 0 ;
+        gLastRow = gNowRow ;
       } // catch 
       catch ( NoReturnException * ex )
       {
@@ -4769,9 +4825,7 @@ int main() {
         funcClass.ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ; 
-        gNowRow ++ ;
-        gLastRow = gNowRow ; 
-        gNowColumn = 0 ;
+        gLastRow = gNowRow ;
       } // catch 
     
     } // while ( readEXP )
