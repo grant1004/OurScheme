@@ -1762,7 +1762,7 @@ static int uTestNum = -1 ;
 class Functions {
 
 private: 
-  map< string, vector<EXP> > msymbolMap ; // map symbol
+  map< string, vector<EXP> > * msymbolMap ; // map symbol
   EXP* mexeNode ; 
   vector<EXP> mnonListVec ; // used to save non-list  
   int mlevel ; 
@@ -1770,8 +1770,8 @@ private:
   vector<EXP> mresult ; 
 
   int FindMemNum( string str ) {
-    map< string,vector<EXP> > :: iterator item = msymbolMap.find( str ) ;
-    if ( item != msymbolMap.end() ) {
+    map< string,vector<EXP> > :: iterator item = ( *msymbolMap ).find( str ) ;
+    if ( item != ( *msymbolMap ).end() ) {
       return item->second.at( 0 ).memSpace ;
     } // if
     else {
@@ -1936,6 +1936,15 @@ private:
   } // IsInternalFunction()
   
 public : // 早安胖嘟嘟肥肥 
+
+  void InitFunc()
+  {
+    mexeNode = NULL ; 
+    mlevel = 0 ; 
+    memNum = 0 ;
+    msymbolMap = new map< string, vector<EXP> >() ; 
+  } // InitFunc() 
+
   void SetRoot() ; // iris
   void Eval() ; // iris
   void Define() ; // iris
@@ -2098,7 +2107,7 @@ void Functions::SetRoot() {
 // void Functions::PrintMap() {
 //  vector<EXP> new_vector ;
 //  cout << endl << "======= Map Content Start=======" << endl ;
-//  for ( auto it = msymbolMap.rbegin(); it != msymbolMap.rend(); it++ ) {
+//  for ( auto it = ( *msymbolMap ).rbegin(); it != ( *msymbolMap ).rend(); it++ ) {
 //      cout << "string: " << (*it).first << "  ";
 //      cout << "Content: " ;
 //      new_vector.assign( ( *it ).second.begin(), (*it).second.end());
@@ -2112,8 +2121,8 @@ void Functions::SetRoot() {
 
 
 bool Functions::FindMap( string str, vector<EXP> &new_vector ) {
-  map< string,vector<EXP> > :: iterator item = msymbolMap.find( str ) ;
-  if ( item != msymbolMap.end() ) {
+  map< string,vector<EXP> > :: iterator item = ( *msymbolMap ).find( str ) ;
+  if ( item != ( *msymbolMap ).end() ) {
     new_vector.assign( item->second.begin(), item->second.end() ) ;
     return true ;
   } // if
@@ -2583,7 +2592,7 @@ void Functions::List_qmark()
 
 void Functions::Clean_Environment() {
   if ( CheckNumOfArg( 0 ) ) {
-    msymbolMap.clear() ;
+    ( *msymbolMap ).clear() ;
     EXP temp ; 
     temp.token = "environment cleaned" ; 
     temp.type = CLEAN_ENVIRONMENT ; 
@@ -4080,24 +4089,24 @@ void Functions::Define() {
         Eval() ;
         if ( FindMap( str, new_vector ) ) {
           temp->vec.at( 0 ).memSpace = memNum ;
-          msymbolMap[str] = temp->vec ;
+          ( *msymbolMap )[str] = temp->vec ;
         } // if
         else {
           temp->vec.at( 0 ).memSpace = memNum ;
-          //          msymbolMap.insert( pair < string, vector < EXP > > ( str, temp->vec ) ) ;
-          msymbolMap[str] = temp->vec ;
+          //          ( *msymbolMap ).insert( pair < string, vector < EXP > > ( str, temp->vec ) ) ;
+          ( *msymbolMap )[str] = temp->vec ;
         } // else
         
       } // if
       else if ( FindMap( temp->token, new_vector ) ) { 
         if ( FindMap( str, new_vector2 ) ) {
           new_vector.at( 0 ).memSpace = FindMemNum( temp->token ) ; 
-          msymbolMap[str] = new_vector ;
+          ( *msymbolMap )[str] = new_vector ;
         } // if
         else {
           new_vector.at( 0 ).memSpace = FindMemNum( temp->token ) ; 
-          // msymbolMap.insert( pair < string, vector < EXP > > ( str,new_vector ) ) ;
-          msymbolMap[str] = new_vector ;
+          // ( *msymbolMap ).insert( pair < string, vector < EXP > > ( str,new_vector ) ) ;
+          ( *msymbolMap )[str] = new_vector ;
         } // else
         
         
@@ -4111,11 +4120,11 @@ void Functions::Define() {
         ex.memSpace = memNum ;
         vs.push_back( ex ) ; 
         if ( FindMap( str, new_vector ) ) {
-          msymbolMap[str] = vs ;
+          ( *msymbolMap )[str] = vs ;
         } // if
         else {
-          // msymbolMap.insert( pair< string,vector<EXP> >(str,vs) ) ;
-          msymbolMap[str] = vs ;
+          // ( *msymbolMap ).insert( pair< string,vector<EXP> >(str,vs) ) ;
+          ( *msymbolMap )[str] = vs ;
         } // else
         
       } // else
@@ -4380,7 +4389,6 @@ int main() {
   //cin >> uTestNum ; 
 
   int i = 0 ;
-  bool syntaxIsTrue ;
   vector<Type> myStack ; // 用來計算 左括號和右括號還有 DOT 的數量 
   vector<DotCheck> dotStack ; 
   bool hasDot = false ; 
@@ -4547,8 +4555,9 @@ int main() {
             // 可能會丟出 syntax execepiton  
             // preOrderTraversal(gHead) ; 
             
+            cout << endl << "NOW : " << gNowRow << ", Last : " << gLastRow << ", " << gg.nowRow << endl ;
             gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
-
+            cout << endl << "NOW : " << gNowRow << ", Last : " << gLastRow << ", " << gg.nowRow << endl ;
             funcClass.SetRoot() ;
             funcClass.Eval() ;
             funcClass.ResetLevel() ; 
