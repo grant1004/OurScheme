@@ -63,14 +63,14 @@ struct EXP {
   string token ;
   int column ;
   int row ; 
-  int nowRow ; // �������Ħr�����
+  int nowRow ; 
   Type type ; 
   EXP* next ;
   EXP* pre_next ;
   EXP* listPtr ;
   EXP* pre_listPtr ;
   int dotCnt ;
-  vector<EXP> vec ; // EMPTYPTR�� 
+  vector<EXP> vec ; 
   int memSpace ;
 
 }; // struct EXP 
@@ -100,9 +100,9 @@ string ToUppder( string str )
 {
   for ( int i = 0 ; i < str.length() ; ++i ) {
 
-    if ( str[i] >= 'a' && str[i] <= 'z' ) {
+    if ( str.at( i ) >= 'a' && str.at( i ) <= 'z' ) {
 
-      str[i] = str[i] - 'a' + 'A';
+      str.at( i ) = str.at( i ) - 'a' + 'A';
 
     } // if 
 
@@ -161,9 +161,9 @@ class NotAStringException
   string mErrMsg ;
    
   public : 
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
   
   NotAStringException( int line, int column ) 
@@ -187,9 +187,9 @@ class EofException // read EOF
   string mErrMsg ;
 
   public : 
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
 
   EofException() 
@@ -219,9 +219,9 @@ class UnboundException
 {
   string mErrMsg ;
   public:
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
 
   UnboundException( EXP * token )  
@@ -238,9 +238,9 @@ class NonListException
 {
   string mErrMsg ;
   public:
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
 
   NonListException( vector<EXP> exp )  
@@ -256,9 +256,9 @@ class IncorrectArgumentException
 {
   string mErrMsg ;
   public:
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
 
   IncorrectArgumentException( string func, EXP exp )  // EXP exp 
@@ -283,9 +283,9 @@ class IncorrectNumberException
 {
   string mErrMsg ;
   public:
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
 
   IncorrectNumberException( string func )  // EXP exp 
@@ -302,9 +302,9 @@ class NonFunctionException
 {
   string mErrMsg ;
   public:
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
 
   NonFunctionException( string token )  // EXP exp 
@@ -329,9 +329,9 @@ class DivByZeroException
 {
   string mErrMsg ;
   public:
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
 
   DivByZeroException()  // EXP exp 
@@ -348,9 +348,9 @@ class DefineFormatException
 {
   string mErrMsg ;
   public:
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
 
   DefineFormatException( vector<EXP> exp )  // EXP exp 
@@ -367,9 +367,9 @@ class CondFormatException
 {
   string mErrMsg ;
   public:
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
 
   CondFormatException( vector<EXP> exp )  // EXP exp 
@@ -386,9 +386,9 @@ class ErrorLevelException
 {
   string mErrMsg ;
   public:
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
 
   ErrorLevelException( string token )  // EXP exp 
@@ -405,9 +405,9 @@ class NoReturnException
 { 
   string mErrMsg ;
   public:
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
 
   NoReturnException( vector<EXP> exp )  // EXP exp 
@@ -424,9 +424,9 @@ class ExitException
 {
   string mErrMsg ;
   public:
-  const char* What()
+  string What()
   {
-    return mErrMsg.c_str() ;       
+    return mErrMsg ;       
   } // What() 
 
   ExitException( string token )  
@@ -722,12 +722,6 @@ Type IdentifyType( string token )
 *  把整個 string 讀出來 直到 ('\n') 或是另一個 ('\"')
 *  如果讀到 '\n' 沒有讀到 '\"' 那就是 error  
 */
-
-// void printRoot() {
-//  cout << endl << "root Content: " << endl ;
-//  cout << PrettyString( gHead->vec ) ; 
-//  cout << endl << "========= root Content END =============" << endl ;
-// } 
 
 string GetString()
 {
@@ -1182,13 +1176,6 @@ void PrintTab( int numOfTab )
   for ( int i = 0 ; i < numOfTab ; i ++ ) 
     cout << " " ;  
 } // PrintTab() 
-
-void PrintVec( vector<EXP> vec )
-{
-  for ( int i = 0 ; i < vec.size() ; i ++ )
-    cout << vec.at( i ).token << " " ; 
-  cout << endl ; 
-} // PrintVec()
 
 void DeleteDotParen( vector<EXP> & s_exp )
 {
@@ -1733,6 +1720,13 @@ struct DotCheck
   int leftParNum ; 
 } ; // DotCheck 
 
+void InitDotCheck( DotCheck & in )
+{
+  in.type = NONE ; 
+  in.isCheck = false ; 
+  in.leftParNum = 0 ; 
+} // InitDotCheck()
+
 int CountInVec( vector<Type> vec, Type tp )
 {
   int cnt = 0 ; 
@@ -1898,6 +1892,7 @@ private:
   } // IsAtomButNotStr()
 
   bool CompareVectors( vector<EXP> vec1, vector<EXP> vec2 ) {
+
     if ( vec1.size() != vec2.size() ) {
       return false ;
     } // if
@@ -2092,6 +2087,7 @@ public : // 早安胖嘟嘟肥肥
 
   void Execute() { // ptr指在function call上面 
 
+    EXP * emptyptr = mexeNode->pre_next->pre_listPtr ; 
     if ( mexeNode->type == DEFINE )
       Define() ;
     else if ( mexeNode->type == CONS )
@@ -2170,7 +2166,15 @@ public : // 早安胖嘟嘟肥肥
       Exit() ;
     else 
       cout << "ERROR (unbound symbol) : " << mexeNode->token << endl ;
- 
+
+
+
+    if ( NOT emptyptr->vec.empty() )
+    {
+      FixToken( emptyptr->vec ) ; 
+      DeleteDotParen( emptyptr->vec ) ; 
+    } // if 
+    
   } // Execute()
 
 }; // Functions
@@ -2904,8 +2908,8 @@ void Functions::Eqv_qmark() { // arg == 2
             secondArg.vec.assign( new_vector.begin(), new_vector.end() ) ;
             sameMap = true ;
           } // if
-          else 
-            isNil = true ;
+          // else 
+            // isNil = true ;
         } // else if
 
       } // if
@@ -2916,7 +2920,10 @@ void Functions::Eqv_qmark() { // arg == 2
       else if ( temp->type == EMPTYPTR ) {
         mexeNode = temp ;
         Eval() ;
-        isNil = true ;
+        if ( argNum == 1 ) 
+          firstArg.vec.assign( temp->vec.begin(), temp->vec.end() ) ;
+        else if ( argNum == 2 ) 
+          secondArg.vec.assign( temp->vec.begin(), temp->vec.end() ) ;
       } // else if
       else {
         if ( argNum == 1 ) {
@@ -2935,7 +2942,7 @@ void Functions::Eqv_qmark() { // arg == 2
       argNum++ ;
       temp = temp->next ;
     } // while
-    
+
     EXP ex ;
     InitExp( ex ) ;
     if ( noError == false ) {
@@ -3950,6 +3957,7 @@ void Functions::Cdr() {
     emptyptr->vec.pop_back() ;  // erase ) 
   } // if 
 
+  // FixToken( emptyptr->vec ) ; 
 } // Functions::Cdr()
 
 void Functions::Car() {
@@ -4072,6 +4080,7 @@ void Functions::Car() {
     // cout << "ERROR (incorrect number of arguments)" << endl ;
   } // else 
 
+  // FixToken( emptyptr->vec ) ; 
 } // Functions::Car() 
 
 void Functions::Quote() {
@@ -4187,7 +4196,9 @@ void Functions::Cons() {
     throw new IncorrectNumberException( "cons" ) ;
     // cout << "incorrect number of arguments" << endl ; // function call Name
   } // else
-  
+
+  // DeleteDotParen( emptyptr->vec ) ;  
+
 } // Functions::Cons()
 
 void Functions::Define() { 
@@ -4498,13 +4509,26 @@ bool PrintRoot()
   return false ; 
 } // PrintRoot()
 
+void DeleteTree( EXP* focusNode )
+{
+  // 基本情况：空树
+  if ( focusNode == NULL ) {
+    return ;
+  } // if
+
+  DeleteTree( focusNode->next ) ;
+  DeleteTree( focusNode->listPtr ) ;
+  delete focusNode;
+  focusNode = NULL ;
+} // DeleteTree() 
+
 static int uTestNum = -1 ; 
 
 int main() { 
   cin >> uTestNum ; 
   int i = 0 ;
-  bool syntaxIsTrue ;
-  vector<Type> myStack ; // �Ψӭp�� ���A���M�k�A���٦� DOT ���ƶq 
+  bool syntaxIsTrue = false ;
+  vector<Type> myStack ; 
   vector<DotCheck> dotStack ; 
   bool hasDot = false ; 
 
@@ -4519,9 +4543,9 @@ int main() {
   EXP lastToken ; 
   InitExp( lastToken ) ;
 
-  Functions funcClass ; 
-  funcClass.InitFunc() ; 
-  funcClass.ResetMemNum() ;
+  Functions * funcClass = new Functions() ; 
+  funcClass->InitFunc() ; 
+  funcClass->ResetMemNum() ;
 
   while ( NOT quit )
   {
@@ -4531,7 +4555,7 @@ int main() {
     s_exp.clear() ; 
     myStack.clear() ;
     dotStack.clear() ;
-    funcClass.ResetLevel() ;
+    funcClass->ResetLevel() ;
     
     while ( readEXP == true )
     {
@@ -4662,7 +4686,8 @@ int main() {
             
 
 
-            delete gRoot ;  
+            DeleteTree( gRoot ) ;  
+            // delete gRoot ;   
             gRoot = NULL ;
             i = 0 ;
             BuildTree( s_exp, i ) ;
@@ -4674,16 +4699,16 @@ int main() {
             // cout << "4row: " << s_exp.at( s_exp.size() - 1 ).nowRow  << endl  ;
             gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
             // cout << endl << "NOW : " << gNowRow << ", Last : " << gLastRow << endl ;
-            funcClass.SetRoot() ;
-            funcClass.Eval() ;
-            funcClass.ResetLevel() ; 
-            //  funcClass.PrintMap() ; 
+            funcClass->SetRoot() ;
+            funcClass->Eval() ;
+            funcClass->ResetLevel() ; 
+            //  funcClass->PrintMap() ; 
 
             if ( PrintRoot() == false )
             {
-              vector<EXP> result = funcClass.GetResult() ; 
+              vector<EXP> result = funcClass->GetResult() ; 
               cout << PrettyString( result ) ;
-              funcClass.ClearResult() ; 
+              funcClass->ClearResult() ; 
             } // if 
             // 一些印出指令前的處裡 
 
@@ -4742,7 +4767,7 @@ int main() {
       catch ( UnboundException * ex )
       {
         // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
-        funcClass.ResetLevel() ; 
+        funcClass->ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ; 
         gLastRow = gNowRow ;
@@ -4750,7 +4775,7 @@ int main() {
       catch ( NonListException * ex )
       {
         // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
-        funcClass.ResetLevel() ; 
+        funcClass->ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
         gLastRow = gNowRow ;
@@ -4758,7 +4783,7 @@ int main() {
       catch ( IncorrectArgumentException * ex )
       {
         // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
-        funcClass.ResetLevel() ; 
+        funcClass->ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
         gLastRow = gNowRow ;
@@ -4766,7 +4791,7 @@ int main() {
       catch ( IncorrectNumberException * ex )
       {
         // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
-        funcClass.ResetLevel() ; 
+        funcClass->ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
         gLastRow = gNowRow ;
@@ -4774,7 +4799,7 @@ int main() {
       catch ( NonFunctionException * ex )
       {
         // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
-        funcClass.ResetLevel() ; 
+        funcClass->ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
         gLastRow = gNowRow ;
@@ -4782,7 +4807,7 @@ int main() {
       catch ( DivByZeroException * ex )
       {
         // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
-        funcClass.ResetLevel() ; 
+        funcClass->ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
         gLastRow = gNowRow ;
@@ -4790,7 +4815,7 @@ int main() {
       catch ( DefineFormatException * ex )
       {
         // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
-        funcClass.ResetLevel() ; 
+        funcClass->ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
         gLastRow = gNowRow ;
@@ -4798,7 +4823,7 @@ int main() {
       catch ( ErrorLevelException * ex )
       {
         // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
-        funcClass.ResetLevel() ; 
+        funcClass->ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
         gLastRow = gNowRow ;
@@ -4806,7 +4831,8 @@ int main() {
       catch ( ExitException * ex )
       {
         // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
-        funcClass.ResetLevel() ;  
+        ex->What() ; 
+        funcClass->ResetLevel() ;  
         readEXP = false ;
         quit = true ; 
         gLastRow = gNowRow ;
@@ -4814,7 +4840,7 @@ int main() {
       catch ( CondFormatException * ex )
       {
         // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
-        funcClass.ResetLevel() ; 
+        funcClass->ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ;
         gLastRow = gNowRow ;
@@ -4822,7 +4848,7 @@ int main() {
       catch ( NoReturnException * ex )
       {
         // gLastRow = s_exp.at( s_exp.size() - 1 ).nowRow ;
-        funcClass.ResetLevel() ; 
+        funcClass->ResetLevel() ; 
         cout << ex->What() ; 
         readEXP = false ; 
         gLastRow = gNowRow ;
