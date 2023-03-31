@@ -1,0 +1,13 @@
+1
+
+( cond
+  ( nil
+    nonsense
+    terrible
+  )
+  ( #t
+    3
+  )
+  ( nil
+  )
+)

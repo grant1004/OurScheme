@@ -1103,7 +1103,7 @@ DOT 5
       temp = temp->listPtr ; 
       throw new SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
       return false ; // 應該是右括號 ex: . (1) (1)  
-    } // if
+    } // if 
     else {
       //      cout << "oo" << endl ;
       if ( gnum == 5 ) { // DOT
@@ -1253,7 +1253,7 @@ bool PrintS_EXP( vector<EXP> s_exp )
           PrintTab( tab ); 
         } // else  
       } // try 
-      catch ( exception ex )
+      catch ( exception * ex )
       {
         PrintTab( 0 ) ; 
       } // catch 
@@ -1275,7 +1275,7 @@ bool PrintS_EXP( vector<EXP> s_exp )
           PrintTab( tab ); 
         } // else 
       } // try 
-      catch ( exception ex ) 
+      catch ( exception * ex ) 
       {
         PrintTab( 0 );
       } // catch 
@@ -1302,7 +1302,7 @@ bool PrintS_EXP( vector<EXP> s_exp )
           PrintTab( tab ); 
         } // else 
       } // try 
-      catch ( exception ex ) 
+      catch ( exception * ex ) 
       {
         PrintTab( 0 );
       } // catch 
@@ -1353,8 +1353,8 @@ string PrettyString( vector<EXP> s_exp )
         {
           str += AddTab( tab ); 
         } // else  
-      } // try 
-      catch ( exception ex )
+      } // try
+      catch ( exception * ex )
       {
         str += AddTab( 0 ) ; 
       } // catch 
@@ -1376,7 +1376,7 @@ string PrettyString( vector<EXP> s_exp )
           str += AddTab( tab ); 
         } // else 
       } // try 
-      catch ( exception ex ) 
+      catch ( exception * ex ) 
       {
         str += AddTab( 0 );
       } // catch 
@@ -1405,7 +1405,7 @@ string PrettyString( vector<EXP> s_exp )
           str += AddTab( tab ); 
         } // else 
       } // try 
-      catch ( exception ex ) 
+      catch ( exception * ex ) 
       {
         str += AddTab( 0 );
       } // catch 
@@ -1431,6 +1431,8 @@ EXP *GetValue( vector<EXP> vec, int &i ) {
   ptr -> listPtr = NULL ;
   ptr -> pre_listPtr = NULL ;
   ptr -> dotCnt = 0 ;
+  ptr -> nowRow = 0 ; 
+  ptr -> memSpace = 0 ; 
   i++ ;
   return ptr ;
   
@@ -1868,6 +1870,25 @@ private:
     
   } // FindMemNum()
 
+  bool CheckNumOfArgFromParen( EXP* node, int num )
+  {
+    // node start at ( 
+    // node -> next : firstArg 
+    node = node->next ; 
+    int argNum = 0 ; 
+    while ( node->type != RIGHT_PAREN )
+    {
+      // cout << "node : " << node->token << endl ; 
+      argNum ++ ; 
+      node = node->next ; 
+    } // while 
+
+    if ( argNum == num )
+      return true ; 
+    
+    return false ; 
+  } // CheckNumOfArgFromParen()
+
   bool CheckNumOfArg( int num ) {
     EXP* temp = mexeNode->next ;
     int arg = 0 ;
@@ -1990,7 +2011,6 @@ private:
       {
         // listHead is EmptyPtr  
         EXP * left_paren = listHead->listPtr ; 
-        vector<EXP> out ; 
         TraversalEmpty( left_paren ) ;
 
       } // if 
@@ -2338,6 +2358,42 @@ void Functions::Cond()
 
   if ( NOT CheckNumOfArg( 0 ) ) // >= 1 
   {
+    EXP * ex = now ;  
+
+    // 檢查文法 
+    while ( ex->type != RIGHT_PAREN )
+    {
+      // cout << "ex : " << ex->token << endl ;
+      if ( ex->type != EMPTYPTR )
+      {
+        mnonListVec.clear() ; 
+        TraversalEmpty( gRoot ) ;
+        throw new CondFormatException( mnonListVec ) ;
+      } // if
+      else
+      {
+        EXP * sub = ex->listPtr ; 
+        // cout << "sub : " << sub->token << endl ; 
+        if ( IsNonList( sub ) )
+        {
+          mnonListVec.clear() ; 
+          TraversalEmpty( gRoot ) ;
+          throw new CondFormatException( mnonListVec ) ;
+        } // if
+        else if ( CheckNumOfArgFromParen( sub, 1 ) )
+        {
+          mnonListVec.clear() ; 
+          TraversalEmpty( gRoot ) ;
+          throw new CondFormatException( mnonListVec ) ;
+        } // else if 
+
+      } // else 
+
+      ex = ex->next ; 
+    } // while 
+
+
+    // 執行
     while ( NOT getResult && now->type != RIGHT_PAREN )
     { 
       if ( now->next->type == RIGHT_PAREN )
@@ -2348,212 +2404,163 @@ void Functions::Cond()
       // cout << "這裡是第一個參數 : " << now->token << endl ;
       if ( NOT isLast )
       {
-        if ( now->type == EMPTYPTR )
-        { 
-          node = now->listPtr->next ; // first augument 
-          if ( IsNonList( now->listPtr ) )
+
+        node = now->listPtr->next ; // first augument
+        bool trueOdFalse = true ; 
+        int cnt = 0 ; 
+        bool jump = false ; 
+        while ( trueOdFalse == true && node->type != RIGHT_PAREN )
+        {
+          // cout << endl << endl << "RUN" << endl ;
+          if ( node->type == EMPTYPTR )
           {
-            mnonListVec.clear() ; 
-            TraversalEmpty( gRoot ) ;
-            throw new CondFormatException( mnonListVec ) ;
+            mexeNode = node ; 
+            Eval() ; 
+            if ( NOT getResult )
+            { 
+              emptyptr->vec.assign( node->vec.begin(), node->vec.end() ) ;
+              // cout << "Pretty1 : " << PrettyString( emptyptr->vec ) ; 
+            } // if 
           } // if 
-          
-          bool trueOdFalse = true ; 
-          int cnt = 0 ; 
-          bool jump = false ; 
-          while ( trueOdFalse == true && node->type != RIGHT_PAREN )
+          else
           {
-            // cout << endl << endl << "RUN" << endl ;
-            if ( node->type == EMPTYPTR )
+
+            mexeNode = node ; 
+            // cout << "mexeNode : " << mexeNode->token << endl ;
+            vector<EXP> new_vector ; 
+
+            if ( FindMap( mexeNode->token, new_vector ) ) 
             {
-              mexeNode = node ; 
-              Eval() ; 
               if ( NOT getResult )
               { 
-                emptyptr->vec.assign( node->vec.begin(), node->vec.end() ) ;
-                // cout << "Pretty1 : " << PrettyString( emptyptr->vec ) ; 
-              } // if 
+                emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+                // cout << "Pretty2 : " << PrettyString( emptyptr->vec ) ;
+              } // if
             } // if 
-            else
+            else if ( mexeNode->type == SYMBOL )
             {
-
-              mexeNode = node ; 
-              // cout << "mexeNode : " << mexeNode->token << endl ;
-              vector<EXP> new_vector ; 
-
-              if ( FindMap( mexeNode->token, new_vector ) ) 
-              {
-                if ( NOT getResult )
-                { 
-                  emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
-                  // cout << "Pretty2 : " << PrettyString( emptyptr->vec ) ;
-                } // if
-              } // if 
-              else if ( mexeNode->type == SYMBOL )
-              {
-                throw new UnboundException( mexeNode ) ; 
-              } // else if 
-              else 
-              {
-                if ( NOT getResult )
-                { 
-                  emptyptr->vec.clear() ; 
-                  emptyptr->vec.push_back( *mexeNode ) ;
-                  // cout << "Pretty3 : " << PrettyString( emptyptr->vec ) ;
-                } // if
-              } // else 
-
+              throw new UnboundException( mexeNode ) ; 
+            } // else if 
+            else 
+            {
+              if ( NOT getResult )
+              { 
+                emptyptr->vec.clear() ; 
+                emptyptr->vec.push_back( *mexeNode ) ;
+                // cout << "Pretty3 : " << PrettyString( emptyptr->vec ) ;
+              } // if
             } // else 
 
-            if ( cnt == 0 )
+          } // else 
+
+          if ( cnt == 0 )
+          {
+
+            trueOdFalse = TorF( emptyptr->vec ) ; 
+            // cout << " Check : " << trueOdFalse << endl ;
+            if ( trueOdFalse == false )
             {
-
-              trueOdFalse = TorF( emptyptr->vec ) ; 
-              // cout << " Check : " << trueOdFalse << endl ;
-              if ( trueOdFalse == false )
-              {
-                jump = true ; 
-              } // if 
+              jump = true ; 
             } // if 
-            
-            cnt ++ ; 
-            node = node->next ;
-            // cout << "next : " << node->token << endl ; 
-          } // while 
-
-          if ( cnt == 1 && NOT jump )
-          {
-            // cout << "ERROR" ; 
-            mnonListVec.clear() ; 
-            TraversalEmpty( gRoot ) ;
-            throw new CondFormatException( mnonListVec ) ;
           } // if 
 
-          if ( trueOdFalse == true )
-          {
-            // cout << "Get result : " << PrettyString( emptyptr->vec ) << endl ;
-            getResult = true ; 
-          } // if 
+          cnt ++ ; 
+          node = node->next ;
+          // cout << "next : " << node->token << endl ; 
+        } // while 
 
-        } // if 
-        else
+        if ( trueOdFalse == true )
         {
-          mnonListVec.clear() ; 
-          TraversalEmpty( gRoot ) ;
-          throw new CondFormatException( mnonListVec ) ;
-        } // else 
+          // cout << "Get result : " << PrettyString( emptyptr->vec ) << endl ;
+          getResult = true ; 
+        } // if 
+
       } // if 
       else
       {
-        if ( now->type == EMPTYPTR )
-        { 
-          node = now->listPtr->next ; // first augument 
-          if ( IsNonList( now->listPtr ) )
+        node = now->listPtr->next ; // first augument 
+        bool trueOdFalse = true ; 
+        int cnt = 0 ; 
+        int e = 0 ;
+        while ( node->type != RIGHT_PAREN )
+        {
+          // cout << endl << endl << "RUN" << endl ;
+          if ( node->type == EMPTYPTR )
           {
-            mnonListVec.clear() ; 
-            TraversalEmpty( gRoot ) ;
-            throw new CondFormatException( mnonListVec ) ;
+            mexeNode = node ; 
+            Eval() ; 
+            if ( NOT getResult )
+            { 
+              emptyptr->vec.assign( node->vec.begin(), node->vec.end() ) ;
+              // cout << "Pretty1 : " << PrettyString( emptyptr->vec ) ; 
+            } // if 
           } // if 
-
-          bool trueOdFalse = true ; 
-          int cnt = 0 ; 
-          int e = 0 ;
-          while ( node->type != RIGHT_PAREN )
+          else
           {
-            // cout << endl << endl << "RUN" << endl ;
-            if ( node->type == EMPTYPTR )
+
+            mexeNode = node ; 
+            // cout << "mexeNode : " << mexeNode->token << endl ;
+            vector<EXP> new_vector ; 
+            if ( mexeNode->token == "else" && e == 0 )
             {
-              mexeNode = node ; 
-              Eval() ; 
+              e++ ; 
               if ( NOT getResult )
               { 
-                emptyptr->vec.assign( node->vec.begin(), node->vec.end() ) ;
-                // cout << "Pretty1 : " << PrettyString( emptyptr->vec ) ; 
-              } // if 
-            } // if 
-            else
-            {
-
-              mexeNode = node ; 
-              // cout << "mexeNode : " << mexeNode->token << endl ;
-              vector<EXP> new_vector ; 
-              if ( mexeNode->token == "else" && e == 0 )
-              {
-                e++ ; 
-                if ( NOT getResult )
-                { 
-                  emptyptr->vec.clear() ; 
-                  emptyptr->vec.push_back( *mexeNode ) ;
-                  // cout << "else : " << PrettyString( emptyptr->vec ) ;
-                } // if
+                emptyptr->vec.clear() ; 
+                emptyptr->vec.push_back( *mexeNode ) ;
+                // cout << "else : " << PrettyString( emptyptr->vec ) ;
               } // if
-              else if ( FindMap( mexeNode->token, new_vector ) ) 
-              {
-                if ( NOT getResult )
-                { 
-                  emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
-                  // cout << "Pretty2 : " << PrettyString( emptyptr->vec ) ;
-                } // if
-              } // else if 
-              else if ( mexeNode->type == SYMBOL )
-              {
-                throw new UnboundException( mexeNode ) ; 
-              } // else if 
-              else 
-              {
-                if ( NOT getResult )
-                { 
-                  emptyptr->vec.clear() ; 
-                  emptyptr->vec.push_back( *mexeNode ) ;
-                  // cout << "Pretty3 : " << PrettyString( emptyptr->vec ) ;
-                } // if
-              } // else 
-
+            } // if
+            else if ( FindMap( mexeNode->token, new_vector ) ) 
+            {
+              if ( NOT getResult )
+              { 
+                emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+                // cout << "Pretty2 : " << PrettyString( emptyptr->vec ) ;
+              } // if
+            } // else if 
+            else if ( mexeNode->type == SYMBOL )
+            {
+              throw new UnboundException( mexeNode ) ; 
+            } // else if 
+            else 
+            {
+              if ( NOT getResult )
+              { 
+                emptyptr->vec.clear() ; 
+                emptyptr->vec.push_back( *mexeNode ) ;
+                // cout << "Pretty3 : " << PrettyString( emptyptr->vec ) ;
+              } // if
             } // else 
 
-            if ( cnt == 0 )
+          } // else 
+
+          if ( cnt == 0 )
+          {
+
+            trueOdFalse = TorF( emptyptr->vec ) ; 
+            // cout << " Check : " << trueOdFalse << endl ; 
+
+            if ( trueOdFalse == false )
             {
-
-              trueOdFalse = TorF( emptyptr->vec ) ; 
-              // cout << " Check : " << trueOdFalse << endl ; 
-
-              if ( trueOdFalse == false )
-              {
-                mnonListVec.clear() ; 
-                TraversalEmpty( gRoot ) ;
-                throw new NoReturnException( mnonListVec ) ; 
-              } // if 
+              mnonListVec.clear() ; 
+              TraversalEmpty( gRoot ) ;
+              throw new NoReturnException( mnonListVec ) ; 
             } // if 
-            
-            cnt ++ ; 
-            node = node->next ;
-            // cout << "next : " << node->token << endl ; 
-          } // while 
-
-          if ( cnt == 1 )
-          {
-            // cout << "ERROR" ; 
-            mnonListVec.clear() ; 
-            TraversalEmpty( gRoot ) ;
-            throw new CondFormatException( mnonListVec ) ;
           } // if 
 
-          if ( trueOdFalse == true )
-          {
-            // cout << "Get result : " << PrettyString( emptyptr->vec ) << endl ;
-            getResult = true ; 
-          } // if 
+          cnt ++ ; 
+          node = node->next ;
+          // cout << "next : " << node->token << endl ; 
+        } // while 
 
-        } // if 
-        else
+        if ( trueOdFalse == true )
         {
-          mnonListVec.clear() ; 
-          TraversalEmpty( gRoot ) ;
-          throw new CondFormatException( mnonListVec ) ;
-        } // else 
+          // cout << "Get result : " << PrettyString( emptyptr->vec ) << endl ;
+          getResult = true ; 
+        } // if 
 
       } // else 
-      
 
       now = now->next ; 
     } // while 
