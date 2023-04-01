@@ -95,6 +95,8 @@ EXP * gRoot = NULL ;
 EXP * gHead = NULL ;
 
 string PrettyString( vector<EXP> exp ) ; 
+void FixSystemPrimitiveAndNil( vector<EXP> &s_exp ) ; 
+
 
 string ToUppder( string str )
 {
@@ -318,6 +320,7 @@ class NonFunctionException
   NonFunctionException( vector<EXP> exp )  // EXP exp 
   {
     mErrMsg = "" ;
+    FixSystemPrimitiveAndNil( exp ) ; 
     stringstream ss ;
     ss << "ERROR (attempt to apply non-function) : " << PrettyString( exp ) ;
     mErrMsg = ss.str() ;   
@@ -1052,7 +1055,7 @@ DOT 5
     //      cout << "uu" << endl ;
     return true ;
   } // else if
-  else if ( temp->type == RIGHT_PAREN && ( gnum == 1 || gnum == 2 ) ) { 
+  else if ( temp != NULL && temp->type == RIGHT_PAREN && ( gnum == 1 || gnum == 2 ) ) { 
     //      cout << "bb" << endl ;
     gnum = 2 ; // list
     while ( temp->type != LEFT_PAREN ) { // 走回去 
@@ -1242,43 +1245,38 @@ bool PrintS_EXP( vector<EXP> s_exp )
     if ( s_exp.at( i ).type == LEFT_PAREN )
     {
       parnum ++ ; 
-      try
+
+      if ( i >= 1 && s_exp.at( i - 1 ).type == LEFT_PAREN )
       {
-        if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
-        {
-          PrintTab( 0 ); 
-        } // if 
-        else
-        {
-          PrintTab( tab ); 
-        } // else  
-      } // try 
-      catch ( exception * ex )
+        PrintTab( 0 );  
+      } // if 
+      else if ( i == 0 )
       {
-        PrintTab( 0 ) ; 
-      } // catch 
-        
+        PrintTab( 0 );  
+      } // else if 
+      else
+      {
+        PrintTab( tab );
+      } // else 
   
       cout << "(" << " " ;
       tab += 2 ; 
     } // if 
     else if ( s_exp.at( i ).type == QUOTE )
     {
-      try
+      if ( i >= 1 && s_exp.at( i - 1 ).type == LEFT_PAREN )
       {
-        if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
-        {
-          PrintTab( 0 ); 
-        } // if 
-        else
-        {
-          PrintTab( tab ); 
-        } // else 
-      } // try 
-      catch ( exception * ex ) 
+        PrintTab( 0 );  
+      } // if 
+      else if ( i == 0 )
       {
-        PrintTab( 0 );
-      } // catch 
+        PrintTab( 0 );  
+      } // else if 
+      else
+      {
+        PrintTab( tab );
+      } // else 
+
       cout << "quote" << endl ; 
     } // else if 
     else if ( s_exp.at( i ).type == RIGHT_PAREN )
@@ -1291,22 +1289,19 @@ bool PrintS_EXP( vector<EXP> s_exp )
     } // else if 
     else
     {
-      try
+      if ( i >= 1 && s_exp.at( i - 1 ).type == LEFT_PAREN )
       {
-        if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
-        {
-          PrintTab( 0 ); 
-        } // if 
-        else
-        {
-          PrintTab( tab ); 
-        } // else 
-      } // try 
-      catch ( exception * ex ) 
+        PrintTab( 0 );  
+      } // if 
+      else if ( i == 0 )
       {
-        PrintTab( 0 );
-      } // catch 
-        
+        PrintTab( 0 );  
+      } // else if 
+      else
+      {
+        PrintTab( tab );
+      } // else 
+
         
       cout << s_exp.at( i ).token << endl ; 
     } // else 
@@ -1325,6 +1320,7 @@ string AddTab( int numOfTab )
   return tab ; 
 } // AddTab() 
 
+
 string PrettyString( vector<EXP> s_exp )
 {
   int tab = 0 ; 
@@ -1332,6 +1328,7 @@ string PrettyString( vector<EXP> s_exp )
   string str = "" ;
   // (1 . (2 . (3 . 4))) --> ( 1 2 3 . 4 ) 
   DeleteDotParen( s_exp ) ;
+
   if ( s_exp.empty() )
   {
     return "Empty Root!" ; 
@@ -1343,21 +1340,19 @@ string PrettyString( vector<EXP> s_exp )
     if ( s_exp.at( i ).type == LEFT_PAREN )
     {
       parnum ++ ; 
-      try
+
+      if ( i >= 1 && s_exp.at( i - 1 ).type == LEFT_PAREN )
       {
-        if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
-        {
-          str += AddTab( 0 ); 
-        } // if 
-        else
-        {
-          str += AddTab( tab ); 
-        } // else  
-      } // try
-      catch ( exception * ex )
+        str += AddTab( 0 ); 
+      } // if 
+      else if ( i == 0 )
       {
-        str += AddTab( 0 ) ; 
-      } // catch 
+        str += AddTab( 0 ); 
+      } // else if 
+      else
+      {
+        str += AddTab( tab ); 
+      } // else
 
 
       str += "( " ;  
@@ -1365,21 +1360,19 @@ string PrettyString( vector<EXP> s_exp )
     } // if 
     else if ( s_exp.at( i ).type == QUOTE )
     {
-      try
+      if ( i >= 1 && s_exp.at( i - 1 ).type == LEFT_PAREN )
       {
-        if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
-        {
-          str += AddTab( 0 ); 
-        } // if 
-        else
-        {
-          str += AddTab( tab ); 
-        } // else 
-      } // try 
-      catch ( exception * ex ) 
+        str += AddTab( 0 ); 
+      } // if 
+      else if ( i == 0 )
       {
-        str += AddTab( 0 );
-      } // catch 
+        str += AddTab( 0 ); 
+      } // else if 
+      else
+      {
+        str += AddTab( tab ); 
+      } // else
+
       str += "quote" ;
       str += "\n";
     } // else if 
@@ -1394,22 +1387,18 @@ string PrettyString( vector<EXP> s_exp )
     } // else if 
     else
     {
-      try
+      if ( i >= 1 && s_exp.at( i - 1 ).type == LEFT_PAREN )
       {
-        if ( s_exp.at( i - 1 ).type == LEFT_PAREN )
-        {
-          str += AddTab( 0 ); 
-        } // if 
-        else
-        {
-          str += AddTab( tab ); 
-        } // else 
-      } // try 
-      catch ( exception * ex ) 
+        str += AddTab( 0 ); 
+      } // if 
+      else if ( i == 0 )
       {
-        str += AddTab( 0 );
-      } // catch 
-
+        str += AddTab( 0 ); 
+      } // else if 
+      else
+      {
+        str += AddTab( tab ); 
+      } // else
 
       str += s_exp.at( i ).token ; 
       str += "\n" ; 
@@ -1838,6 +1827,17 @@ void FixSystemPrimitiveAndNil( vector<EXP> &s_exp ) {
     
 } // FixSystemPrimitiveAndNil() 
 
+vector<EXP> CopyVector( vector<EXP> input )
+{
+  vector<EXP> out ; 
+  for ( int i = 0 ; i < input.size() ; i++ )
+  {
+    out.push_back( input.at( i ) ) ; 
+  } // for 
+
+  return out ; 
+} // CopyVector()
+
 class Functions {
 public : 
   void InitFunc()
@@ -2043,6 +2043,22 @@ private:
 
     return false ; 
   } // IsInternalFunction()
+
+  void FixNil( vector<EXP>& s_exp )
+  {
+    for ( int i = 0 ; i < s_exp.size() ; i++ )
+    {
+      if ( s_exp.at( i ).type == LEFT_PAREN && i+1 < s_exp.size() 
+           && s_exp.at( i + 1 ).type == RIGHT_PAREN ) {
+        s_exp.at( i ).token = "nil" ;
+        s_exp.at( i ).type = NIL ;
+        s_exp.at( i ).row = s_exp.at( i + 1 ).row ;
+        s_exp.at( i ).nowRow = s_exp.at( i + 1 ).nowRow ;
+        s_exp.erase( s_exp.begin()+i+1 ) ;
+
+      } // if
+    } // for 
+  } // FixNil() 
   
 public : // 早安胖嘟嘟肥肥 
   void SetRoot() ; // iris
@@ -2191,7 +2207,8 @@ public : // 早安胖嘟嘟肥肥
 
     if ( NOT emptyptr->vec.empty() )
     {
-      FixToken( emptyptr->vec ) ; 
+      // FixToken( emptyptr->vec ) ; 
+      FixNil( emptyptr->vec ) ; 
       DeleteDotParen( emptyptr->vec ) ; 
     } // if 
     
@@ -2258,8 +2275,8 @@ void Functions::If()
   // ( cond (...) (...) . . . . (else ...) ) 
   EXP* now = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
-  EXP* decide ;
-  EXP* answer ;
+  EXP* decide = NULL ;
+  EXP* answer = NULL ;
 
   vector<EXP> new_vector ; 
   decide = now ; 
@@ -2267,11 +2284,15 @@ void Functions::If()
   {
     mexeNode = decide ; 
     Eval() ; 
-    emptyptr->vec.assign( decide->vec.begin(), decide->vec.end() ) ; 
+    emptyptr->vec.clear() ; 
+    emptyptr->vec = CopyVector( decide->vec ) ; 
+    // emptyptr->vec.assign( decide->vec.begin(), decide->vec.end() ) ; 
   } // if 
   else if ( FindMap( decide->token, new_vector ) )
   {
-    emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+    emptyptr->vec.clear() ; 
+    emptyptr->vec = CopyVector( new_vector ) ;
+    // emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
   } // else if 
   else if ( decide->type != SYMBOL )
   {
@@ -2291,11 +2312,15 @@ void Functions::If()
     {
       mexeNode = answer ; 
       Eval() ; 
-      emptyptr->vec.assign( answer->vec.begin(), answer->vec.end() ) ; 
+      emptyptr->vec.clear() ; 
+      emptyptr->vec = CopyVector( answer->vec ) ;
+      // emptyptr->vec.assign( answer->vec.begin(), answer->vec.end() ) ; 
     } // if 
     else if ( FindMap( answer->token, new_vector ) )
     {
-      emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+      emptyptr->vec.clear() ; 
+      emptyptr->vec = CopyVector( new_vector ) ;
+      // emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
     } // else if 
     else if ( answer->type != SYMBOL )
     {
@@ -2314,25 +2339,39 @@ void Functions::If()
     {
       emptyptr->vec.clear() ; 
       answer = decide->next->next ; 
-      if ( answer->type == EMPTYPTR )
+      if ( answer != NULL )
       {
-        mexeNode = answer ; 
-        Eval() ; 
-        emptyptr->vec.assign( answer->vec.begin(), answer->vec.end() ) ; 
+        if ( answer->type == EMPTYPTR )
+        {
+          mexeNode = answer ; 
+          Eval() ; 
+          emptyptr->vec.clear() ; 
+          emptyptr->vec = CopyVector( answer->vec ) ;
+          // emptyptr->vec.assign( answer->vec.begin(), answer->vec.end() ) ; 
+        } // if 
+        else if ( FindMap( answer->token, new_vector ) )
+        {
+          emptyptr->vec.clear() ; 
+          emptyptr->vec = CopyVector( emptyptr->vec ) ;
+          // emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+        } // else if 
+        else if ( answer->type != SYMBOL )
+        {
+          emptyptr->vec.clear() ;
+          emptyptr->vec.push_back( *answer ) ;
+        } // else if 
+        else
+        {
+          throw new UnboundException( answer ) ; 
+        } // else
       } // if 
-      else if ( FindMap( answer->token, new_vector ) )
-      {
-        emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
-      } // else if 
-      else if ( answer->type != SYMBOL )
-      {
-        emptyptr->vec.clear() ;
-        emptyptr->vec.push_back( *answer ) ;
-      } // else if 
       else
       {
-        throw new UnboundException( answer ) ; 
-      } // else
+        mnonListVec.clear() ; 
+        TraversalEmpty( gRoot ) ; 
+        throw new NoReturnException( mnonListVec ) ; 
+      } // else 
+
     } // if 
     else
     {
@@ -2352,7 +2391,7 @@ void Functions::Cond()
   // ( cond (...) (...) . . . . (else ...) ) 
   EXP* now = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
-  EXP* node ;
+  EXP* node = NULL ;
   bool getResult = false ; 
   bool isLast = false ; 
 
@@ -2418,7 +2457,9 @@ void Functions::Cond()
             Eval() ; 
             if ( NOT getResult )
             { 
-              emptyptr->vec.assign( node->vec.begin(), node->vec.end() ) ;
+              emptyptr->vec.clear() ; 
+              emptyptr->vec = CopyVector( node->vec ) ;
+              // emptyptr->vec.assign( node->vec.begin(), node->vec.end() ) ;
               // cout << "Pretty1 : " << PrettyString( emptyptr->vec ) ; 
             } // if 
           } // if 
@@ -2433,7 +2474,9 @@ void Functions::Cond()
             {
               if ( NOT getResult )
               { 
-                emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+                emptyptr->vec.clear() ; 
+                emptyptr->vec = CopyVector( new_vector ) ;
+                // emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
                 // cout << "Pretty2 : " << PrettyString( emptyptr->vec ) ;
               } // if
             } // if 
@@ -2491,7 +2534,9 @@ void Functions::Cond()
             Eval() ; 
             if ( NOT getResult )
             { 
-              emptyptr->vec.assign( node->vec.begin(), node->vec.end() ) ;
+              emptyptr->vec.clear() ; 
+              emptyptr->vec = CopyVector( node->vec ) ;
+              // emptyptr->vec.assign( node->vec.begin(), node->vec.end() ) ;
               // cout << "Pretty1 : " << PrettyString( emptyptr->vec ) ; 
             } // if 
           } // if 
@@ -2515,7 +2560,9 @@ void Functions::Cond()
             {
               if ( NOT getResult )
               { 
-                emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+                emptyptr->vec.clear() ; 
+                emptyptr->vec = CopyVector( new_vector ) ;
+                // emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
                 // cout << "Pretty2 : " << PrettyString( emptyptr->vec ) ;
               } // if
             } // else if 
@@ -2591,13 +2638,17 @@ void Functions::Begin()
       {
         mexeNode = now ; 
         Eval() ; 
-        emptyptr->vec.assign( now->vec.begin(), now->vec.end() ) ; 
+        emptyptr->vec.clear() ; 
+        emptyptr->vec = CopyVector( now->vec ) ;
+        // emptyptr->vec.assign( now->vec.begin(), now->vec.end() ) ; 
       } // if 
       else
       {
         mexeNode = now ; 
         Eval() ;
-        emptyptr->vec.assign( mresult.begin(), mresult.end() ) ;
+        emptyptr->vec.clear() ; 
+        emptyptr->vec = CopyVector( mresult ) ;
+        // emptyptr->vec.assign( mresult.begin(), mresult.end() ) ;
       } // else 
       
       now = now->next ; 
@@ -2795,7 +2846,7 @@ void Functions::And() { // arg >= 2
     // cout << "ERROR (incorrect number of arguments) : and" << endl ;
   } // if
   else { 
-    while ( temp->type != RIGHT_PAREN ) { 
+    while ( isNIL == false && temp->type != RIGHT_PAREN ) { 
       
       if ( temp->type == NIL ) {
         isNIL = true ;
@@ -2862,7 +2913,7 @@ void Functions::List() {
     else if ( temp->type == SYMBOL ) {
       throw new UnboundException( temp ) ; 
     } // else if 
-    else if (  temp->type == EMPTYPTR ) {
+    else if ( temp->type == EMPTYPTR ) {
       mexeNode = temp ;
       Eval() ;
       
@@ -4862,7 +4913,7 @@ int main() {
       } // catch 
     
     } // while ( readEXP )
-
+    
   } // while ( NOT quit )  
   
   printf( "\nThanks for using OurScheme!" ) ;
