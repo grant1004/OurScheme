@@ -1846,19 +1846,7 @@ vector<EXP> CopyVector( vector<EXP> input )
 
 class Functions {
 public : 
-  void InitFunc()
-  {
-    mlevel = 0 ; 
-    memNum = 0 ;
-    msymbolMap.clear() ; 
-    mexeNode = NULL ; 
-    mnonListVec.clear() ; 
-    mresult.clear() ; 
-  } // InitFunc()
-  
-  void InitExeNode() {
-    mexeNode = NULL ; 
-  } // InitExeNode()
+
    
 private: 
   // map< string, vector<EXP> > msymbolMap ; // map symbol
@@ -2095,29 +2083,28 @@ private:
   } // FixNil() 
   
 public : 
-  void SetRoot() ; // iris
-  void Eval() ; // iris
-  void Define() ; // iris
-  void Cons() ; // iris
-  bool IsSystemPrimitive( Type type ) ; // iris
-  //    void PrintMap() ; // iris
-  bool FindMap( string str, vector<EXP> &new_vector ) ; // iris
+  void SetRoot() ; 
+  void Eval() ; 
+  void Define() ; 
+  void Cons() ; 
+  bool IsSystemPrimitive( Type type ) ; 
+  bool FindMap( string str, vector<EXP> &new_vector ) ; 
   void Qmark( string whichQmark ) ; 
   // atom? , null? , integer? , real? , boolean?                         
-  void Quote() ; // iris
-  void Car() ; // iris
-  void Cdr() ; // iris 
-  void Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) ; // + - * / iris 
-  void CompareNum( string whichOperator ) ; // > , >= , < , <= , = iris
+  void Quote() ; 
+  void Car() ; 
+  void Cdr() ; 
+  void Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) ; // + - * /  
+  void CompareNum( string whichOperator ) ; // > , >= , < , <= , = 
   void CompareString( string whichOperator ) ; // string>? , string<? , string=?
-  void String_append() ; // iris
-  void Not() ; // iris
-  void Equal_qmark() ; // iris
-  void Eqv_qmark() ; // iris
-  void List() ; // iris
-  void And() ; // iris
-  void Or() ; // iris
-  void Clean_Environment() ; // iris
+  void String_append() ; 
+  void Not() ; 
+  void Equal_qmark() ;
+  void Eqv_qmark() ; 
+  void List() ;
+  void And() ; 
+  void Or() ; 
+  void Clean_Environment() ; 
   void ResetMemNum() ;
   void ResetLevel()
   {
@@ -2130,7 +2117,21 @@ public :
   void Cond() ; // cond 
   void If() ; // if
   void Exit() ; 
-
+  
+  void InitFunc()
+  {
+    mlevel = 0 ; 
+    memNum = 0 ;
+    msymbolMap.clear() ; 
+    mexeNode = NULL ; 
+    mnonListVec.clear() ; 
+    mresult.clear() ; 
+  } // InitFunc()
+  
+  void InitExeNode() {
+    mexeNode = NULL ; 
+  } // InitExeNode()
+  
   vector<EXP> GetResult()
   {
     // cout << "mresult: " << mresult.at(0).token ;
@@ -2291,8 +2292,6 @@ bool Functions::FindMap( string str, vector<EXP> &new_vector ) {
 
 void Functions::Exit()
 {
-  
-
   if ( CheckNumOfArg( 0 ) )
   {
     throw new ExitException( "EXIT" ) ; 
@@ -2701,9 +2700,7 @@ void Functions::Begin()
 
 void Functions::Pair_qmark()
 {
-/*
-    只要不是atom 就是 true 
-*/
+  // 只要不是atom 就是 true 
   EXP* temp = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP ex ;
@@ -2735,9 +2732,7 @@ void Functions::Pair_qmark()
 
 void Functions::List_qmark()
 {
-/*
-    如果是pair就檢查是不是 list  
-*/
+  // 如果是pair就檢查是不是 list  
 
   EXP* temp = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
@@ -2780,7 +2775,6 @@ void Functions::List_qmark()
     throw new IncorrectNumberException( "list?" ) ; 
   } // else 
 
-
 } // Functions::List_qmark()
 
 void Functions::Clean_Environment() {
@@ -2792,11 +2786,9 @@ void Functions::Clean_Environment() {
     temp.type = SYMBOL ; 
     mresult.clear() ; 
     mresult.push_back( temp ) ; 
-    // cout << "environment cleaned" << endl ;
   } // if
   else {
     throw new IncorrectNumberException( "clean-environment" ) ; 
-    // cout << "ERROR (incorrect number of arguments) : clean-environment" << endl ;
   } // else
   
 } // Functions::Clean_Environment()
@@ -2812,7 +2804,6 @@ void Functions::Or() { // arg >= 2
   InitExp( ex ) ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
     throw new IncorrectNumberException( "or" ) ;
-    // cout << "ERROR (incorrect number of arguments) : and" << endl ;
   } // if
   else { 
     while ( temp->type != RIGHT_PAREN && bbreak == false ) { 
@@ -2880,7 +2871,6 @@ void Functions::And() { // arg >= 2
   bool isNIL = false ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
     throw new IncorrectNumberException( "and" ) ;
-    // cout << "ERROR (incorrect number of arguments) : and" << endl ;
   } // if
   else { 
     while ( isNIL == false && temp->type != RIGHT_PAREN ) { 
@@ -3003,8 +2993,7 @@ void Functions::Eqv_qmark() { // arg == 2
             secondArg.vec.assign( new_vector.begin(), new_vector.end() ) ;
             sameMap = true ;
           } // if
-          // else 
-            // isNil = true ;
+
         } // else if
 
       } // if
@@ -3058,17 +3047,12 @@ void Functions::Eqv_qmark() { // arg == 2
       emptyptr->vec.push_back( ex ) ;
     } // else 
     
-
-    
   } // if
   else {
     throw new IncorrectNumberException( "eqv?" ) ;
-    // cout << "ERROR (incorrect number of arguments) : equal?" << endl ;
   } // else 
   
 } // Functions::Eqv_qmark()
-
-
 
 void Functions::Equal_qmark() { // arg == 2 
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ; 
@@ -3139,12 +3123,9 @@ void Functions::Equal_qmark() { // arg == 2
       emptyptr->vec.push_back( ex ) ;
     } // else 
     
-
-    
   } // if
   else {
     throw new IncorrectNumberException( "=?" ) ;
-    // cout << "ERROR (incorrect number of arguments) : equal?" << endl ;
   } // else 
   
 } // Functions::Equal_qmark()
@@ -3183,7 +3164,6 @@ void Functions::Not() { // arg == 1
   } // if
   else {
     throw new IncorrectNumberException( "not" ) ;
-    // cout << "ERROR (incorrect number of arguments) : not" << endl ;
   } // else
   
   if ( isNIL == true ) {
@@ -3269,7 +3249,6 @@ void Functions::CompareString( string whichOperator ) { // string>? , string<? ,
   bool isFirstArg = true ;
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
     throw new IncorrectNumberException( whichOperator ) ;
-    // cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
   } // if
   else {
     while ( temp->type != RIGHT_PAREN ) { 
@@ -3334,14 +3313,12 @@ void Functions::CompareString( string whichOperator ) { // string>? , string<? ,
         else {
           isTrue = false ;
           throw new IncorrectArgumentException( whichOperator, new_vector ) ; 
-          // cout << "ERROR (" << whichOperator << " wit4h incorrect argument type)" << endl ;
         } // else
 
       } // else if 
       else if ( temp->type == SYMBOL ) {
         isTrue = false ;
-        throw new UnboundException( temp ) ; 
-        // cout << "ERROR (unbound symbol)" << endl ; 
+        throw new UnboundException( temp ) ;  
       } // else if 
       else if (  temp->type == EMPTYPTR ) {
         mexeNode = temp ;
@@ -3380,14 +3357,12 @@ void Functions::CompareString( string whichOperator ) { // string>? , string<? ,
         else {
           isTrue = false ;
           throw new IncorrectArgumentException( whichOperator, temp->vec ) ; 
-          // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
         } // else
         
       } // else if
       else {
         isTrue = false ;
         throw new IncorrectArgumentException( whichOperator, *temp ) ; 
-        // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
       } // else
 
       temp = temp->next ;
@@ -3421,7 +3396,6 @@ void Functions::CompareNum( string whichOperator ) { // arg >= 2
   
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
     throw new IncorrectNumberException( whichOperator ) ;
-    // cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
   } // if
   else {
     while ( temp->type != RIGHT_PAREN ) { 
@@ -3517,7 +3491,6 @@ void Functions::CompareNum( string whichOperator ) { // arg >= 2
         else {
           isTrue = false ;
           throw new IncorrectArgumentException( whichOperator, new_vector ) ; 
-          // cout << "ERROR (" << whichOperator << " with incorrect argument type )" << endl ;
         } // else
 
       } // else if 
@@ -3576,14 +3549,12 @@ void Functions::CompareNum( string whichOperator ) { // arg >= 2
         else {
           isTrue = false ;
           throw new IncorrectArgumentException( whichOperator, temp->vec ) ; 
-          // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
         } // else
         
       } // else if
       else {
         isTrue = false ;
         throw new IncorrectArgumentException( whichOperator, *temp ) ; 
-        // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
       } // else
 
       temp = temp->next ;
@@ -3617,7 +3588,6 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
   
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
     throw new IncorrectNumberException( whichOperator ) ;
-    // cout << "ERROR (incorrect number of arguments) : " << whichOperator << endl ;
   } // if
   else {
     while ( temp->type != RIGHT_PAREN && noError == true ) {
@@ -3638,8 +3608,6 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
         else if ( whichOperator == "/" ) {
           if ( temp->token == "0" ) {
             throw new DivByZeroException() ; 
-            // cout << "ERROR (division by zero) : /" << endl ;
-            // noError = false ;
           } // if
           else {
             sum = sum / atof( temp->token.c_str() ) ;
@@ -3667,8 +3635,6 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
           else if ( whichOperator == "/" ) {
             if ( new_vector.at( 0 ).token == "0" ) {
               throw new DivByZeroException() ; 
-              // cout << "ERROR (division by zero) : /" << endl ;
-              // noError = false ;
             } // if
             else {
               sum = sum / atof( new_vector.at( 0 ).token.c_str() ) ;
@@ -3679,7 +3645,6 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
         else {
           noError = false ;
           throw new IncorrectArgumentException( whichOperator, new_vector ) ; 
-          // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
         } // else
       } // else if
       else if ( temp->type == SYMBOL ) {
@@ -3709,8 +3674,6 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
           else if ( whichOperator == "/" ) {
             if ( temp->vec.at( 0 ).token == "0" ) {
               throw new DivByZeroException() ;
-              // cout << "ERROR (division by zero) : /" << endl ;
-              // noError = false ;
             } // if
             else {
               sum = sum / atof( temp->vec.at( 0 ).token.c_str() ) ;
@@ -3721,13 +3684,11 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
         else {
           noError = false ;
           throw new IncorrectArgumentException( whichOperator, temp->vec ) ; 
-          // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
         } // else
         
       } // else if
       else {
         throw new IncorrectArgumentException( whichOperator, *temp ) ; 
-        // cout << "ERROR (" << whichOperator << " with incorrect argument type)" << endl ;
         noError = false ;
       } // else 
       
@@ -3746,9 +3707,7 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
       else { // INT
         ex.token = IntToString( sum ) ;
         ex.type = INT ;
-      } // else
-        
-      // cout << "ex.token:  " << ex.token << endl ;                    
+      } // else            
                    
       emptyptr->vec.push_back( ex ) ;
     } // if
@@ -3888,7 +3847,6 @@ void Functions::Qmark( string whichQmark ) {
   } // if
   else {
     throw new IncorrectNumberException( whichQmark ) ;
-    // cout << "problem with the number of parameters" << endl ;
   } // else 
   
 } // Functions::Qmark()
@@ -3941,13 +3899,11 @@ void Functions::Cdr() {
       } // if
       else {
         throw new IncorrectArgumentException( "cdr", new_vector ) ;
-        // cout << "ERROR (car with incorrect argument type)" << endl ;
       } // else
 
     } // if 
     else if ( temp->type == SYMBOL ) {
       throw new UnboundException( temp ) ; 
-      // cout << "ERROR (unbound symbol)" << endl ; 
     } // else if 
     else if ( temp->type == EMPTYPTR 
               && temp->listPtr->next->type == QUOTE 
@@ -4031,15 +3987,12 @@ void Functions::Cdr() {
     } // else if 
     else {
       throw new IncorrectArgumentException( "cdr", *temp ) ; 
-      // cout << "ERROR (cdr with incorrect argument type)" << endl ;
     } // else
   } // if CheckNumOfArg( 1 )
 
   else {
     throw new IncorrectNumberException( "cdr" ) ;
-    // cout << "ERROR (incorrect number of arguments)" << endl ;
   } // else
-
 
   if ( emptyptr->vec.at( 1 ).type == DOT )
   {
@@ -4048,7 +4001,6 @@ void Functions::Cdr() {
     emptyptr->vec.pop_back() ;  // erase ) 
   } // if 
 
-  // FixToken( emptyptr->vec ) ; 
 } // Functions::Cdr()
 
 void Functions::Car() {
@@ -4092,14 +4044,11 @@ void Functions::Car() {
       } // if
       else {
         throw new IncorrectArgumentException( "car", new_vector ) ; 
-        // cout << "ERROR (car with incorrect argument type)" << endl ;
       } // else
 
     } // if FindMap
     else if ( temp->type == SYMBOL ) {
       throw new UnboundException( temp ) ; 
-      // cout << "ERROR (unbound symbol)" << endl ;
-
     } // else if 							  
     else if ( temp->type == EMPTYPTR 
               && temp->listPtr->next->type == QUOTE 
@@ -4164,15 +4113,12 @@ void Functions::Car() {
     } // else if 
     else {
       throw new IncorrectArgumentException( "car", *temp ) ; 
-      // cout << "ERROR (car with incorrect argument type)" << endl ;
     } // else
   } // if CheckNumOfArg( 1 )
   else {
     throw new IncorrectNumberException( "car" ) ; 
-    // cout << "ERROR (incorrect number of arguments)" << endl ;
   } // else 
 
-  // FixToken( emptyptr->vec ) ; 
 } // Functions::Car() 
 
 void Functions::Quote() {
@@ -4224,7 +4170,6 @@ void Functions::Quote() {
   } // if
   else {
     throw new IncorrectNumberException( "\'" ) ;
-    // cout << "ERROR (incorrect number of arguments)" << endl ;
   } // else
 
 } // Functions::Quote()
@@ -4377,19 +4322,16 @@ void Functions::Eval() {
   mlevel ++ ; 
                                                                      
   if ( IsATOM( temp ) && temp->type != SYMBOL  )  {
-    // cout << "Is just an atom but not a symbol" << endl ; 
     hasError = true ; 
     mexeNode = temp ;
     mresult.clear() ; 
     mresult.push_back( *temp ) ; 
   } // if
   else if ( temp->type == SYMBOL ) {
-    // cout << "Is a symbol without Paren: " ; 
     hasError = true ; 
     if ( FindMap( temp->token, new_vector ) == false ) // unbound symbol 
     { 
       throw new UnboundException( temp ) ; 
-      // cout << "Line :  2037 >> ERROR (unbound symbol) : " << temp->token << endl ;
     } // if  
     else
     {
@@ -4402,14 +4344,12 @@ void Functions::Eval() {
   {
     mresult.clear() ; 
     mresult.assign( new_vector.begin(), new_vector.end() ) ; 
-    // cout << temp->token << endl ; 
   } // else if 
   else 
   { // temp == emptyptr || temp == bounding symbol 
 
     temp = temp->listPtr ; // first LEFT_PAREN
     firstArgument = temp->next ; 
-    // cout << "First Argument [" << firstArgument->token << "] " ;
 
     if ( FindMap( firstArgument->token, new_vector ) )
     {
@@ -4433,14 +4373,12 @@ void Functions::Eval() {
     { // non known function
       hasError = true ; 
       throw new NonFunctionException( firstArgument->token ) ; 
-      // cout << "ERROR (attempt to apply non-function) : " << firstArgument->token << endl ;
     } // else if 
 
     else if ( firstArgument->type == SYMBOL || IsSystemPrimitive( firstArgument->type ) )
     { 
       if ( IsSystemPrimitive( firstArgument->type ) )
       { 
-        // cout << "primitive function : " << firstArgument->token << endl ;
         
         if ( firstArgument->type == DEFINE || 
              firstArgument->type == CLEAN_ENVIRONMENT || 
@@ -4468,7 +4406,6 @@ void Functions::Eval() {
           {
             hasError = true ;
             throw new IncorrectNumberException( "if" ) ;
-            // cout << "ERROR (incorrect number of arguments) : if" << endl ; 
           } // else 
         } // else if 
         else if ( firstArgument->type == AND || firstArgument->type == OR )
@@ -4482,7 +4419,6 @@ void Functions::Eval() {
           {
             hasError = true ;
             throw new IncorrectNumberException( firstArgument->token ) ; 
-            // cout << "ERROR (incorrect number of arguments) : " << firstArgument->token << endl ; 
           } // else
 
                              
@@ -4498,19 +4434,15 @@ void Functions::Eval() {
         if ( FindMap( firstArgument->token, new_vector ) == false )
         {
           throw new UnboundException( firstArgument ) ; 
-          // cout << "ERROR (unbound symbol) : " << firstArgument->token << endl ; 
         } // if 
         else
         {
           throw new NonFunctionException( new_vector ) ; 
-          // cout << "ERROR (attempt to apply non-function) : " ; 
         } // else 
       } // else 
     } // else if 
     else // the first argument of ( ... ) is ( 。。。 ), i.e., it is ( ( 。。。 ) ...... )
     {
-      // firstArgument->type == EMPTYPTR 
-      // cout << "Now is : " << firstArgument->token << ", then Call Eval() " << endl ;
       mexeNode = firstArgument ; 
       Eval() ;
 
@@ -4528,9 +4460,6 @@ void Functions::Eval() {
                 && NOT IsSystemPrimitive( firstArgument->vec.at( 0 ).type ) )
       {
         throw new NonFunctionException( firstArgument->vec ) ; 
-        // cout << "ERROR (attempt to apply non-function) : " ; 
-        // PrintVec( firstArgument->vec ) ; 
-        // hasError = true ; 
       } // else if 
       else
       {
@@ -4543,8 +4472,6 @@ void Functions::Eval() {
   } // else if
 
   if ( hasError == false ) {
-    
-    // cout << "Execute Start : " << mexeNode->token  << endl << endl ;
     Execute() ;
   } // if 
 
