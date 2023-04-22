@@ -58,6 +58,13 @@ enum Type
    
 }; // Type 
  
+enum FuncType
+{
+  DEFINE, // procedure ...
+  LAMBDA, // procedure lambda 
+  NONE // symbol  
+};
+
 
 struct EXP {
   string token ;
@@ -75,9 +82,17 @@ struct EXP {
 
 }; // struct EXP 
 
+struct parameter
+{
+  string par_name ; 
+  vector<EXP> value ; 
+};
+
 struct MAP {
   string str ;
-  vector<EXP> vec ;
+  vector<EXP> vec ; 
+  vector<parameter> par_vec ; 
+  FuncType funcType ;  
 };
 
 void InitExp( EXP & ex )
@@ -1845,12 +1860,10 @@ vector<EXP> CopyVector( vector<EXP> input )
 } // CopyVector()
 
 class Functions {
-public : 
-
-   
 private: 
   // map< string, vector<EXP> > msymbolMap ; // map symbol
   vector<MAP> msymbolMap ;
+  vector<MAP> mlocalsymbolMap ;
   EXP* mexeNode ; 
   vector<EXP> mnonListVec ; // used to save non-list  
   int mlevel ; 
