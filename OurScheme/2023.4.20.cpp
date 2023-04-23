@@ -2380,7 +2380,7 @@ void Functions::Let() {
   InitExp( ex ) ;
 
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
-    throw new IncorrectNumberException( "let" ) ;
+    cout << "ERROR (LET format)" << endl ; // pretty print
   } // if
   else { 
     if ( temp->type != EMPTYPTR && temp->type != NIL ) {
