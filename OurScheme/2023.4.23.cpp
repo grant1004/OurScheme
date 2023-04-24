@@ -24,6 +24,8 @@ int gLastRow = 0 ;
 int gNumOfParen = 0 ;
 bool gEndLine = false ;
 
+
+
 # define NOT ! 
 
 enum Type 
@@ -84,12 +86,8 @@ struct EXP {
 
 }; // struct EXP 
 
-//struct parameter
-//{
-//  string par_name ; 
-//  vector<EXP> value ; 
-//};
-
+EXP * gRoot = NULL ;
+EXP * gHead = NULL ;
 struct MAP {
   string str ; // symbol or function name
   vector<string> par_name ;
@@ -112,9 +110,6 @@ void InitExp( EXP & ex )
   ex.memSpace = 0 ;
 
 } // InitExp() 
-
-EXP * gRoot = NULL ;
-EXP * gHead = NULL ;
 
 string PrettyString( vector<EXP> exp ) ; 
 void FixSystemPrimitiveAndNil( vector<EXP> &s_exp ) ; 
@@ -1882,6 +1877,7 @@ private:
     MAP mm ;
     mm.str = str ;
     mm.vec.assign( vec.begin(), vec.end() ) ;
+    mm.funcType = TYPENONE ;
     msymbolMap.push_back( mm ) ;
     return false ;
     
@@ -2145,7 +2141,7 @@ public :
   void Cons() ; 
   bool IsSystemPrimitive( Type type ) ; 
   bool FindMap( string str, vector<EXP> &new_vector ) ; 
-  bool FindGlobalMap( string str, vector<EXP> &new_vector ) ;
+  bool FindGlobalMap( string str, vector<EXP> &new_vector, vector<string> &ss ) ;
   void Qmark( string whichQmark ) ; 
   // atom? , null? , integer? , real? , boolean?                         
   void Quote() ; 
@@ -2175,6 +2171,7 @@ public :
   void If() ; // if
   void Exit() ; 
   void Let() ; 
+  void CallFunction() ;
   
   void InitFunc()
   {
@@ -2212,6 +2209,7 @@ public :
     return true ; 
   } // TorF() 
    
+  bool ThisIsFunction( string str ) ; 
 
 
   void Execute() { // ptr指在function call上面 
@@ -2296,7 +2294,7 @@ public :
     else if ( mexeNode->type == LET ) 
       Let() ;
     else 
-      cout << "ERROR (unbound symbol) : " << mexeNode->token << endl ;
+      CallFunction() ; 
 
 
 
@@ -2389,11 +2387,34 @@ bool Functions::FindMap( string str, vector<EXP> &new_vector ) { // 先 find loca
     
 } // Functions::FindMap() 
 
-bool Functions::FindGlobalMap( string str, vector<EXP> &new_vector ) { // 只find global map
+bool Functions :: ThisIsFunction( string str )
+{
+  int i = 0 ; 
+  while ( i < msymbolMap.size() ) { // find global map
+    if ( msymbolMap.at( i ).str == str ) {
+      
+      if ( msymbolMap.at( i ).funcType != TYPENONE )
+      {
+        return true ;
+      } // if 
+      else
+      {
+        return false ; 
+      } // else 
+    } // if
+
+    i++ ;
+  } // while
+
+  return false ; 
+} // ThisIsFunction() 
+
+bool Functions::FindGlobalMap( string str, vector<EXP> &new_vector, vector<string> &ss ) { // 只find global map
   int i = 0 ;
   while ( i < msymbolMap.size() ) {
     if ( msymbolMap.at( i ).str == str ) {
       new_vector.assign( msymbolMap.at( i ).vec.begin(), msymbolMap.at( i ).vec.end() ) ;
+      ss.assign( msymbolMap.at( i ).par_name.begin(), msymbolMap.at( i ).par_name.end() ) ;
       return true ;
     } // if
     
@@ -2408,11 +2429,16 @@ void Functions::Let() {
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP* temp = mexeNode->next ;
   vector<EXP> new_vector ;
+  vector<string> ss ;
   EXP ex ;
   InitExp( ex ) ;
 
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
     cout << "ERROR (LET format)" << endl ; // pretty print
+    mnonListVec.clear() ; 
+    TraversalEmpty( gRoot ) ; 
+    throw new DefineFormatException( mnonListVec ) ;
+    
   } // if
   else { 
     if ( temp->type != EMPTYPTR && temp->type != NIL ) {
@@ -2440,7 +2466,7 @@ void Functions::Let() {
 
             localTP = localTP->next ;
             
-            if ( FindGlobalMap( localTP->token, new_vector ) == true ) { // FindGlobalMap
+            if ( FindGlobalMap( localTP->token, new_vector, ss ) == true ) { // FindGlobalMap
               InsertLocalMap( str, new_vector ) ;
                  
             } // if
@@ -4451,6 +4477,66 @@ void Functions::Cons() {
 
 } // Functions::Cons()
 
+void DeleteTree( EXP* focusNode )
+{
+  if ( focusNode == NULL ) {
+    return ;
+  } // if
+
+  DeleteTree( focusNode->next ) ;
+  DeleteTree( focusNode->listPtr ) ;
+  delete focusNode;
+  focusNode = NULL ;
+} // DeleteTree() 
+
+void Functions::CallFunction() { // can not test
+  EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
+  EXP* temp = mexeNode->next ;
+  vector<EXP> s_exp ;
+  vector<string> parameter ;
+  FindGlobalMap( temp->token, s_exp, parameter ) ;
+  EXP ex ;
+  InitExp( ex ) ;
+  
+  if ( CheckNumOfArg( parameter.size() ) ) {  
+    int i = 0 ;
+    vector<EXP> new_vector ;
+    while ( i < parameter.size() ) { // 把參數insert到 local map 
+      new_vector.clear() ;
+      if ( temp->type == EMPTYPTR ) {
+        mexeNode = temp ;
+        Eval() ;
+        InsertLocalMap( parameter.at( i ), temp->vec ) ;
+      } // if
+      else {
+        ex.token = temp->token ; 
+        ex.type = temp->type ;
+        new_vector.push_back( ex ) ;
+        InsertLocalMap( parameter.at( i ), new_vector ) ;
+      } // else
+
+      temp = temp->next ;
+      
+    } // while
+    
+    gHead = NULL ;
+    DeleteTree( gRoot ) ; 
+    gRoot = NULL ;
+    
+    i = 0 ;
+    BuildTree( s_exp, i ) ; 
+    gHead = gRoot ; 
+    
+    mexeNode = gRoot ;
+    Eval() ;
+    
+  } // if
+  else {
+    throw new IncorrectNumberException( mexeNode->token ) ;
+  } // else
+    
+} // Functions::CallFunction()
+
 void Functions::Define() { 
   memNum++ ;
   string str = "\0" ;
@@ -4661,7 +4747,7 @@ void Functions::Eval() {
     else if ( IsATOM( firstArgument ) && firstArgument->type != SYMBOL && 
               NOT IsSystemPrimitive( firstArgument->type ) )  
     { // non known function
-      hasError = true ; 
+      hasError = true ;  
       throw new NonFunctionException( firstArgument->token ) ; 
     } // else if 
 
@@ -4670,8 +4756,7 @@ void Functions::Eval() {
       if ( IsSystemPrimitive( firstArgument->type ) )
       { 
         
-        if ( firstArgument->type == DEFINE || 
-             firstArgument->type == CLEAN_ENVIRONMENT || 
+        if ( firstArgument->type == CLEAN_ENVIRONMENT || 
              firstArgument->type == EXIT )
         {
           if ( mlevel > 1 )
@@ -4681,10 +4766,34 @@ void Functions::Eval() {
 
           mexeNode = firstArgument ; 
         } // if 
-        else if ( firstArgument->type == DEFINE || firstArgument->type == COND ) // 未完成
+        else if ( firstArgument->type == DEFINE || firstArgument->type == COND || 
+                  firstArgument->type == LET || firstArgument->type == LAMBDA  ) // 未完成
         { 
+          if ( firstArgument->type == DEFINE )
+          {
+            if ( mlevel > 1 )
+            { 
+              throw new ErrorLevelException( firstArgument->token ) ; 
+            } // if
+            else
+            {
+              // CheckDefineFormat() ; 
+            } // else 
+          } // if 
+          else if (  firstArgument->type == COND  )
+          { 
+          } // else if 
+          else if ( firstArgument->type == LET )
+          {
+             // CheckLetFormat() ; 
+          } // else if 
+          else if ( firstArgument->type == LAMBDA )
+          {
+             
+          } // else if 
+
           mexeNode = firstArgument ; 
-        } // else if 
+        } // else if  
         else if ( firstArgument->type == IF )
         { 
           mexeNode = firstArgument ; 
@@ -4727,7 +4836,11 @@ void Functions::Eval() {
         } // if 
         else
         {
-          throw new NonFunctionException( new_vector ) ; 
+          if ( NOT ThisIsFunction( firstArgument->token ) )  
+          {
+            throw new NonFunctionException( new_vector ) ; 
+          } // if() 
+          
         } // else 
       } // else 
     } // else if 
@@ -4780,17 +4893,6 @@ bool PrintRoot()
   return false ; 
 } // PrintRoot()
 
-void DeleteTree( EXP* focusNode )
-{
-  if ( focusNode == NULL ) {
-    return ;
-  } // if
-
-  DeleteTree( focusNode->next ) ;
-  DeleteTree( focusNode->listPtr ) ;
-  delete focusNode;
-  focusNode = NULL ;
-} // DeleteTree() 
 
 static int uTestNum = -1 ; 
 
@@ -4827,6 +4929,7 @@ int main() {
     dotStack.clear() ;
     funcClass->ResetLevel() ;
     funcClass->InitExeNode() ;
+    funcClass->ClearLocalMap() ;
     gHead = NULL ;
     DeleteTree( gRoot ) ; 
     gRoot = NULL ;
