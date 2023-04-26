@@ -4711,12 +4711,17 @@ void Functions::CallFunction() {
     
     new_vector.clear() ;
     vector<EXP> new_s_exp ; 
+    // cout << "s_exp : " << PrettyString( s_exp ) << endl ; 
     for ( int i = 0 ; i < s_exp.size() ; i++ ) { 
       if ( s_exp.at( i ).type == LET || s_exp.at( i ).type == LAMBDA ) {
         i-- ;
         int count = 0 ;
         bool bbreak = false ;
+        
+        int cnt = 0 ;
+        // ( define ( a b ) ( let (( a b )(b b ) ( c b )) ( + a b c ) ) )
         while ( bbreak == false ) {
+          
           if ( s_exp.at( i ).type == LEFT_PAREN ) {
             count++;
           } // if
@@ -4727,10 +4732,44 @@ void Functions::CallFunction() {
             } // if
 
           } // else if
+          
+            
 
           if ( bbreak == false ) {
+            
+            bool isPush = false ;
+            if ( count == 3 )
+            {  
+              // cout << "new_s_exp : " << PrettyString( new_s_exp ) << endl ;
+              cnt ++ ;
+              if ( cnt == 2 ) 
+              {
+                // cout << "Count == 3 && cnt == 2 : " << s_exp.at( i ).token << endl ; 
+                
+                if ( FindLocalMap( s_exp.at( i + 1 ).token, new_vector ) )
+                {
+                  isPush = true ; 
+                  
+                  for ( int i = 0; i < new_vector.size() ; i++ ) 
+                  {
+                    new_s_exp.push_back( new_vector.at( i ) ) ;
+                  } // for
+                  
+                  
+                } // if  
+              } // if  
+              
+            } // if
+            else if ( count == 2 )
+            {
+              cnt = 0 ; 
+            } // else if 
+            
             i++ ;
-            new_s_exp.push_back( s_exp.at( i ) ) ;
+            if ( isPush == false )
+            {
+              new_s_exp.push_back( s_exp.at( i ) ) ;  
+            } // if 
           } // if
 
         } // while
@@ -4759,6 +4798,9 @@ void Functions::CallFunction() {
     emptyptr->listPtr->pre_listPtr = emptyptr ;
     mexeNode = emptyptr->listPtr->next ; // first argument 
     
+    // cout << "Extention Function : " ; 
+    // PreOrderTraversal( gRoot ) ; 
+    // cout << endl ; 
   } // if
   else {
     throw new IncorrectNumberException( mexeNode->token ) ;
