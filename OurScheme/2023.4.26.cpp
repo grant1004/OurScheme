@@ -719,11 +719,6 @@ bool IsEOF( char ch )
   return false ; 
 } // IsEOF()
 
-/* 
-  IdentifyType ( string token ) 
-*  ���� token �O���� type 
-*/ 
-
 Type IdentifyType( string token )
 {
   Type type = NONE ; 
@@ -759,12 +754,6 @@ Type IdentifyType( string token )
   
   return ERROR ; 
 } // IdentifyType()
-
-/* 
-  GetString ( ) 
-*  ���� string Ū�X�� ���� ('\n') �άO�t�@�� ('\"')
-*  �p�GŪ�� '\n' �S��Ū�� '\"' ���N�O error  
-*/
 
 string GetString()
 {
@@ -840,10 +829,6 @@ string GetString()
   return str ; 
 } // GetString()
 
-/* 
-  SkipComment ( ) 
-* �� ; �᭱������Ū�� 
-*/ 
 
 void SkipComment()
 {
@@ -863,10 +848,6 @@ void SkipComment()
   gNowColumn = 0 ; 
 } // SkipComment() 
 
-/* 
-   GetFirstChar ( ) 
-*  ���L�ť�Ū��Ĥ@�Ӧr��
-*/ 
 
 char GetFirstChar() // skip white space to get First char 
 {
@@ -898,10 +879,6 @@ char GetFirstChar() // skip white space to get First char
   return ch ; 
 } // GetFirstChar()
  
-/* 
-  GetToken ( ) 
-* ���Utoken �çP�_�e�� type  
-*/ 
 
 EXP GetToken() 
 {
@@ -1081,18 +1058,18 @@ DOT 5
 */
   
   if ( temp == NULL && gnum == 2 ) {
-    //      cout << "aa" << endl ;
+                                  
     gnum = 8888 ;
     return true ;
   } // if
-  else if ( temp == NULL && gRoot->type == QUOTE ) { // new
-    //      cout << "uu" << endl ;
+  else if ( temp == NULL && gRoot->type == QUOTE ) { 
+                                  
     return true ;
   } // else if
   else if ( temp != NULL && temp->type == RIGHT_PAREN && ( gnum == 1 || gnum == 2 ) ) { 
-    //      cout << "bb" << endl ;
+                                  
     gnum = 2 ; // list
-    while ( temp->type != LEFT_PAREN ) { // ���^�h 
+    while ( temp->type != LEFT_PAREN ) { 
       temp = temp->pre_next ; 
     } // while
     
@@ -1101,31 +1078,31 @@ DOT 5
     
   } // else if 
   else if ( temp->type == RIGHT_PAREN ) {
-        cout << "cc" << endl ;
+                              
     gnum = -1 ;
     throw new SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ; 
-    return false ; // temp ���ӬOs_EXP 
+    return false ; 
   } // else if
   else if ( IsATOM( temp ) == true && gnum == 0 && temp->next == NULL && temp->listPtr == NULL ) {
-    //    cout << "dd" << endl ;
+                                
     gnum = 1 ;
     return true ;
   } // else if
   else if ( IsATOM( temp ) == true ) { 
-     //    cout << "gg" << endl ;
+                                 
     if ( temp->pre_next != NULL && temp->pre_next->dotCnt != 0 ) {
-            cout << "ee" << endl ;
+                                  
       temp->dotCnt = temp->pre_next->dotCnt+1 ;
       throw new SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
-      return false ; // ���ӬO�k�A�� ex: . 3 3 
+      return false ; // ex: . 3 3 
     } // if
     else {
-      if ( gnum == 5 ) { // �e���ODOT 
-        //        cout << "hh" << endl ;
+      if ( gnum == 5 ) { // DOT 
+                                        
         gAfterDotCnt++ ;
         temp->dotCnt = gAfterDotCnt ;
       } // if
-      //      cout << "jj" << endl ;
+      
       gnum = 1 ;
       temp = temp->next ;
       S_EXP( temp ) ;
@@ -1133,18 +1110,18 @@ DOT 5
 
   } // else if
   else if ( temp->type == EMPTYPTR ) { 
-    //    cout << "kk" << endl ;
+                                
     if ( temp->pre_next != NULL && temp->pre_next->dotCnt != 0 ) {
-            cout << "mm" << endl ;
+                                  
       temp->dotCnt = temp->pre_next->dotCnt+1 ;
       temp = temp->listPtr ; 
       throw new SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
-      return false ; // ���ӬO�k�A�� ex: . (1) (1)  
+      return false ; // ex: . (1) (1)  
     } // if 
     else {
-      //      cout << "oo" << endl ;
+                                    
       if ( gnum == 5 ) { // DOT
-        //        cout << "pp" << endl ;
+                                        
         gAfterDotCnt++ ;
         temp->dotCnt = gAfterDotCnt ;
         
@@ -1158,38 +1135,38 @@ DOT 5
 
   } // else if
   else if ( gnum == 0 && temp->type == DOT ) {
-        cout << "rr" << endl ;
+                              
     throw new SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ;
     return false ; // ex: .
   } // else if
   else if ( temp->type == DOT &&  
             ( ( temp->pre_next != NULL && temp->pre_next->type == EMPTYPTR ) || gnum == 1 ) && 
             gnum != 5 ) { 
-    //    cout << "ss" << endl ;
+                                
     EXP * forward = temp->pre_next ;
     while ( forward != NULL && forward->type != DOT ) {
       forward = forward->pre_next ;
     } // while
     
     if ( forward == NULL ) {
-      //      cout << "tt" << endl ;
+                                    
       gnum = 5 ;
       gAfterDotCnt = 0 ;
       temp = temp->next ;
       S_EXP( temp ) ;
     } // if
     else {
-            cout << "vv" << endl ;
+                                  
       throw new SyntaxErrorException( SYNERR_RIGHTPAREN, *temp ) ;
-      return false ; // ex: (1 . 3 . 3 ) // ?X?{??G??.?F 
+      return false ; // ex: (1 . 3 . 3 ) 
     } // else 
 
   } // else if
   else if ( temp->type == DOT ) {  
-        cout << "ww" << endl ;
+                              
     gnum = -1 ;
     throw new SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ;
-    return false ; // �ѰO�o�O�ƻ�ERROR�F����� 
+    return false ;
   } // else if
   else if ( temp->type == QUOTE ) { 
     //    cout << "xx" << endl ;
@@ -1198,10 +1175,10 @@ DOT 5
     S_EXP( temp ) ;
   } // else if
   else {
-        cout << "yy" << endl ;
+                              
     gnum = -1 ;
     throw new SyntaxErrorException( SYNERR_ATOM_PAR, *temp ) ;
-    return false ; // �S���o�تF�� 
+    return false ;
   } // else 
 
   return true ;     
@@ -1466,20 +1443,21 @@ void PreOrderTraversal( EXP* focusNode ) {
   if ( focusNode != NULL ) {
     
     if ( focusNode->type == EMPTYPTR ) {
-      if( NOT focusNode->vec.empty() )
+      if ( NOT focusNode->vec.empty() )
       {
         cout << " [ " ; 
-        for ( int i = 0; i < focusNode->vec.size(); i++ ) {
-          cout << focusNode->vec.at(i).token << " ";
-        }
+        for ( int i = 0; i < focusNode->vec.size() ; i++ ) {
+          cout << focusNode->vec.at( i ).token << " ";
+        } // for
+        
         cout << "] " ;  
-      }
+      } // if
       else 
       {
         cout << "EMPTY " ;  
-      } 
+      } // else
       
-    }
+    } // if
     else 
     {
       cout << focusNode->token << " ";
@@ -1488,6 +1466,7 @@ void PreOrderTraversal( EXP* focusNode ) {
     PreOrderTraversal( focusNode->listPtr ) ;
     PreOrderTraversal( focusNode->next ) ;
   } // if 
+  
 } // PreOrderTraversal()
 
 void GetPreOrderTraversal( EXP* focusNode, vector<EXP> &vec ) {
@@ -1504,14 +1483,14 @@ void GetPreOrderTraversal( EXP* focusNode, vector<EXP> &vec ) {
 void GetPreOrderTraversalWithNoEmpty( EXP* focusNode, vector<EXP> &vec ) {
 
   if ( focusNode != NULL ) {
-    if( focusNode->type != EMPTYPTR )
+    if ( focusNode->type != EMPTYPTR )
       vec.push_back( *focusNode ) ;
     GetPreOrderTraversalWithNoEmpty( focusNode->listPtr, vec ) ;
     GetPreOrderTraversalWithNoEmpty( focusNode->next, vec ) ;
   } // if 
 
 
-} // GetPreOrderTraversal()
+} // GetPreOrderTraversalWithNoEmpty()
 
 void BuildTree( vector<EXP> s_exp, int &i ) {
   EXP * temp = NULL ;
@@ -1953,6 +1932,8 @@ void FixSystemPrimitiveAndNil( vector<EXP> &s_exp ) {
       s_exp.at( i ).token = "#<procedure clean-environment>" ;
     else if ( s_exp.at( i ).type == EXIT ) 
       s_exp.at( i ).token = "#<procedure exit>" ;
+    else if ( s_exp.at( i ).type == LAMBDA_FUNC ) 
+      s_exp.at( i ).token = "#<procedure lambda>" ;
     else if ( s_exp.at( i ).type == LEFT_PAREN && i+1 < s_exp.size() 
               && s_exp.at( i + 1 ).type == RIGHT_PAREN ) {
       s_exp.at( i ).token = "nil" ;
@@ -1992,7 +1973,7 @@ private:
   void InsertLambdaMap( MAP m ) 
   { 
     mLambdaSymbolMap.push_back( m ) ; 
-  } // InsertLambdaMap( MAP m ) 
+  } // InsertLambdaMap() 
 
   void ClearLambdaMap() 
   { 
@@ -2345,10 +2326,11 @@ public :
   {
     mlevel = 0 ; 
   } // ResetLevel()
+
   void ClearResult() 
   {
     mresult.clear() ; 
-  }
+  } // ClearResult()
 
   void Pair_qmark() ; // pair?
   void List_qmark() ; // list?
@@ -2481,15 +2463,6 @@ public :
     else if ( mexeNode->type == LAMBDA )
       Lambda() ; 
       
-    
-    //else 
-    //{
-    //  CallFunction() ;          
-    //} // else 
-     
-
-
-
     if ( NOT emptyptr->vec.empty() )
     {
       // FixToken( emptyptr->vec ) ; 
@@ -2540,7 +2513,7 @@ void Functions::PrintMap() {
   } // while
      
   cout << endl << "================" << endl ;
-} // PrintMap()
+} // Functions::PrintMap()
 
 void Functions::ResetMemNum() {
   memNum = 0 ;
@@ -2601,7 +2574,8 @@ bool Functions::ThisIsFunction( string str )
   return false ; 
 } // Functions::ThisIsFunction() 
 
-bool Functions::FindGlobalMap( string str, vector<EXP> &new_vector, vector<string> &ss, FuncType &type ) { // �ufind global map
+bool Functions::FindGlobalMap( string str, vector<EXP> &new_vector, 
+                               vector<string> &ss, FuncType &type ) { // find global map
   int i = 0 ;
   while ( i < msymbolMap.size() ) {
     if ( msymbolMap.at( i ).str == str ) {
@@ -2659,14 +2633,18 @@ void Functions::Let() {
           new_vector.clear() ;
           if ( local->type != EMPTYPTR ) {
             cout << "ERROR (LET format)" << endl ; // pretty print
-            break ;
+            mnonListVec.clear() ; 
+            TraversalEmpty( gRoot ) ; 
+            throw new DefineFormatException( mnonListVec ) ;
           } // if
           else { // mlocalsymbolMap InsertLocalMap(str, vec) 
             EXP* localTP = local->listPtr->next ;
             string str = "\0" ;
             if ( IsSystemPrimitive( localTP->type ) || localTP->type != SYMBOL ) {
               cout << "ERROR (LET format)" << endl ; // pretty print
-              break ;
+              mnonListVec.clear() ; 
+              TraversalEmpty( gRoot ) ; 
+              throw new DefineFormatException( mnonListVec ) ;
             } // if
             else {
               str = localTP->token ;
@@ -3181,8 +3159,7 @@ void Functions::Pair_qmark()
 } // Functions::Pair_qmark()
 
 void Functions::List_qmark()
-{
-  // �p�G�Opair�N�ˬd�O���O list  
+{ 
 
   EXP* temp = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
@@ -4061,7 +4038,7 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
           } // if
           else {
             sum = sum / atof( temp->token.c_str() ) ;
-          } // else()
+          } // else
         } // else if
   
       } // if
@@ -4088,13 +4065,13 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
             } // if
             else {
               sum = sum / atof( new_vector.at( 0 ).token.c_str() ) ;
-            } // else()
+            } // else
           } // else if
         
         } // if
         else {
           noError = false ;
-          cout << "aaaa" << endl ;
+          // cout << "aaaa" << endl ;
           throw new IncorrectArgumentException( whichOperator, new_vector ) ; 
         } // else
       } // else if
@@ -4103,17 +4080,11 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
         throw new UnboundException( temp ) ; 
       } // else if 
       else if (  temp->type == EMPTYPTR ) {
-//        cout << "temp->next: " << temp->next->token << endl ;
         mexeNode = temp ;
         Eval() ;
-//        cout << "temp->vec.at(0): " << temp->vec.at(0).token ;
-//        if (temp->vec.size() == 2) 
-//          cout << ", temp->vec.at(1): " << temp->vec.at(1).token ;
-//        cout << ", temp->vec.size(): " << temp->vec.size() << ", temp->vec.at( 0 ).type: " << temp->vec.at( 0 ).type << endl ;
         if ( temp->vec.size() == 1 
              && ( temp->vec.at( 0 ).type == INT 
                   || temp->vec.at( 0 ).type == FLOAT ) ) {
-//          cout << "mmmmm" << endl ;
           if ( temp->vec.at( 0 ).type == FLOAT )
             hasFloat = true ;
             
@@ -4133,28 +4104,26 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
             } // if
             else {
               sum = sum / atof( temp->vec.at( 0 ).token.c_str() ) ;
-            } // else()
+            } // else
           } // else if
           
         } // if
-        else { ////
+        else { 
           noError = false ;
-          cout << "ADD emptyptr: " ;
-          PreOrderTraversal( emptyptr ) ;
-          cout << endl << "ADD gRoot: " ;
-          PreOrderTraversal( gRoot ) ;
+          // cout << "ADD emptyptr: " ;
+          // PreOrderTraversal( emptyptr ) ;
+          // cout << endl << "ADD gRoot: " ;
+          // PreOrderTraversal( gRoot ) ;
           throw new IncorrectArgumentException( whichOperator, temp->vec ) ; 
         } // else
         
       } // else if
       else {
-//        cout << "cccc" << endl ;
         throw new IncorrectArgumentException( whichOperator, *temp ) ; 
         noError = false ;
       } // else 
       
       temp = temp->next ;
-//      cout << "sum: " << sum<<endl ;
     } // while
     
     if ( noError == true ) {
@@ -4168,8 +4137,8 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
       else { // INT
         ex.token = IntToString( sum ) ;
         ex.type = INT ;
-      } // else            
-//      emptyptr->vec.clear() ;       
+      } // else
+        
       emptyptr->vec.push_back( ex ) ;
     } // if
                                                              
@@ -4708,8 +4677,7 @@ void DeleteTree( EXP* focusNode )
   focusNode = NULL ;
 } // DeleteTree() 
 
-void Functions::CallFunction() { // can not test
-  cout << "CallFunction : " << mexeNode->token << " " ; 
+void Functions::CallFunction() {
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP* temp = mexeNode->next ;
   vector<EXP> s_exp ;
@@ -4727,7 +4695,7 @@ void Functions::CallFunction() { // can not test
       new_vector.clear() ;
       if ( temp->type == EMPTYPTR ) {
         
-        GetPreOrderTraversal( temp->listPtr, new_vector ) ;
+        GetPreOrderTraversalWithNoEmpty( temp->listPtr, new_vector ) ;
         // cout << endl << endl << "new_vector : " << PrettyString(new_vector)<< endl ;
         InsertLocalMap( parameter.at( i ), new_vector ) ;
       } // if
@@ -4742,16 +4710,40 @@ void Functions::CallFunction() { // can not test
       i++ ;
       
     } // while
-
+    
     new_vector.clear() ;
-    vector<EXP> new_s_exp ;
-    for ( int i = 0 ; i < s_exp.size() ; i++ ) {
-      if ( s_exp.at( i ).type == SYMBOL && FindLocalMap( s_exp.at( i ).token, new_vector ) ) {
+    vector<EXP> new_s_exp ; 
+    for ( int i = 0 ; i < s_exp.size() ; i++ ) { 
+      if ( s_exp.at( i ).type == LET || s_exp.at( i ).type == LAMBDA ) {
+        i-- ;
+        int count = 0 ;
+        bool bbreak = false ;
+        while ( bbreak == false ) {
+          if ( s_exp.at( i ).type == LEFT_PAREN ) {
+            count++;
+          } // if
+          else if ( s_exp.at( i ).type == RIGHT_PAREN ) {
+            count--;
+            if ( count == 0 ) {
+              bbreak = true ;
+            } // if
+
+          } // else if
+
+          if ( bbreak == false ) {
+            i++ ;
+            new_s_exp.push_back( s_exp.at( i ) ) ;
+          } // if
+
+        } // while
+     
+      } // if
+      else if ( s_exp.at( i ).type == SYMBOL && FindLocalMap( s_exp.at( i ).token, new_vector ) ) {
         for ( int i = 0; i < new_vector.size() ; i++ ) {
           new_s_exp.push_back( new_vector.at( i ) ) ;
         } // for
         
-      } // if
+      } // else if
       else {
         new_s_exp.push_back( s_exp.at( i ) ) ;
       } // else
@@ -4774,12 +4766,12 @@ void Functions::CallFunction() { // can not test
     throw new IncorrectNumberException( mexeNode->token ) ;
   } // else
     
+
 } // Functions::CallFunction()
 
 void Functions :: CallLambdaFunction() 
 { 
-  cout << "CallLambdaFunction : " << mexeNode->token << " " ;
-
+  
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   
   MAP value ; 
@@ -4798,21 +4790,17 @@ void Functions :: CallLambdaFunction()
   
   s_exp.assign( value.vec.begin(), value.vec.end() ) ; 
   
-  cout << "s_exp : " << PrettyString( s_exp ) << endl ;
+  // cout << "lambda_exp : " << PrettyString( s_exp ) << endl ;
   
-  vector<EXP> new_s_exp ;
-  cout << "size : " << parameterSize << endl ; 
-  
+  vector<EXP> new_s_exp ;  
   if ( CheckNumOfArg( parameterSize ) )
   {
-    cout << " CORRECT CheckNumOfArg" << endl ; 
     int j = 0 ;
     vector<EXP> new_vector ;
     while ( j < parameterSize ) {  
       new_vector.clear() ;
       if ( temp->type == EMPTYPTR ) {
         GetPreOrderTraversalWithNoEmpty( temp->listPtr, new_vector ) ;
-        cout << endl << endl << "new_vector : " << PrettyString(new_vector) << endl ;
         InsertLocalMap( parameter.at( j ), new_vector ) ;
       } // if
       else {
@@ -4829,31 +4817,61 @@ void Functions :: CallLambdaFunction()
 
     new_vector.clear() ;
     vector<EXP> new_s_exp ;
-    for ( int i = 0 ; i < s_exp.size() ; i++ ) {
-      if ( s_exp.at( i ).type == SYMBOL && FindLocalMap( s_exp.at( i ).token, new_vector ) ) {
-        for ( int i = 0; i < new_vector.size() ; i++ ) {
-          new_s_exp.push_back( new_vector.at( i ) ) ;
-        } // for
+    bool isLamdaOrLet = false ; 
+    int parNum = 0 ; 
+    for ( int i = 0 ; i < s_exp.size() ; i++ ) 
+    {
+      if ( isLamdaOrLet == false && ( s_exp.at( i ).type == LAMBDA || s_exp.at( i ).type == LET ) ) 
+      {
+        isLamdaOrLet = true ; 
+        parNum = 1 ; 
+      } // if 
 
-      } // if
-      else {
+      if ( isLamdaOrLet == false )
+      {
+        if ( s_exp.at( i ).type == SYMBOL && FindLocalMap( s_exp.at( i ).token, new_vector ) ) {
+          for ( int i = 0; i < new_vector.size() ; i++ ) {
+            new_s_exp.push_back( new_vector.at( i ) ) ;
+          } // for
+        } // if
+        else {
+          new_s_exp.push_back( s_exp.at( i ) ) ;
+        } // else
+      } // if 
+      else
+      {
         new_s_exp.push_back( s_exp.at( i ) ) ;
       } // else
 
+      if ( isLamdaOrLet == true )
+      {
+        if ( s_exp.at( i ).type == LEFT_PAREN )
+        {
+          parNum ++ ; 
+        } // if 
+        else if ( s_exp.at( i ).type == RIGHT_PAREN )
+        {
+          parNum -- ; 
+        } // else if
+      } // if 
+      
+      if ( isLamdaOrLet == true && parNum == 0 )
+      {
+        isLamdaOrLet = false ; 
+      } // if 
     } // for
 
-    cout << "Extention : " << PrettyString( new_s_exp ) << endl ;
+    // cout << "Extention : " << PrettyString( new_s_exp ) << endl ;
 
+    ClearLocalMap() ;
     int i = 0 ;
     EXP* root = DynamicBuildTree( new_s_exp, i ) ;
-    PreOrderTraversal( root ) ; 
+    // PreOrderTraversal( root ) ; 
     emptyptr->listPtr->pre_listPtr = NULL ;
     emptyptr->listPtr = root->listPtr ; // double link list
     root->listPtr = NULL ;
     emptyptr->listPtr->pre_listPtr = emptyptr ;
     mexeNode = emptyptr->listPtr->next ; // first argument 
-
-    cout << "mexeNode : " << mexeNode->token << endl ;
   } // if 
   else
   {
@@ -4902,10 +4920,10 @@ void Functions::CheckLambdaFormat( EXP* now )
 
     } // else 
 
-  } // else 
+  } // else if
 
   now = now -> listPtr ; // now = "(" 
-} // CheckLambdaFormat()
+} // Functions::CheckLambdaFormat()
 
 void Functions::Lambda()
 {
@@ -4929,22 +4947,22 @@ void Functions::Lambda()
   now = now->next->next  ; 
 
   EXP* par = now ->listPtr ; // par = "("
-  cout << endl << "parameter : [ " ;
+  // cout << endl << "parameter : [ " ;
   while ( par->type != RIGHT_PAREN ) {
     
      
 
     if ( par->type != LEFT_PAREN )
     {
-      cout << par->token << " " ; 
+      // cout << par->token << " " ; 
       parameter.push_back( par->token ) ;
     } // if 
       
-
     par = par->next ;
 
   } // while
-  cout << "]" << endl ; 
+  
+  // cout << "]" << endl ; 
 
   now = now -> next ; // now = first S-expression
 
@@ -4953,7 +4971,7 @@ void Functions::Lambda()
 
   GetPreOrderTraversalWithNoEmpty( now, s_exp ) ;
   s_exp.pop_back() ; 
-  cout << PrettyString( s_exp ) << endl ; 
+  // cout << PrettyString( s_exp ) << endl ; 
 
   MAP lambda_vec ; 
   lambda_vec.str = "lambda" ;
@@ -4962,7 +4980,7 @@ void Functions::Lambda()
   lambda_vec.vec.assign( s_exp.begin(), s_exp.end() ) ; 
   InsertLambdaMap( lambda_vec ) ; 
 
-} // lambda()
+} // Functions::Lambda()
 
 void Functions::Define() { 
   memNum++ ;
@@ -5060,7 +5078,7 @@ void Functions::Define() {
               
               if ( expression->type == RIGHT_PAREN ) {
               
-                while ( expression->type != LEFT_PAREN ) { // ���^�h 
+                while ( expression->type != LEFT_PAREN ) { 
                   expression = expression->pre_next ; 
                 } // while
                 
@@ -5127,12 +5145,13 @@ bool Functions::IsSystemPrimitive( Type type ) {
 
 void Functions::Eval() {
   bool callFunction = false ; 
-  cout << endl << "eval mexenode : " ;
-  PreOrderTraversal( mexeNode ) ;
-  cout << endl ; 
-//  system("pause") ;
+  // cout << endl << "eval mexenode : " << mexeNode->token << endl ;
+  // cout << "full Exp : " ; 
+  // PreOrderTraversal( gRoot ) ; 
+  // cout << endl ; 
+
   bool hasError = false ;
-  vector<EXP> new_vector ; // map�� 
+  vector<EXP> new_vector ; 
   EXP* temp = mexeNode ;
   EXP* firstArgument = NULL ; 
   mlevel ++ ; 
@@ -5153,9 +5172,21 @@ void Functions::Eval() {
     } // if  
     else
     {
-      cout << "HERE : " << PrettyString( new_vector ) << endl ; 
-      mresult.clear() ; 
-      mresult.assign( new_vector.begin(), new_vector.end() ) ;
+      // cout << "HERE : " << PrettyString( new_vector ) << endl ; 
+      if ( tt == TYPENONE )
+      {
+        mresult.clear() ; 
+        mresult.assign( new_vector.begin(), new_vector.end() ) ;
+      } // if 
+      else if ( tt == TYPEDEFINE )
+      {
+        mresult.clear() ; 
+        EXP t ; 
+        t.token = "#<procedure " + temp->token + ">" ;
+        t.type = SYMBOL ; 
+        mresult.push_back( t ) ;
+      } // else if
+      
       return ; 
     } // else 
 
@@ -5232,7 +5263,9 @@ void Functions::Eval() {
           } // else if 
           else if ( firstArgument->type == LAMBDA )
           { 
+
           } // else if 
+
           mexeNode = firstArgument ; 
         } // else if  
         else if ( firstArgument->type == IF )
@@ -5313,7 +5346,7 @@ void Functions::Eval() {
       } // else if 
       else
       {
-        cout << "ERROR : the vec is empty" ;
+        // cout << "ERROR : the vec is empty" ;
         hasError = true ; 
       } // else 
 
@@ -5323,23 +5356,91 @@ void Functions::Eval() {
 
   if ( callFunction == true )
   {
+    cout << "call function" << mexeNode->token << endl ;
     CallFunction() ;
     cout << "Extention function : " ;
     // ClearEmptyPtr( gRoot ) ;
     PreOrderTraversal( gRoot ) ; 
     cout << endl ; 
-  } // if 
-  if ( firstArgument->type == LAMBDA_FUNC )
-  {
-    CallLambdaFunction() ;  
-  } // else if 
 
+    if ( mexeNode->type == EMPTYPTR )
+    {
+      firstArgument = mexeNode ; 
+      // cout << "FirstArgument : " << firstArgument->token << endl ;
+      Eval() ;
+      // cout << "FirstArgument : " << firstArgument->token << " "<< firstArgument->vec.size() << endl ;
+      if ( NOT firstArgument->vec.empty() && 
+           firstArgument->vec.size() == 1 && 
+           IsSystemPrimitive( firstArgument->vec.at( 0 ).type ) ) 
+      {
+        firstArgument->token = firstArgument->vec.at( 0 ).token ; 
+        firstArgument->type = firstArgument->vec.at( 0 ).type ;
+        // cout << firstArgument->token << "  " ;
+        mexeNode = firstArgument ;
+      } // if 
+      else if ( NOT firstArgument->vec.empty() &&
+                NOT IsSystemPrimitive( firstArgument->vec.at( 0 ).type ) )
+      {
+        throw new NonFunctionException( firstArgument->vec ) ; 
+      } // else if 
+      else
+      {
+        // cout << "ERROR : the vec is empty" ;
+        hasError = true ; 
+      } // else
+    } // if 
+ 
+  } // if 
+
+  while ( mexeNode->type == LAMBDA_FUNC )
+  {
+    // cout << "Call : " << mexeNode->token << endl ;
+    if ( firstArgument->type == LAMBDA_FUNC )
+    {
+      // cout << "CallLambdaFunction : " << mexeNode->token << endl ;
+      CallLambdaFunction() ; 
+      // cout << "Extention function : " ;
+      // PreOrderTraversal( gRoot ) ; 
+      // cout << endl ; 
+
+      if ( mexeNode->type == EMPTYPTR )
+      {
+        firstArgument = mexeNode ; 
+        // cout << "FirstArgument is EMPTY call Eval() : " << firstArgument->token << endl ;
+        Eval() ;
+
+        if ( NOT firstArgument->vec.empty() && 
+             firstArgument->vec.size() == 1 && 
+             IsSystemPrimitive( firstArgument->vec.at( 0 ).type ) ) 
+        {
+          firstArgument->token = firstArgument->vec.at( 0 ).token ; 
+          firstArgument->type = firstArgument->vec.at( 0 ).type ;
+          // cout << "Now FirstArgument is [" << firstArgument->token << "]" << endl ;
+          mexeNode = firstArgument ;
+        } // if 
+        else if ( NOT firstArgument->vec.empty() &&
+                  NOT IsSystemPrimitive( firstArgument->vec.at( 0 ).type ) )
+        {
+          throw new NonFunctionException( firstArgument->vec ) ; 
+        } // else if 
+        else
+        {
+          // cout << "ERROR : the vec is empty" ;
+          hasError = true ; 
+        } // else
+      } // if 
+
+    } // if
+
+  } // while 
+
+   
   if ( hasError == false ) {
-    cout << "firstArgument : " << mexeNode->token << "  " ; 
+    // cout << "Now Execute [ " << mexeNode->token << " ]" << endl ;
     Execute() ;
-    cout << endl << "Execute done : " << mexeNode->token << "  "; 
-    PreOrderTraversal( gRoot ) ; 
-    cout << endl ;
+    // cout << endl << "Execute done : " << mexeNode->token << endl ; 
+    // PreOrderTraversal( gRoot ) ; 
+    // cout << endl ;
     
   } // if 
 
@@ -5361,7 +5462,7 @@ bool PrintRoot()
 static int uTestNum = -1 ; 
 
 int main() { 
-//  cin >> uTestNum ; 
+  cin >> uTestNum ; 
   int i = 0 ;
   bool syntaxIsTrue = false ;
   vector<Type> myStack ; 
@@ -5540,11 +5641,12 @@ int main() {
             funcClass->SetRoot() ;
             funcClass->Eval() ;
             funcClass->ResetLevel() ; 
-            funcClass->PrintMap() ; 
+            // funcClass->PrintMap() ; 
             
 
             if ( PrintRoot() == false )
             {
+              // cout << "mResult" << "  " ; 
               vector<EXP> result = funcClass->GetResult() ; 
               cout << PrettyString( result ) ;
               funcClass->ClearResult() ; 
