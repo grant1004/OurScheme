@@ -24,8 +24,6 @@ int gLastRow = 0 ;
 int gNumOfParen = 0 ;
 bool gEndLine = false ;
 
-
-
 # define NOT ! 
 
 enum Type 
@@ -68,7 +66,6 @@ enum FuncType
   TYPELAMBDA, // procedure lambda 
   TYPENONE // symbol  
 };
-
 
 struct EXP {
   string token ;
@@ -2496,6 +2493,7 @@ void Functions::PrintMap() {
   while ( i < msymbolMap.size() ) {
     cout << msymbolMap.at( i ).str << ": " ;
     k = 0 ;
+    cout << endl << "memSpace: " << msymbolMap.at( i ).vec.at( 0 ).memSpace << endl ;
     while ( k < msymbolMap.at( i ).vec.size() ) {
       cout << msymbolMap.at( i ).vec.at( k ).token << " " ;
       k++ ;
@@ -5032,10 +5030,10 @@ void Functions::Define() {
         vs.push_back( ex ) ; 
         InsertMap( str, vs ) ;
         
-      } // else
+      } // else 
       
     } // if
-    else if ( temp->type == EMPTYPTR ) { // project3 function
+    else if ( temp->type == EMPTYPTR ) { // new_vector.at( 0 ).memSpace = FindMemNum( temp->token ) ; 
       EXP* funcName = temp->listPtr->next ;
       if ( IsSystemPrimitive( funcName->type ) || funcName->type != SYMBOL ) {
         mnonListVec.clear() ; 
@@ -5102,6 +5100,7 @@ void Functions::Define() {
           
         } // while
         
+        new_vector.at( 0 ).memSpace = memNum ; // 
         InsertFuncInGlobalMap( str, pp, new_vector, TYPEDEFINE ) ;
     
       } // else
@@ -5182,7 +5181,18 @@ void Functions::Eval() {
       {
         mresult.clear() ; 
         EXP t ; 
-        t.token = "#<procedure " + temp->token + ">" ;
+        string binding ; 
+        int memspace = FindMemNum( temp->token ) ; 
+        for ( int j = 0 ; j < msymbolMap.size() ; j ++ )
+        {
+          if ( memspace == msymbolMap.at( j ).vec.at( 0 ).memSpace )
+          {
+            binding = msymbolMap.at( j ).str ; 
+            j = msymbolMap.size() ;
+          } // if 
+        } // for
+         
+        t.token = "#<procedure " + binding + ">" ;
         t.type = SYMBOL ; 
         mresult.push_back( t ) ;
       } // else if
@@ -5356,12 +5366,12 @@ void Functions::Eval() {
 
   if ( callFunction == true )
   {
-    cout << "call function" << mexeNode->token << endl ;
+    // cout << "call function" << mexeNode->token << endl ;
     CallFunction() ;
-    cout << "Extention function : " ;
+    // cout << "Extention function : " ;
     // ClearEmptyPtr( gRoot ) ;
-    PreOrderTraversal( gRoot ) ; 
-    cout << endl ; 
+    // PreOrderTraversal( gRoot ) ; 
+    // cout << endl ; 
 
     if ( mexeNode->type == EMPTYPTR )
     {
