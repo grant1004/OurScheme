@@ -1,0 +1,21 @@
+1
+(define a "=============== Problem 3 viewable case =================")
+a
+
+( define a 2 )
+( define f ( lambda (x) (+ x c) ; the binding of 'f' is defined
+             )                      ; to be the internal representation
+  )                                 ; of a function
+f
+( define c 10 )
+(f a)
+
+( f 
+  ( 
+    ( lambda (x y) (+ x y) )
+    
+    ( f a ) ; 10 + 2 = 12  
+    
+    8 
+  ) ; 20 
+) ; 20 + 10 = 30 
