@@ -1,56 +1,59 @@
 Welcome to OurScheme!
 
-> This : EMPTY ( define a "=============== Problem 3 viewable case =================" ) 
-Now Execute [ define ]
-a defined
+> x1 defined
 
-> This : a 
-"=============== Problem 3 viewable case ================="
+> x2 defined
 
-> This : EMPTY ( define a 2 ) 
-Now Execute [ define ]
-a defined
+> x3 defined
 
-> This : EMPTY ( define f EMPTY ( lambda EMPTY ( x ) EMPTY ( + x c ) ) ) 
-Now Execute [ define ]
-Now Execute [ lambda ]
-f defined
+> SumUp defined
 
-> This : f 
-#<procedure lambda>
+> call function : SumUp
 
-> This : EMPTY ( define c 10 ) 
-Now Execute [ define ]
-c defined
+CALLFUNCTION------------------------------------------------------------------------
+======= LOCAL =======
+start: 5
+end: 10
 
-> This : EMPTY ( f a ) 
-CallLambdaFunction : lambda
-Extention function : EMPTY ( + a c ) 
-Now Execute [ + ]
-12
+======= GLOBAL =======
+x1: 13 , par_name: , FuncType : 2
+x2: 12 , par_name: , FuncType : 2
+x3: 5 , par_name: , FuncType : 2
+SumUp: ( cond ( ( = start end ) start ) ( ( > start end ) "Illegal input! the first argument must be smaller or equal to the second." ) ( else ( let ( ( new-start ( + start 1 ) ) ( x1 ( + x1 x2 ) ) ( x3 ( + x3 5 ) ) ) ( - x1 x3 ) ( + start ( SumUp new-start end ) ) ) ) ) , par_name: start end , FuncType : 0
 
-> This : EMPTY ( f EMPTY ( EMPTY ( lambda EMPTY ( x y ) EMPTY ( + x y ) ) EMPTY ( f a ) 8 ) ) 
-CallLambdaFunction : lambda
-Extention function : 
-EMPTY 
-( 
-+ EMPTY 
-  ( EMPTY ( lambda EMPTY ( x y ) EMPTY ( + x y ) ) EMPTY ( f a ) 8 ) 
-c 
-) 
-Now Execute [ + ]
-Now Execute [ lambda ]
-CallLambdaFunction : lambda
-Extention function : 
-EMPTY 
-( 
-+ EMPTY 
-  ( + EMPTY ( f a ) 8 ) 
-c 
-) 
-Now Execute [ + ]
-CallLambdaFunction : lambda
-ERROR (incorrect number of arguments) : lambda
+================
+
+LETLOCAL------------------------------------------------------------------------
+======= LOCAL =======
+new-start: 6
+x1: 25
+x3: 10
+
+======= GLOBAL =======
+x1: 13 , par_name: , FuncType : 2
+x2: 12 , par_name: , FuncType : 2
+x3: 5 , par_name: , FuncType : 2
+SumUp: ( cond ( ( = start end ) start ) ( ( > start end ) "Illegal input! the first argument must be smaller or equal to the second." ) ( else ( let ( ( new-start ( + start 1 ) ) ( x1 ( + x1 x2 ) ) ( x3 ( + x3 5 ) ) ) ( - x1 x3 ) ( + start ( SumUp new-start end ) ) ) ) ) , par_name: start end , FuncType : 0
+
+================
+call function : SumUp
+
+CALLFUNCTION------------------------------------------------------------------------
+======= LOCAL =======
+new-start: 6
+x1: 25
+x3: 10
+start: new-start
+end: 10
+
+======= GLOBAL =======
+x1: 13 , par_name: , FuncType : 2
+x2: 12 , par_name: , FuncType : 2
+x3: 5 , par_name: , FuncType : 2
+SumUp: ( cond ( ( = start end ) start ) ( ( > start end ) "Illegal input! the first argument must be smaller or equal to the second." ) ( else ( let ( ( new-start ( + start 1 ) ) ( x1 ( + x1 x2 ) ) ( x3 ( + x3 5 ) ) ) ( - x1 x3 ) ( + start ( SumUp new-start end ) ) ) ) ) , par_name: start end , FuncType : 0
+
+================
+ERROR (unbound symbol) : new-start
 
 > ERROR (no more input) : END-OF-FILE encountered
 Thanks for using OurScheme!

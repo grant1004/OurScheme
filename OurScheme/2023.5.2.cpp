@@ -93,6 +93,10 @@ struct MAP {
   FuncType funcType ;
 };
 
+struct LOCAL { 
+  vector<MAP> parameter ; // only use map's str and vec
+};
+
 void InitExp( EXP & ex )
 {
   ex.token = "\0";
@@ -1958,11 +1962,12 @@ vector<EXP> CopyVector( vector<EXP> input )
   return out ; 
 } // CopyVector()
 
-class Functions {
+class Functions { // clearlocalmap, mlocalMap_index control
 private: 
   vector<MAP> msymbolMap ;
-  vector<MAP> mlocalsymbolMap ;
   vector<MAP> mLambdaSymbolMap ;
+  vector<LOCAL> mlocalsymbolMap ; 
+  int mlocalMap_index ; // 還沒初始化 
   EXP* mexeNode ; 
   vector<EXP> mnonListVec ; // used to save non-list  
   int mlevel ; 
@@ -2043,11 +2048,11 @@ private:
     
   } // InsertMap()
 
-  bool InsertLocalMap( string str, vector<EXP> vec ) { // local variable嚙踝蕭 
+  bool InsertLocalMap( string str, vector<EXP> vec ) { 
     int i = 0 ;
-    while ( i < mlocalsymbolMap.size() ) {
-      if ( mlocalsymbolMap.at( i ).str == str ) {
-        mlocalsymbolMap.at( i ).vec.assign( vec.begin(), vec.end() ) ;
+    while ( i < mlocalsymbolMap.at( mlocalMap_index ).parameter.size() ) {
+      if ( mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).str == str ) {
+        mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.assign( vec.begin(), vec.end() ) ;
         return true ;
       } // if
       
@@ -2057,7 +2062,7 @@ private:
     MAP mm ;
     mm.str = str ;
     mm.vec.assign( vec.begin(), vec.end() ) ;
-    mlocalsymbolMap.push_back( mm ) ;
+    mlocalsymbolMap.at( mlocalMap_index ).parameter.push_back( mm ) ;
     return false ;
     
   } // InsertLocalMap()
@@ -2310,9 +2315,9 @@ public :
 
   bool IsLocalParameter( string value ) ; 
   void SetRoot() ; 
-  void ClearLocalMap() ;
   bool ThisIsFunction( string str ) ;
   void PrintMap() ;
+  void ClearLocalMap() ;
   void Eval() ; 
   void Define() ; 
   void Cons() ; 
@@ -2368,6 +2373,7 @@ public :
     mexeNode = NULL ; 
     mnonListVec.clear() ; 
     mresult.clear() ; 
+    mlocalMap_index = 0 ; // ???
   } // InitFunc()
   
   void InitExeNode() {
@@ -2535,11 +2541,11 @@ void Functions::PrintMap() {
   cout << "======= LOCAL =======" << endl ;
   int i = 0 ;
   int k = 0 ;
-  while ( i < mlocalsymbolMap.size() ) {
-    cout << mlocalsymbolMap.at( i ).str << ": " ;
+  while ( i < mlocalsymbolMap.at( mlocalMap_index ).parameter.size() ) {
+    cout << mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).str << ": " ;
     k = 0 ;
-    while ( k < mlocalsymbolMap.at( i ).vec.size() ) {
-      cout << mlocalsymbolMap.at( i ).vec.at( k ).token ;
+    while ( k < mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.size() ) {
+      cout << mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.at( k ).token ;
       k++ ;
     } // while
 
@@ -2583,14 +2589,15 @@ void Functions::SetRoot() {
 } // Functions::SetRoot()
 
 void Functions::ClearLocalMap() {
-  mlocalsymbolMap.clear() ;
+  mlocalsymbolMap.at( mlocalMap_index ).clear() ;
 } // Functions::ClearLocalMap()
 
-bool Functions::FindMap( string str, vector<EXP> &new_vector ) { // 嚙踝蕭 find local -> global 
+bool Functions::FindMap( string str, vector<EXP> &new_vector ) { // find local first then find global 
   int i = 0 ; 
-  while ( i < mlocalsymbolMap.size() ) { // find local map
-    if ( mlocalsymbolMap.at( i ).str == str ) {
-      new_vector.assign( mlocalsymbolMap.at( i ).vec.begin(), mlocalsymbolMap.at( i ).vec.end() ) ;
+  while ( i < mlocalsymbolMap.at( mlocalMap_index ).parameter.size() ) { // find local map
+    if ( mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).str == str ) {
+      new_vector.assign( mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.begin(), 
+                         mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.end() ) ;
       return true ;
     } // if
     
@@ -2671,11 +2678,12 @@ bool Functions::FindGlobalMap( string str, vector<EXP> &new_vector,
     
 } // Functions::FindGlobalMap() 
 
-bool Functions::FindLocalMap( string str, vector<EXP> &new_vector ) { // 嚙線find local map
+bool Functions::FindLocalMap( string str, vector<EXP> &new_vector ) { // only find local map
   int i = 0 ; 
-  while ( i < mlocalsymbolMap.size() ) { // find local map
-    if ( mlocalsymbolMap.at( i ).str == str ) {
-      new_vector.assign( mlocalsymbolMap.at( i ).vec.begin(), mlocalsymbolMap.at( i ).vec.end() ) ;
+  while ( i < mlocalsymbolMap.at( mlocalMap_index ).parameter.size() ) { 
+    if ( mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).str == str ) {
+      new_vector.assign( mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.begin(), 
+                         mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.end() ) ;
       return true ;
     } // if
     
@@ -4884,7 +4892,7 @@ void Functions::CallFunction() {
     } // for
 
 
-    ClearLocalMap() ;
+    ClearLocalMap() ; ///////////
     i = 0 ;
     temp = NULL ;
     
@@ -5107,7 +5115,7 @@ void Functions::CallFunction() {
       } // for
 
 
-      ClearLocalMap() ;
+      ClearLocalMap() ; //////////
       i = 0 ;
       temp = NULL ;
       // cout << endl << "new s_exp : " << PrettyString( new_s_exp ) << endl ;
@@ -5233,7 +5241,7 @@ void Functions :: CallLambdaFunction()
 
     // cout << "After Extention : " << PrettyString( new_s_exp ) << endl ;
 
-    ClearLocalMap() ;
+    ClearLocalMap() ; //////////
     int i = 0 ;
 
     EXP rr ; 
@@ -5984,7 +5992,7 @@ int main() {
     dotStack.clear() ;
     funcClass->ResetLevel() ;
     funcClass->InitExeNode() ;
-    funcClass->ClearLocalMap() ;
+     funcClass->ClearLocalMap() ;
     funcClass->ClearResult() ; 
     gHead = NULL ;
     DeleteTree( gRoot ) ; 

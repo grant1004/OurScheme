@@ -2,7 +2,7 @@ Welcome to OurScheme!
 
 > a defined
 
-> "=============== Problem 3 viewable case ================="
+> "=============== Problem 4 viewable case ================="
 
 > environment cleaned
 
@@ -12,132 +12,141 @@ Welcome to OurScheme!
 
 > x3 defined
 
-> Fcond defined
+> 7
 
-> Fif defined
+> 3
 
-> Fbegin defined
+> 4
 
-> Fand defined
+> Transform defined
 
-> For defined
+> x1 defined
 
-> -10320
+> x2 defined
 
-> -10
+> 13
 
-> 8
+> 12
 
-> For defined
+> 5
 
-> nil
+> SumUp defined
 
-> #t
+> 45
 
-> #t
+> "Illegal input! the first argument must be smaller or equal to the second."
 
-> nil
+> 5
 
-> #t
+> 30
 
-> nil
+> SumUp defined
 
-> Flambda defined
+> 55.500
 
-> #<procedure Flambda>
+> "Illegal input! the first argument must be smaller or equal to the second."
 
-> #<procedure lambda>
+> 3.500
 
-> #<procedure lambda>
+> 387.000
 
-> -60
-
-> -86
-
-> -2580
-
-> -752
+> 30
 
 > environment cleaned
 
-> #<procedure lambda>
+> #t
 
-> #<procedure lambda>
+> nil
 
-> #<procedure lambda>
+> #t
 
-> #<procedure lambda>
+> append defined
 
-> #<procedure lambda>
-
-> 11
-
-> a defined
-
-> f defined
-
-> #<procedure lambda>
-
-> c defined
-
-> 14
-
-> 54
-
-> x defined
-
-> y defined
-
-> g defined
-
-> 77556
-
-> 3110
-
-> F defined
-
-> G defined
-
-> 15
-
-> F defined
-
-> 40
-
-> F defined
-
-> 20
-
-> H defined
-
-> ( 3
-  .
+> ( 1
+  2
+  3
+  4
   5
 )
 
-> 10
-
-> F defined
-
-> ( 20
-  30
+> ( 10
+  ( ( 20
+      30
+    )
+    40
+  )
+  ( 50
+    ( 60
+    )
+  )
+  ( 70
+    ( 80
+      90
+    )
+  )
 )
 
-> 110
-
-> cadr defined
-
-> global defined
-
-> Try defined
-
-> 20
-
-> 10
-
-> ( 20
-  30
+> ( 1
+  2
+  3
+  4
+  ( 5
+  )
+  6
+  7
+  8
 )
 
-> 
-Thanks for using OurScheme!
+> ( 1
+  2
+  "invalid argument"
+  3
+  ( 4
+    5
+  )
+)
+
+> ( 1
+  "invalid argument"
+  2
+  ( 3
+    4
+  )
+)
+
+> #t
+
+> nil
+
+> #t
+
+> #t
+
+> #t
+
+> append1 defined
+
+> "invalid argument"
+
+> "invalid argument"
+
+> #t
+
+> nil
+
+> ( 10
+  ( ( 20
+      30
+    )
+    40
+  )
+  ( 50
+    ( 60
+    )
+  )
+  ( 70
+    ( 80
+      90
+    )
+  )
+)

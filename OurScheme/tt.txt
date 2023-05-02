@@ -1,21 +1,26 @@
 1
-(define a "=============== Problem 3 viewable case =================")
-a
+ 
+ 
+(define x1 13)
+(define x2 12)
+(define x3 5)
 
-( define a 2 )
-( define f ( lambda (x) (+ x c) ; the binding of 'f' is defined
-             )                      ; to be the internal representation
-  )                                 ; of a function
-f
-( define c 10 )
-(f a)
 
-( f 
-  ( 
-    ( lambda (x y) (+ x y) )
-    
-    ( f a ) ; 10 + 2 = 12  
-    
-    8 
-  ) ; 20 
-) ; 20 + 10 = 30 
+( define (SumUp start end) 
+
+  ( cond ( (= start end) start )
+         ( (> start end) "Illegal input! the first argument must be smaller or equal to the second.")
+         ( else
+             ( let ( ( new-start (+ start 1) )
+                     ( x1 (+ x1 x2) )
+                     ( x3 (+ x3 5) )
+                   )
+                   ( - x1 x3 )
+                   ( + start ( SumUp new-start end ) )
+             )
+         )
+  )
+   
+)
+
+(SumUp 5 10)
