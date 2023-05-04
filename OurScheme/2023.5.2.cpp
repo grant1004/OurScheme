@@ -157,7 +157,7 @@ class SyntaxErrorException
   {
     mErrMsg = "" ;
     stringstream ss ;
-    if ( ErrType == SYNERR_ATOM_PAR ) // ( �U�@��token���ӭn�� ATOM �άO '(' )
+    if ( ErrType == SYNERR_ATOM_PAR ) 
     {
       ss << "ERROR (unexpected token) : "
         << "atom or '(' expected when token at "
@@ -165,7 +165,7 @@ class SyntaxErrorException
         << " Column " << token.column << " is >>" << token.token << "<<" ;  
       mErrMsg = ss.str() ;
     } // if 
-    else if ( ErrType == SYNERR_RIGHTPAREN ) // (  ���ӭn���k�A���o�S���k�A��  )
+    else if ( ErrType == SYNERR_RIGHTPAREN ) 
     {
       ss << "ERROR (unexpected token) : "
         << "')' expected when token at "
@@ -586,7 +586,7 @@ bool IsInt( string token ) // �}�Y�i�H�O0��???
   return true ; 
 } // IsInt() 
 
-bool IsFloat( string token ) // �}�Y�i�H�O0��??
+bool IsFloat( string token ) 
 {
   bool cont = false ; // continue ; 
   int numOfDot = 0 ; 
@@ -640,12 +640,10 @@ bool IsSymbol( string token )
 {
   if ( token == " " ) 
   {
-    // cout << "Is White Space" ; 
     return false ; 
   } // if 
   else if ( token == "\0" ) 
   {
-    // cout << "Is NULL" ; 
     return false ; 
   } // else if
   else if ( token.empty() )
@@ -767,9 +765,9 @@ string GetString()
     ch = getchar() ; 
     gNowColumn ++ ; 
     // cout << ch ; 
-    if ( ch == '\\' ) // ����r�� \"
+    if ( ch == '\\' ) 
     {
-      // �J�����r���n�� \ �R���A�ïd�U�U�@�Ӧr�� 
+
       // EX:  '\"' --> '"', '\\"' --> '\"' 
       char peek = cin.peek() ; 
       if ( peek == 'n' || peek == 't' || peek == '\'' || peek == '\"' || peek == '\\' )
@@ -884,7 +882,6 @@ char GetFirstChar() // skip white space to get First char
 EXP GetToken() 
 {
   // (1 . (2 . (3 . nil)))
-  // ���ιJ�쪺�Ĥ@��token �çP�_�e��type 
 
   EXP gg ; 
   InitExp( gg ) ; 
@@ -892,11 +889,11 @@ EXP GetToken()
   char ch = GetFirstChar() ;
   
   char peek = '\0' ;  
-  bool valid = true ; // true : ���O delimiter string EOF�A false : �N���i��O delimiter string EOF 
+  bool valid = true ; 
   
   bool skipComment = false ; 
   
-  while ( NOT skipComment ) // ���٨S�����������ѡA�N�i�hwhile�A�p�G�������L�F�~���U��
+  while ( NOT skipComment ) 
   {
     if ( IsComment( ch ) )
     {
@@ -1615,7 +1612,7 @@ EXP * DynamicBuildTree( vector<EXP> s_exp, int &i ) { // project3
 } // DynamicBuildTree()
   
 
-string Rounding( string str ) { // �p���I��|��+�|�ˤ��J 
+string Rounding( string str ) { 
   stringstream ss ;
   ss << fixed << setprecision( 3 ) << atof( str.c_str() ) ;
   return ss.str() ;
@@ -1784,11 +1781,11 @@ void FixQuote( vector<EXP> & s_exp ) { // '(1 '4) , '(1), (1 '2 4 5)
           parnum-- ;
         } // else if
         
-        if ( parnum == 0 ) { // �J�쥿�T���k�A�� 
+        if ( parnum == 0 ) { 
           temp.token = ")" ;
           temp.type = RIGHT_PAREN ;
           s_exp.insert( s_exp.begin()+k+1, temp ) ;
-          k = s_exp.size() ; // �X�j�� 
+          k = s_exp.size() ;
         } // if
 
         k++ ;
@@ -1967,12 +1964,41 @@ private:
   vector<MAP> msymbolMap ;
   vector<MAP> mLambdaSymbolMap ;
   vector<LOCAL> mlocalsymbolMap ; 
-  int mlocalMap_index ; // �٨S��l�� 
   EXP* mexeNode ; 
   vector<EXP> mnonListVec ; // used to save non-list  
   int mlevel ; 
   int memNum ;
   vector<EXP> mresult ; 
+
+  void PreordeTransValue( EXP* focusNode )
+  {
+    // cout << "TRANSVALUE" << endl ; 
+    if ( focusNode != NULL ) {
+
+      if ( focusNode->type == EMPTYPTR ) 
+      {
+
+      } // if
+      else 
+      {
+        vector<EXP> new_vector ; 
+        if ( FindLocalMap( focusNode->token, new_vector ) == true ) 
+        {
+          // cout << "Find value : " << focusNode->token << " -> " << PrettyString( new_vector )<< endl ;
+          focusNode -> token = new_vector.at( 0 ).token ; 
+          focusNode -> type = new_vector.at( 0 ).type ; 
+
+        } // if 
+        else 
+        {
+          // cout << "Not a local :" << focusNode->token << endl ; 
+        } // else 
+      } // else 
+
+      PreordeTransValue( focusNode->listPtr ) ;
+      PreordeTransValue( focusNode->next ) ;
+    } // if 
+  } // PreordeTransValue()
 
   void InsertLambdaMap( MAP m ) 
   { 
@@ -2004,7 +2030,7 @@ private:
   void CheckLambdaFormat( EXP* now ) ; 
 
   bool InsertMapAndPar( string str, vector<EXP> vec, vector<string> pp, FuncType type ) { 
-    // insert parameter/ sexp/ type �� global map
+    // insert parameter/ sexp/ type to global map
     int i = 0 ;
     while ( i < msymbolMap.size() ) {
       if ( msymbolMap.at( i ).str == str ) {
@@ -2050,9 +2076,11 @@ private:
 
   bool InsertLocalMap( string str, vector<EXP> vec ) { 
     int i = 0 ;
-    while ( i < mlocalsymbolMap.at( mlocalMap_index ).parameter.size() ) {
-      if ( mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).str == str ) {
-        mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.assign( vec.begin(), vec.end() ) ;
+    while ( i < mlocalsymbolMap.at( mlocalsymbolMap.size()-1 ).parameter.size() ) {
+      if ( mlocalsymbolMap.at( mlocalsymbolMap.size()-1 ).parameter.at( i ).str == str ) {
+        mlocalsymbolMap.at( 
+                            mlocalsymbolMap.size()-1 ).parameter.at( i ).vec.assign( vec.begin(), 
+                                                                                     vec.end() ) ;
         return true ;
       } // if
       
@@ -2062,7 +2090,7 @@ private:
     MAP mm ;
     mm.str = str ;
     mm.vec.assign( vec.begin(), vec.end() ) ;
-    mlocalsymbolMap.at( mlocalMap_index ).parameter.push_back( mm ) ;
+    mlocalsymbolMap.at( mlocalsymbolMap.size()-1 ).parameter.push_back( mm ) ;
     return false ;
     
   } // InsertLocalMap()
@@ -2208,7 +2236,7 @@ private:
     // cout << "Root:" ; PreOrderTraversal( root ) ; 
     // cout << endl ; 
     EXP * now = root->listPtr ; // "(" 
-    while( now->type != RIGHT_PAREN )  
+    while ( now->type != RIGHT_PAREN )  
     {
       if ( now -> token == "." )
         return false ; 
@@ -2217,8 +2245,8 @@ private:
     } // while 
 
     return true ; 
-    //while ( i < vec.size() )
-    //{
+    // while ( i < vec.size() )
+    // {
     //  if ( vec.at( i ).type == LEFT_PAREN )
     //  {
     //    parNum ++ ; 
@@ -2246,9 +2274,9 @@ private:
     //  } // else if 
 
     //  i ++ ; 
-    //} // while 
+    // } // while 
 
-    //return true ; 
+    // return true ; 
 
   } // IsList()
 
@@ -2311,8 +2339,10 @@ private:
     } // for 
   } // FixNil() 
   
-public : 
+public :
 
+  void ClearLSymbolMap() ;
+  
   bool IsLocalParameter( string value ) ; 
   void SetRoot() ; 
   bool ThisIsFunction( string str ) ;
@@ -2373,7 +2403,6 @@ public :
     mexeNode = NULL ; 
     mnonListVec.clear() ; 
     mresult.clear() ; 
-    mlocalMap_index = 0 ; // ???
   } // InitFunc()
   
   void InitExeNode() {
@@ -2541,17 +2570,24 @@ void Functions::PrintMap() {
   cout << "======= LOCAL =======" << endl ;
   int i = 0 ;
   int k = 0 ;
-  while ( i < mlocalsymbolMap.at( mlocalMap_index ).parameter.size() ) {
-    cout << mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).str << ": " ;
-    k = 0 ;
-    while ( k < mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.size() ) {
-      cout << mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.at( k ).token ;
-      k++ ;
-    } // while
+  if ( mlocalsymbolMap.size() > 0  )
+  {
+    cout << "Stack level : " << mlocalsymbolMap.size() << endl ; 
+    while ( i < mlocalsymbolMap.at( mlocalsymbolMap.size()-1 ).parameter.size() ) {
+      cout << mlocalsymbolMap.at( mlocalsymbolMap.size()-1 ).parameter.at( i ).str << ": " ;
+      k = 0 ;
+      while ( k < mlocalsymbolMap.at( mlocalsymbolMap.size()-1 ).parameter.at( i ).vec.size() ) {
+        cout << mlocalsymbolMap.at( mlocalsymbolMap.size()-1 ).parameter.at( i ).vec.at( k ).token ;
+        k++ ;
+      } // while
 
-    cout << endl ;
-    i++ ;
-  } // while
+      cout << endl ;
+      i++ ;
+    } // while
+  } // if 
+
+  cout << "=====================" << endl ;
+  
 
 
   cout << endl << "======= GLOBAL =======" << endl ;
@@ -2564,7 +2600,7 @@ void Functions::PrintMap() {
       cout << msymbolMap.at( i ).vec.at( k ).token << " " ;
       k++ ;
     } // while
-
+  
     cout << ", par_name: " ;
     k = 0 ;
     while ( k < msymbolMap.at( i ).par_name.size() ) {
@@ -2589,51 +2625,28 @@ void Functions::SetRoot() {
 } // Functions::SetRoot()
 
 void Functions::ClearLocalMap() {
-  mlocalsymbolMap.at( mlocalMap_index ).clear() ;
+  mlocalsymbolMap.at( mlocalsymbolMap.size()-1 ).parameter.clear() ;
 } // Functions::ClearLocalMap()
 
-bool Functions::FindMap( string str, vector<EXP> &new_vector ) { // find local first then find global 
-  int i = 0 ; 
-  while ( i < mlocalsymbolMap.at( mlocalMap_index ).parameter.size() ) { // find local map
-    if ( mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).str == str ) {
-      new_vector.assign( mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.begin(), 
-                         mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.end() ) ;
-      return true ;
-    } // if
-    
-    i++ ;
-  } // while
-  
-  i = 0 ;
-  while ( i < msymbolMap.size() ) { // find global map
-    if ( msymbolMap.at( i ).str == str ) {
+void Functions::ClearLSymbolMap()
+{
+  mlocalsymbolMap.clear() ; 
+} // Functions::ClearLSymbolMap()
 
-      // new_vector.assign( msymbolMap.at( i ).vec.begin(), msymbolMap.at( i ).vec.end() ) ;
-      if ( msymbolMap.at( i ).funcType == TYPELAMBDA )
-      {
-        EXP tt ; 
-        tt.token = "lambda" ; 
-        tt.type = LAMBDA_FUNC ; 
-        new_vector.push_back( tt ) ; 
-      } // if 
-      else if ( msymbolMap.at( i ).funcType == TYPEDEFINE ) 
-      {
-        EXP tt ; 
-        tt.token = str ; 
-        tt.type = SYMBOL ; 
-        new_vector.push_back( tt ) ;  
-      } // else if 
-      else 
-      {
-        new_vector.assign( msymbolMap.at( i ).vec.begin(), msymbolMap.at( i ).vec.end() ) ;
-      } // else 
-      
-      return true ;
-    } // if
-    
-    i++ ;
-  } // while
+bool Functions::FindMap( string str, vector<EXP> &new_vector ) { // find local first then find global 
   
+  vector<string> ss ; 
+  FuncType type ; 
+
+  if ( FindLocalMap( str, new_vector ) ) 
+  {
+    return true ; 
+  } // if 
+  else if ( FindGlobalMap( str, new_vector, ss, type ) ) 
+  {
+    return true ; 
+  } // else if 
+
   return false ;
     
 } // Functions::FindMap() 
@@ -2680,10 +2693,16 @@ bool Functions::FindGlobalMap( string str, vector<EXP> &new_vector,
 
 bool Functions::FindLocalMap( string str, vector<EXP> &new_vector ) { // only find local map
   int i = 0 ; 
-  while ( i < mlocalsymbolMap.at( mlocalMap_index ).parameter.size() ) { 
-    if ( mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).str == str ) {
-      new_vector.assign( mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.begin(), 
-                         mlocalsymbolMap.at( mlocalMap_index ).parameter.at( i ).vec.end() ) ;
+
+  if ( mlocalsymbolMap.size() == 0 )
+  {
+    return false ; 
+  } // if
+
+  while ( i < mlocalsymbolMap.at( mlocalsymbolMap.size()-1 ).parameter.size() ) { 
+    if ( mlocalsymbolMap.at( mlocalsymbolMap.size()-1 ).parameter.at( i ).str == str ) {
+      new_vector.assign( mlocalsymbolMap.at( mlocalsymbolMap.size()-1 ).parameter.at( i ).vec.begin(), 
+                         mlocalsymbolMap.at( mlocalsymbolMap.size()-1 ).parameter.at( i ).vec.end() ) ;
       return true ;
     } // if
     
@@ -2702,6 +2721,8 @@ void Functions::Let() {
   EXP ex ;
   InitExp( ex ) ;
   FuncType type ;
+  LOCAL localMap ; 
+  mlocalsymbolMap.push_back( localMap ) ;   
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
     cout << "ERROR (LET format)" << endl ; // pretty print
     mnonListVec.clear() ; 
@@ -2766,12 +2787,15 @@ void Functions::Let() {
           
         } // while 
         
-        cout << "\nLETLOCAL------------------------------------------------------------------------" << endl ; 
-        PrintMap() ; 
+        // cout << "\nLETLOCAL" << endl ; 
+        // PrintMap() ; 
       } // if
 
+      temp = temp->next ; 
+
+      EXP* let_exp_start = temp ; 
+      PreordeTransValue( let_exp_start ) ; 
       
-      temp = temp->next ;
       
       while ( temp->type != RIGHT_PAREN ) {
         new_vector.clear() ;
@@ -3218,7 +3242,6 @@ void Functions::Begin()
 
 void Functions::Pair_qmark()
 {
-  // �u�n���Oatom �N�O true 
   EXP* temp = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP ex ;
@@ -4772,6 +4795,8 @@ void DeleteTree( EXP* focusNode )
 } // DeleteTree() 
 
 void Functions::CallFunction() {
+  // cout << "call function : " << mexeNode->token << endl ;
+  string funcName = mexeNode->token ; 
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP* temp = mexeNode->next ;
   vector<EXP> s_exp ;
@@ -4780,9 +4805,10 @@ void Functions::CallFunction() {
   FindGlobalMap( mexeNode->token, s_exp, parameter, type ) ;
   EXP ex ;
   InitExp( ex ) ;
+  LOCAL localMap ; 
+  mlocalsymbolMap.push_back( localMap ) ;  
   
-    
-   // cout << "s_exp : " << PrettyString( s_exp ) << endl ; 
+  // cout << "s_exp : " << PrettyString( s_exp ) << endl ; 
   
 
   if ( type == TYPELAMBDA ) 
@@ -4892,7 +4918,7 @@ void Functions::CallFunction() {
     } // for
 
 
-    ClearLocalMap() ; ///////////
+    // ClearLocalMap() ; ///////////
     i = 0 ;
     temp = NULL ;
     
@@ -4917,20 +4943,38 @@ void Functions::CallFunction() {
   } // if 
   else 
   {
+    
     if ( CheckNumOfArg( parameter.size() ) ) { 
       int i = 0 ;
       vector<EXP> new_vector ;
 
-
+      vector<string> ss ; 
+      FuncType ft ; 
       // get parameter 
       while ( i < parameter.size() ) {  
         new_vector.clear() ;
-        if ( temp->type == EMPTYPTR ) {
+        if ( temp->type == EMPTYPTR && FindGlobalMap( temp->token, new_vector, ss, ft ) ) {
 
-          GetPreOrderTraversalWithNoEmpty( temp->listPtr, new_vector ) ;
-          // cout << endl << endl << "new_vector : " << PrettyString(new_vector)<< endl ;
-          InsertLocalMap( parameter.at( i ), new_vector ) ;
+          if ( ft == TYPEDEFINE )
+          {
+            mexeNode = temp ;
+            // GetPreOrderTraversalWithNoEmpty( temp->listPtr, new_vector ) ;
+            Eval() ; 
+            // cout << endl << endl << "new_vector : " << PrettyString(new_vector)<< endl ;
+            InsertLocalMap( parameter.at( i ), temp->vec ) ;
+          } // if 
+          else 
+          {
+            GetPreOrderTraversalWithNoEmpty( temp->listPtr, new_vector ) ;
+            InsertLocalMap( parameter.at( i ), new_vector ) ;
+          } // else
+          
         } // if
+        else if ( temp->type == EMPTYPTR )
+        {
+          GetPreOrderTraversalWithNoEmpty( temp->listPtr, new_vector ) ;
+          InsertLocalMap( parameter.at( i ), new_vector ) ;
+        } // else if 
         else {
           ex.token = temp->token ; 
           ex.type = temp->type ;
@@ -4943,11 +4987,7 @@ void Functions::CallFunction() {
 
       } // while
 
-      // end get parameter 
-
-      cout << "\nCALLFUNCTION------------------------------------------------------------------------" << endl ; 
-      PrintMap() ;
-
+      // end get parameter      
 
       new_vector.clear() ;
       vector<EXP> new_s_exp ; 
@@ -4988,12 +5028,14 @@ void Functions::CallFunction() {
 
             if ( bbreak == false ) {
 
-              // cout << "\ncount : " << count << "  : "<< s_exp.at( i+1 ).token << "  cnt : " << cnt  << "  " << cntPar << endl ;
+              // cout << "\ncount : " << count << "  : "
+              // << s_exp.at( i+1 ).token << "  cnt : " << cnt  << "  " << cntPar << endl ;
 
               bool isPush = false ;
               if ( count >= 3 )
               {  
-                // cout << "count : " << count << "  : "<< s_exp.at( i ).token << "  cnt : " << cnt  << "  " << cntPar << endl ;
+                // cout << "count : " << count << "  : "
+                // << s_exp.at( i ).token << "  cnt : " << cnt  << "  " << cntPar << endl ;
                 cnt ++ ;
                 if ( cnt >= 2 && cntPar == 2 ) 
                 {
@@ -5020,13 +5062,15 @@ void Functions::CallFunction() {
                 else if ( cntPar >= 3 )
                 {
                   MAP value ; 
-                  // cout << "now Check \'" << s_exp.at( i + 1 ).token << "\' is in CheckMap or not " << endl ; 
+                  // cout << endl << "now Check \'" 
+                  // << s_exp.at( i + 1 ).token << "\' is in CheckMap or not " << endl ; 
                   if ( Finding( s_exp.at( i + 1 ).token, checkMap, value  ) == false )
                   {
                     // cout << "Not in CheckMap" ; 
                     if ( FindLocalMap( s_exp.at( i + 1 ).token, new_vector ) )
                     {
-                      // cout << " and it is local parametet -> [ extention ] it to "<< PrettyString( new_vector ) << endl ; 
+                      // cout << " and it is local parametet -> [ extention ] it to "
+                      // << PrettyString( new_vector ) << endl ; 
                       isPush = true ; 
 
                       for ( int i = 0; i < new_vector.size() ; i++ ) 
@@ -5042,24 +5086,43 @@ void Functions::CallFunction() {
                   } // if
                   else 
                   {
-                    // cout << "Yes, it is in CheckMap -> [ Ignore ] it " << endl ;
+                    // cout << "Yes, it is in CheckMap" ;
+                    if ( FindLocalMap( s_exp.at( i + 1 ).token, new_vector ) )
+                    {
+                      // cout << " and it is local parametet -> [ extention ] it to "
+                      // << PrettyString( new_vector ) << endl ; 
+                      isPush = true ; 
+
+                      for ( int i = 0; i < new_vector.size() ; i++ ) 
+                      {
+                        new_s_exp.push_back( new_vector.at( i ) ) ;
+                      } // for
+
+                    } // if
+                    else 
+                    { 
+                      // cout << " but not a local parameter -> [ Ignore ] it " << endl ; 
+                    } // else
                   } // else 
 
                 } // if
               } // if
-              else if ( count >= 2 )
+              else if ( count >= 1 )
               {
-                // cout << "count : " << count << "  : "<< s_exp.at( i ).token << "  cnt : " << cnt  << "  " << cntPar << endl ;
+                // cout << "count : " << count << "  : "<< s_exp.at( i ).token 
+                // << "  cnt : " << cnt  << "  " << cntPar << endl ;
                 if ( cntPar >= 3 )
                 {
                   MAP value ; 
-                  // cout << "now Check \'" << s_exp.at( i + 1 ).token << "\' is in CheckMap or not " << endl ; 
+                  // cout << endl << "now Check \'" << s_exp.at( i + 1 ).token 
+                  // << "\' is in CheckMap or not " << endl ; 
                   if ( Finding( s_exp.at( i + 1 ).token, checkMap, value  ) == false )
                   {
                     // cout << "Not in CheckMap" ; 
                     if ( FindLocalMap( s_exp.at( i + 1 ).token, new_vector ) )
                     {
-                      // cout << " and it is local parametet -> [ extention ] it to "<< PrettyString( new_vector ) << endl ; 
+                      // cout << " and it is local parametet -> [ extention ] it to "
+                      // << PrettyString( new_vector ) << endl ; 
                       isPush = true ; 
 
                       for ( int i = 0; i < new_vector.size() ; i++ ) 
@@ -5075,7 +5138,23 @@ void Functions::CallFunction() {
                   } // if
                   else 
                   {
-                    // cout << "Yes, it is in CheckMap -> [ Ignore ] it " << endl ;
+                    // cout << "Yes, it is in CheckMap " ;
+                    if ( FindLocalMap( s_exp.at( i + 1 ).token, new_vector ) )
+                    {
+                      // cout << " and it is local parametet -> [ extention ] it to "
+                      // << PrettyString( new_vector ) << endl ; 
+                      isPush = true ; 
+
+                      for ( int i = 0; i < new_vector.size() ; i++ ) 
+                      {
+                        new_s_exp.push_back( new_vector.at( i ) ) ;
+                      } // for
+
+                    } // if
+                    else 
+                    { 
+                      // cout << "but not a local parameter -> [ Ignore ] it " << endl ;
+                    } // else 
                   } // else 
 
                 } // if 
@@ -5096,11 +5175,11 @@ void Functions::CallFunction() {
 
           } // while
 
-          //cout << "CHECKMAP :: " << endl ; 
-          //for ( int k = 0 ; k < checkMap.size() ; k ++ )
-          //{
+          // cout << "CHECKMAP :: " << endl ; 
+          // for ( int k = 0 ; k < checkMap.size() ; k ++ )
+          // {
           //  cout << checkMap.at( k ).str << endl ; 
-          //} // for 
+          // } // for 
         } // if
         else if ( s_exp.at( i ).type == SYMBOL && FindLocalMap( s_exp.at( i ).token, new_vector ) ) {
           for ( int i = 0; i < new_vector.size() ; i++ ) {
@@ -5115,7 +5194,7 @@ void Functions::CallFunction() {
       } // for
 
 
-      ClearLocalMap() ; //////////
+      // ClearLocalMap() ; //////////
       i = 0 ;
       temp = NULL ;
       // cout << endl << "new s_exp : " << PrettyString( new_s_exp ) << endl ;
@@ -5132,6 +5211,7 @@ void Functions::CallFunction() {
       // cout << endl ; 
     } // if
     else {
+      
       throw new IncorrectNumberException( mexeNode->token ) ;
     } // else
 
@@ -5139,7 +5219,6 @@ void Functions::CallFunction() {
   
   // PrintMap() ; 
 } // Functions::CallFunction()
-
 
 void Functions :: CallLambdaFunction() 
 { 
@@ -5241,7 +5320,7 @@ void Functions :: CallLambdaFunction()
 
     // cout << "After Extention : " << PrettyString( new_s_exp ) << endl ;
 
-    ClearLocalMap() ; //////////
+    // ClearLocalMap() ; //////////
     int i = 0 ;
 
     EXP rr ; 
@@ -5567,17 +5646,13 @@ bool Functions::IsSystemPrimitive( Type type ) {
 
 void Functions::Eval() {
   bool callFunction = false ; 
-  // cout << endl << "eval mexenode : " << mexeNode->token << endl ;
-  // cout << "full Exp : " ; 
-  // PreOrderTraversal( gRoot ) ; 
-  // cout << endl ; 
-
-   
   bool hasError = false ;
   vector<EXP> new_vector ; 
   EXP* temp = mexeNode ;
   EXP* firstArgument = NULL ; 
   mlevel ++ ; 
+
+  // cout << "mexeNode in Eval is : " << mexeNode->token << endl ;
                                                                      
   if ( IsATOM( temp ) && temp->type != SYMBOL  )  {
     hasError = true ; 
@@ -5829,7 +5904,7 @@ void Functions::Eval() {
   // cout << "firstArgument in Eval is : " << firstArgument->token << endl ;
   while ( callFunction == true )
   {
-    cout << "call function : " << mexeNode->token << endl ;
+
     CallFunction() ;
     // cout << "After Extention NOW Argument : " << firstArgument->token << endl ; 
     // cout << "Extention function : " ;
@@ -5937,9 +6012,33 @@ void Functions::Eval() {
 
    
   if ( hasError == false ) {
-    // cout << "Now Execute [ " << mexeNode->token << " ]" << endl ;
+    // cout << "Now Execute [ " << firstArgument->token << " ]" << endl ;
     Execute() ;    
-    
+    // cout << "Execute Done [ " << firstArgument->token << " ]" << endl ;
+    vector<EXP> v ; 
+    vector<string> ss ; 
+    FuncType ft ; 
+    if ( mlocalsymbolMap.size() > 0 )
+    {
+      if ( firstArgument->type == LET ) 
+      {
+        // cout << "Pop local Stack " << endl ;
+        mlocalsymbolMap.pop_back() ; 
+        // cout << "Now Stack size :" << mlocalsymbolMap.size() << endl ; 
+        
+      } // if
+      else if ( FindGlobalMap( firstArgument->token, v, ss, ft ) && ft == TYPEDEFINE  ) 
+      {
+        // cout << "Pop local Stack " << endl ;
+        mlocalsymbolMap.pop_back() ; 
+        // cout << "Now Stack size :" << mlocalsymbolMap.size() << endl ; 
+        // PrintMap() ;
+
+      } // if
+      
+
+    } // if 
+          
   } // if 
 
 } // Functions::Eval()
@@ -5961,6 +6060,13 @@ static int uTestNum = -1 ;
 
 int main() { 
   cin >> uTestNum ;
+
+  // if ( uTestNum == 2 ) 
+  // {
+  //  cout << "2" ; 
+  //  return 0 ; 
+  // } // if 
+
   int i = 0 ;
   bool syntaxIsTrue = false ;
   vector<Type> myStack ; 
@@ -5992,7 +6098,6 @@ int main() {
     dotStack.clear() ;
     funcClass->ResetLevel() ;
     funcClass->InitExeNode() ;
-     funcClass->ClearLocalMap() ;
     funcClass->ClearResult() ; 
     gHead = NULL ;
     DeleteTree( gRoot ) ; 
@@ -6004,7 +6109,7 @@ int main() {
       try
       {
 
-        nextToken = GetToken() ; // ���i��|��XstringException �M EofException
+        nextToken = GetToken() ; 
 
         if ( NOT dotStack.empty() && dotStack.back().isCheck == true )
         {
@@ -6123,7 +6228,7 @@ int main() {
             FixToken( s_exp ) ;
             DeleteDotParen( s_exp ) ;
 
-            funcClass->ClearLocalMap() ;
+            funcClass->ClearLSymbolMap() ;
             funcClass->InitExeNode() ;
             funcClass->ResetLevel() ; 
             gHead = NULL ;
