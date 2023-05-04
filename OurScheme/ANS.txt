@@ -2,7 +2,7 @@ Welcome to OurScheme!
 
 > a defined
 
-> "=============== Problem 4 viewable case ================="
+> "=============== Problem 3 viewable case ================="
 
 > environment cleaned
 
@@ -12,141 +12,132 @@ Welcome to OurScheme!
 
 > x3 defined
 
-> 7
+> Fcond defined
 
-> 3
+> Fif defined
 
-> 4
+> Fbegin defined
 
-> Transform defined
+> Fand defined
 
-> x1 defined
+> For defined
 
-> x2 defined
+> -10320
 
-> 13
+> -10
 
-> 12
+> 8
 
-> 5
+> For defined
 
-> SumUp defined
+> nil
 
-> 45
+> #t
 
-> "Illegal input! the first argument must be smaller or equal to the second."
+> #t
 
-> 5
+> nil
 
-> 30
+> #t
 
-> SumUp defined
+> nil
 
-> 55.500
+> Flambda defined
 
-> "Illegal input! the first argument must be smaller or equal to the second."
+> #<procedure Flambda>
 
-> 3.500
+> #<procedure lambda>
 
-> 387.000
+> #<procedure lambda>
 
-> 30
+> -60
+
+> -86
+
+> -2580
+
+> -752
 
 > environment cleaned
 
-> #t
+> #<procedure lambda>
 
-> nil
+> #<procedure lambda>
 
-> #t
+> #<procedure lambda>
 
-> append defined
+> #<procedure lambda>
 
-> ( 1
-  2
-  3
-  4
+> #<procedure lambda>
+
+> 11
+
+> a defined
+
+> f defined
+
+> #<procedure lambda>
+
+> c defined
+
+> 14
+
+> 54
+
+> x defined
+
+> y defined
+
+> g defined
+
+> 77556
+
+> 3110
+
+> F defined
+
+> G defined
+
+> 15
+
+> F defined
+
+> 40
+
+> F defined
+
+> 20
+
+> H defined
+
+> ( 3
+  .
   5
 )
 
-> ( 10
-  ( ( 20
-      30
-    )
-    40
-  )
-  ( 50
-    ( 60
-    )
-  )
-  ( 70
-    ( 80
-      90
-    )
-  )
+> 10
+
+> F defined
+
+> ( 20
+  30
 )
 
-> ( 1
-  2
-  3
-  4
-  ( 5
-  )
-  6
-  7
-  8
+> 110
+
+> cadr defined
+
+> global defined
+
+> Try defined
+
+> 20
+
+> 10
+
+> ( 20
+  30
 )
 
-> ( 1
-  2
-  "invalid argument"
-  3
-  ( 4
-    5
-  )
-)
-
-> ( 1
-  "invalid argument"
-  2
-  ( 3
-    4
-  )
-)
-
-> #t
-
-> nil
-
-> #t
-
-> #t
-
-> #t
-
-> append1 defined
-
-> "invalid argument"
-
-> "invalid argument"
-
-> #t
-
-> nil
-
-> ( 10
-  ( ( 20
-      30
-    )
-    40
-  )
-  ( 50
-    ( 60
-    )
-  )
-  ( 70
-    ( 80
-      90
-    )
-  )
-)
+> 
+Thanks for using OurScheme!

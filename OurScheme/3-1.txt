@@ -60,6 +60,7 @@ a
           );cond
         );begin
 );define
+
 (define (Fand x4 x2 x5) 
         (and ( if ( > x1 0 )
                   ( < x1 40 )
@@ -70,6 +71,7 @@ a
              (> x5 0)
         );and
 );define
+
 (define (For x1 x4 x3) 
         (or (and 
               (> x1 50)

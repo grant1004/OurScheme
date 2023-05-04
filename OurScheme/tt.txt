@@ -1,26 +1,75 @@
 1
+(define a "=============== Problem 3 viewable case =================")
+a
+
+ ; define + lambda (用para.做為(initialized)"local para") - complex - COND IF BEGIN AND OR (nested calls)
+ ; + functional composition // functions 呼叫 functions
  
- 
-(define x1 13)
-(define x2 12)
-(define x3 5)
+(clean-environment) ; first round, no error.
 
+(define x1 3)(define x2 4)(define x3 5)
 
-( define (SumUp start end) 
+(define (Fcond x4 x1) 
+        (cond ( (> x4 x1) 
+                (+ x4 x1)
+                ( if (< x4 x1)
+                     (+ x4 x1 22)
+                     (+ x4 x1 33)
+                )
+              ) 
+              ( (< x4 x1) 
+                (* x4 x1)
+                ( if (< x4 x1)
+                     (* x4 x1 2)
+                     (* x4 x1 3)
+                )
+              )
+              ( else 
+                (- x4 x1)
+                (if (= x4 x1)
+                    (- x4 x1 20)
+                    (- x4 x1 30)
+                )
+              );else
+        );cond
+);define
 
-  ( cond ( (= start end) start )
-         ( (> start end) "Illegal input! the first argument must be smaller or equal to the second.")
-         ( else
-             ( let ( ( new-start (+ start 1) )
-                     ( x1 (+ x1 x2) )
-                     ( x3 (+ x3 5) )
-                   )
-                   ( - x1 x3 )
-                   ( + start ( SumUp new-start end ) )
-             )
-         )
-  )
-   
-)
+(define (Fif x1 x4 x3) 
+        (if (>= x2 x3) 
+            ( begin 
+              (+ x1 x3) 
+              ( if ( and ( > x1 50 ) ( > x4 50 ) )
+                   (+ x1 x3 33)
+                   (+ x1 x3 44)
+              );if
+            );begin
+            ( begin 
+              (- x3 x4)
+              ( if ( and ( > x1 50 ) ( > x4 50 ) )
+                   (- x3 x4 33)
+                   (- x3 x4 44)
+              );if
+            );begin
+        );if
+);define
 
-(SumUp 5 10)
+( define ( Flambda x1 )
+         ( if ( > x1 0 )
+              ( lambda ( x2 ) ( * ( Fcond x2 x3 
+                                  );Fcond
+                                  3 
+                              );*
+              );lambda
+              ( lambda ( x3 ) ( * ( Fif ( Fcond x3 x1 
+                                        );Fcond 
+                                        x2 
+                                        x3 
+                                  );Fif
+                                  2 
+                              );*
+              );lambda
+         );if
+);define
+
+( ( Flambda -10 ) ( ( Flambda 10 ) x3 ) ) ; -752
+
