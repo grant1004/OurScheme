@@ -1,0 +1,6 @@
+callfunction() 
+
+1. 先檢查 parameter 的個數
+2. 計算出 parameter 的值
+3. 把值取代原本的 exp 
+4. 展開成 function 的定義

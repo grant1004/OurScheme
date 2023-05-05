@@ -1,4 +1,4 @@
-2
+當測試「Test data 2 of 3」時，Input為>>2
 (define a "=============== Problem 1 viewable case =================")
 a
 
@@ -464,4 +464,487 @@ f
 (Try cadr)
 (Try car)
 (Try cdr)
-(exit)
+(exit)<<
+
+正確的輸出應該是>>Welcome to OurScheme!
+
+> a defined
+
+> "=============== Problem 1 viewable case ================="
+
+> environment cleaned
+
+> x1 defined
+
+> x2 defined
+
+> x3 defined
+
+> Fcond defined
+
+> 12
+
+> 20
+
+> 0
+
+> Fif defined
+
+> 10
+
+> 1
+
+> 8
+
+> 76
+
+> Fbegin defined
+
+> 1
+
+> -76
+
+> 0
+
+> Fand defined
+
+> #t
+
+> nil
+
+> #t
+
+> nil
+
+> For defined
+
+> nil
+
+> #t
+
+> #t
+
+> nil
+
+> nil
+
+> #t
+
+> x4 defined
+
+> #<procedure lambda>
+
+> 10
+
+> 3
+
+> 4
+
+> environment cleaned
+
+> cadr defined
+
+> #<procedure cadr>
+
+> ( 30
+  40
+)
+
+> cadr-clone defined
+
+> #<procedure cadr>
+
+> ( 30
+  ( 40
+  )
+)
+
+> cadr-clone defined
+
+> ( 10
+  20
+)
+
+> cadr-clone defined
+
+> cdar defined
+
+> ( 2
+)
+
+> first defined
+
+> #<procedure car>
+
+> #<procedure car>
+
+> 10
+
+> FFirst defined
+
+> car
+
+> second defined
+
+> 20
+
+> ( ( 40
+    50
+  )
+  60
+)
+
+> ( 40
+  50
+)
+
+> 50
+
+> ( 50
+)
+
+> a defined
+
+> "=============== Problem 2 viewable case ================="
+
+> environment cleaned
+
+> x1 defined
+
+> x2 defined
+
+> x3 defined
+
+> Fcond defined
+
+> 24
+
+> 40
+
+> -20
+
+> Fif defined
+
+> -34
+
+> -43
+
+> 52
+
+> 32
+
+> Fbegin defined
+
+> 0
+
+> 83
+
+> 7
+
+> Fand defined
+
+> nil
+
+> nil
+
+> #t
+
+> nil
+
+> For defined
+
+> nil
+
+> #t
+
+> #t
+
+> nil
+
+> nil
+
+> #t
+
+> Flambda defined
+
+> #<procedure Flambda>
+
+> #<procedure lambda>
+
+> #<procedure lambda>
+
+> 6
+
+> 9
+
+> environment cleaned
+
+> ( 3
+  2
+  3
+)
+
+> 5
+
+> 5
+
+> environment cleaned
+
+> a defined
+
+> 13
+
+> 5
+
+> 16
+
+> 5
+
+> -2
+
+> 3
+
+> 41
+
+> a defined
+
+> "=============== Problem 3 viewable case ================="
+
+> environment cleaned
+
+> x1 defined
+
+> x2 defined
+
+> x3 defined
+
+> Fcond defined
+
+> Fif defined
+
+> Fbegin defined
+
+> Fand defined
+
+> For defined
+
+> -10320
+
+> -10
+
+> 8
+
+> For defined
+
+> nil
+
+> #t
+
+> #t
+
+> nil
+
+> #t
+
+> nil
+
+> Flambda defined
+
+> #<procedure Flambda>
+
+> #<procedure lambda>
+
+> #<procedure lambda>
+
+> -60
+
+> -86
+
+> -2580
+
+> -752
+
+> environment cleaned
+
+> #<procedure lambda>
+
+> #<procedure lambda>
+
+> #<procedure lambda>
+
+> #<procedure lambda>
+
+> #<procedure lambda>
+
+> 11
+
+> a defined
+
+> f defined
+
+> #<procedure lambda>
+
+> c defined
+
+> 14
+
+> 54
+
+> x defined
+
+> y defined
+
+> g defined
+
+> 77556
+
+> 3110
+
+> F defined
+
+> G defined
+
+> 15
+
+> F defined
+
+> 40
+
+> F defined
+
+> 20
+
+> H defined
+
+> ( 3
+  .
+  5
+)
+
+> 10
+
+> F defined
+
+> ( 20
+  30
+)
+
+> 110
+
+> cadr defined
+
+> global defined
+
+> Try defined
+
+> 20
+
+> 10
+
+> ( 20
+  30
+)
+
+> 
+Thanks for using OurScheme!<<
+
+你的程式的輸出是>>
+(There was a run-time error :
+Welcome to OurScheme!
+
+> a defined
+
+> "=============== Problem 1 viewable case ================="
+
+> environment cleaned
+
+> x1 defined
+
+> x2 defined
+
+> x3 defined
+
+> Fcond defined
+
+> 12
+
+> 20
+
+> 0
+
+> Fif defined
+
+> 10
+
+> 1
+
+> 8
+
+> 76
+
+> Fbegin defined
+
+> 1
+
+> -76
+
+> 0
+
+> Fand defined
+
+> #t
+
+> nil
+
+> #t
+
+> nil
+
+> For defined
+
+> nil
+
+> #t
+
+> #t
+
+> nil
+
+> nil
+
+> #t
+
+> x4 defined
+
+> #<procedure lambda>
+
+> 10
+
+> 3
+
+> 4
+
+> environment cleaned
+
+> cadr defined
+
+> #<procedure cadr>
+
+> ( 30
+  40
+)
+
+> cadr-clone defined
+
+> #<procedure cadr>
+
+> ( 30
+  ( 40
+  )
+)
+
+> cadr-clone defined
+
+>
+
+A SAFECode fault has occurred. Line number unknown..)<<

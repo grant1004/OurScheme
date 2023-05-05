@@ -89,8 +89,14 @@ EXP * gHead = NULL ;
 struct MAP {
   string str ; // symbol or function name
   vector<string> par_name ; 
-  vector<EXP> vec ;
-  FuncType funcType ;
+  vector<EXP> vec ; // value or function body
+  FuncType funcType ; 
+};
+
+struct Parameter 
+{
+  string name ; 
+  vector<EXP> value ; 
 };
 
 struct LOCAL { 
@@ -1454,7 +1460,7 @@ void PreOrderTraversal( EXP* focusNode ) {
       } // if
       else 
       {
-        cout << "EMPTY " ; 
+        cout << "" ; 
       } // else 
       
     } // if
@@ -1823,6 +1829,7 @@ void FixQuote( vector<EXP> & s_exp ) { // '(1 '4) , '(1), (1 '2 4 5)
   s_exp.at( s_exp.size() - 1 ).column = col ; 
 } // FixQuote()
 
+
 struct DotCheck 
 {
   Type type ; 
@@ -1961,6 +1968,19 @@ vector<EXP> CopyVector( vector<EXP> input )
   return out ; 
 } // CopyVector()
 
+void DeleteQuote( vector<EXP> & result )
+{
+  int parnum = 0 ; 
+
+  if ( result.at( 0 ).type == LEFT_PAREN && result.at( 1 ).type == QUOTE )
+  {
+    result.pop_back() ; 
+    result.erase( result.begin() ) ; 
+    result.erase( result.begin() ) ; 
+  } // if 
+
+} // DeleteQuote()
+
 class Functions { // clearlocalmap, mlocalMap_index control
 private: 
   vector<MAP> msymbolMap ;
@@ -2002,43 +2022,8 @@ private:
     } // if 
   } // PreordeTransValue()
 
+  vector<MAP> GetParameter( EXP * first ) ; 
 
-  void PreorderTransALLValue( EXP* focusNode )
-  {
-    // cout << "TRANSVALUE" << endl ; 
-    if ( focusNode != NULL ) {
-
-      if ( focusNode->type == EMPTYPTR ) 
-      {
-
-      } // if
-      else 
-      {
-        vector<EXP> new_vector ; 
-        vector<string> ss ; 
-        FuncType ft ; 
-        if ( FindLocalMap( focusNode->token, new_vector ) == true ) 
-        {
-          // cout << "Find value : " << focusNode->token << " -> " << PrettyString( new_vector )<< endl ;
-          focusNode -> token = new_vector.at( 0 ).token ; 
-          focusNode -> type = new_vector.at( 0 ).type ; 
-
-        } // if 
-        else if ( FindGlobalMap( focusNode->token, new_vector, ss, ft ) )
-        {
-          if ( ft == TYPENONE ) 
-          {
-            focusNode -> token = new_vector.at( 0 ).token ; 
-            focusNode -> type = new_vector.at( 0 ).type ;
-          } // if 
-          // cout << "Not a local :" << focusNode->token << endl ; 
-        } // else 
-      } // else 
-
-      PreorderTransALLValue( focusNode->listPtr ) ;
-      PreorderTransALLValue( focusNode->next ) ;
-    } // if 
-  } // PreordeTransValue()
   void InsertLambdaMap( MAP m ) 
   { 
     mLambdaSymbolMap.push_back( m ) ; 
@@ -2073,7 +2058,9 @@ private:
     int i = 0 ;
     while ( i < msymbolMap.size() ) {
       if ( msymbolMap.at( i ).str == str ) {
+        msymbolMap.at( i ).vec.clear() ; 
         msymbolMap.at( i ).vec.assign( vec.begin(), vec.end() ) ;
+        msymbolMap.at( i ).par_name.clear() ; 
         msymbolMap.at( i ).par_name.assign( pp.begin(), pp.end() ) ;
         msymbolMap.at( i ).funcType = type ;
         return true ;
@@ -2283,6 +2270,7 @@ private:
         return false ; 
 
       } // if 
+
       now = now -> next ; 
     } // while 
 
@@ -2350,10 +2338,25 @@ private:
     } // for 
   } // FixNil() 
   
-public :
+  bool TryGetGlobalMAPValue( string key, MAP & value )
+  {
+    
+    for ( int i = 0 ; i < msymbolMap.size() ; i ++ )
+    {
+      if ( msymbolMap.at( i ).str == key )
+      {
+        value = msymbolMap.at( i ) ; 
+        return true ;
+      } // if 
 
+    } // for 
+
+    return false ;
+
+  } // TryGetGlobalMAPValue()
+
+public :
   void ClearLSymbolMap() ;
-  
   bool IsLocalParameter( string value ) ; 
   void SetRoot() ; 
   bool ThisIsFunction( string str ) ;
@@ -2424,6 +2427,7 @@ public :
   {
     // cout << "mresult: " << mresult.at(0).token ;
     FixSystemPrimitiveAndNil( mresult ) ;
+    // DeleteQuote( mresult ) ;
     return mresult ; 
   } // GetResult() 
     
@@ -2481,7 +2485,7 @@ public :
     return false ; 
   } // Finding()
   
-  void Execute() { // ptr���bfunction call�W�� 
+  void Execute() { 
 
     EXP * emptyptr = mexeNode->pre_next->pre_listPtr ; 
     
@@ -2601,30 +2605,30 @@ void Functions::PrintMap() {
   
 
 
-  cout << endl << "======= GLOBAL =======" << endl ;
-  i = 0 ;
-  while ( i < msymbolMap.size() ) {
-    cout << msymbolMap.at( i ).str << ": " ;
-    k = 0 ;
-    // cout << endl << "memSpace: " << msymbolMap.at( i ).vec.at( 0 ).memSpace << endl ;
-    while ( k < msymbolMap.at( i ).vec.size() ) {
-      cout << msymbolMap.at( i ).vec.at( k ).token << " " ;
-      k++ ;
-    } // while
-  
-    cout << ", par_name: " ;
-    k = 0 ;
-    while ( k < msymbolMap.at( i ).par_name.size() ) {
-      cout << msymbolMap.at( i ).par_name.at( k ) << " " ;
-      k++ ;
-    } // while
-    
-    cout << ", FuncType : " << msymbolMap.at( i ).funcType ; 
-    cout << endl ;
-    i++ ;
-  } // while
-     
-  cout << endl << "================" << endl ;
+  //cout << endl << "======= GLOBAL =======" << endl ;
+  //i = 0 ;
+  //while ( i < msymbolMap.size() ) {
+  //  cout << msymbolMap.at( i ).str << ": " ;
+  //  k = 0 ;
+  //  // cout << endl << "memSpace: " << msymbolMap.at( i ).vec.at( 0 ).memSpace << endl ;
+  //  while ( k < msymbolMap.at( i ).vec.size() ) {
+  //    cout << msymbolMap.at( i ).vec.at( k ).token << " " ;
+  //    k++ ;
+  //  } // while
+  //
+  //  cout << ", par_name: " ;
+  //  k = 0 ;
+  //  while ( k < msymbolMap.at( i ).par_name.size() ) {
+  //    cout << msymbolMap.at( i ).par_name.at( k ) << " " ;
+  //    k++ ;
+  //  } // while
+  //  
+  //  cout << ", FuncType : " << msymbolMap.at( i ).funcType ; 
+  //  cout << endl ;
+  //  i++ ;
+  //} // while
+  //   
+  //cout << endl << "================" << endl ;
 
 } // Functions::PrintMap()
 
@@ -2652,10 +2656,35 @@ bool Functions::FindMap( string str, vector<EXP> &new_vector ) { // find local f
 
   if ( FindLocalMap( str, new_vector ) ) 
   {
+    if ( new_vector.at( 0 ).type == LEFT_PAREN && new_vector.at( 1 ).type == QUOTE )
+    {
+      int i = 0 ; 
+      EXP* root = DynamicBuildTree( new_vector, i ) ;
+      mexeNode = root ; 
+      Eval() ; 
+      new_vector.clear() ; 
+      new_vector.assign( root->vec.begin(), root->vec.end() ) ; 
+    } // if 
+
     return true ; 
   } // if 
   else if ( FindGlobalMap( str, new_vector, ss, type ) ) 
   {
+    if ( type == TYPENONE )
+    {
+      if ( new_vector.at( 0 ).type == LEFT_PAREN && new_vector.at( 1 ).type == QUOTE )
+      {
+        int i = 0 ; 
+        EXP* root = DynamicBuildTree( new_vector, i ) ;
+        mexeNode = root ; 
+        Eval() ; 
+        new_vector.clear() ; 
+        new_vector.assign( root->vec.begin(), root->vec.end() ) ; 
+      } // if 
+      // cout << PrettyString( new_vector ) ; 
+    } // if 
+
+    // cout << "HERE : " << PrettyString( new_vector ) ;
     return true ; 
   } // else if 
 
@@ -2749,7 +2778,9 @@ void Functions::Let() {
     else {
       if ( temp->type == EMPTYPTR ) {
         EXP* local = temp->listPtr->next ;
+
         while ( local->type != RIGHT_PAREN ) {
+           
           new_vector.clear() ;
           if ( local->type != EMPTYPTR ) {
             cout << "ERROR (LET format)" << endl ; // pretty print
@@ -2759,6 +2790,7 @@ void Functions::Let() {
           } // if
           else { // mlocalsymbolMap InsertLocalMap(str, vec) 
             EXP* localTP = local->listPtr->next ;
+            // cout << "local : " << localTP->token ;
             string str = "\0" ;
             if ( IsSystemPrimitive( localTP->type ) || localTP->type != SYMBOL ) {
               cout << "ERROR (LET format)" << endl ; // pretty print
@@ -2771,51 +2803,57 @@ void Functions::Let() {
             } // else
 
             localTP = localTP->next ;
-            
+            // cout << "  value : " ;
             if ( FindGlobalMap( localTP->token, new_vector, ss, type ) == true ) { // FindGlobalMap
               InsertLocalMap( str, new_vector ) ;
-                 
+              // cout << PrettyString( new_vector ) ;  
             } // if
             else if ( localTP->type == SYMBOL ) {
               throw new UnboundException( localTP ) ; 
             } // else if 
+            else if ( localTP->type == EMPTYPTR && localTP->listPtr->next->type == QUOTE )
+            {
+              new_vector.clear() ; 
+              GetPreOrderTraversalWithNoEmpty( localTP->listPtr, new_vector ) ;
+              InsertLocalMap( str, new_vector ) ;
+              // cout << PrettyString( new_vector ) ; 
+            } // else if 
             else if (  localTP->type == EMPTYPTR ) {
               mexeNode = localTP ;
               Eval() ;
-              
+              // cout << PrettyString( localTP->vec ) ; 
               InsertLocalMap( str, localTP->vec ) ;
               
             } // else if 
             else {
+              
               ex.token = localTP->token ;
               ex.type = localTP->type ;
               new_vector.push_back( ex ) ;
               InsertLocalMap( str, new_vector ) ;
+              // cout << PrettyString( new_vector ) ; 
             } // else
             
+            // cout << endl ;
           } // else 
           
           local = local->next ;
           
         } // while 
         
-        // cout << "\nLETLOCAL" << endl ; 
-        // PrintMap() ; 
+         // cout << "\nLETLOCAL" << endl ; 
+         // PrintMap() ; 
       } // if
 
       temp = temp->next ; 
 
-      EXP* let_exp_start = temp ; 
-      PreordeTransValue( let_exp_start ) ; 
-      
-      
+      EXP* let_exp_start = temp ;  
+
       while ( temp->type != RIGHT_PAREN ) {
+        // PreOrderTraversal( temp->listPtr ) ; 
         new_vector.clear() ;
         
-        if ( FindMap( temp->token, new_vector ) == true ) {
-          ;
-        } // if
-        else if ( temp->type == SYMBOL ) {
+        if ( temp->type == SYMBOL ) {
           throw new UnboundException( temp ) ; 
         } // else if 
         else if (  temp->type == EMPTYPTR ) {
@@ -2860,9 +2898,8 @@ void Functions::Exit()
 void Functions::If()
 {
   // mexeNode : if
-  // now : �ܼ� 
+  // now : first argument  
   // emptyptr : root 
-  // ( cond (...) (...) . . . . (else ...) ) 
   EXP* now = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP* decide = NULL ;
@@ -2870,8 +2907,12 @@ void Functions::If()
 
   vector<EXP> new_vector ; 
   decide = now ; 
+
+
+  
   if ( decide->type == EMPTYPTR )
   {
+    // PreOrderTraversal( decide->listPtr ) ; 
     mexeNode = decide ; 
     Eval() ; 
     emptyptr->vec.clear() ; 
@@ -2890,7 +2931,7 @@ void Functions::If()
     emptyptr->vec.push_back( *decide ) ;
   } // else if 
   else
-  {
+  { 
     throw new UnboundException( decide ) ; 
   } // else 
   
@@ -4150,6 +4191,7 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
   } // if
   else {
     while ( temp->type != RIGHT_PAREN && noError == true ) {
+      // cout << temp->token << endl ; 
       if ( temp->type == INT || temp->type == FLOAT ) {
         if ( temp->type == FLOAT )
           hasFloat = true ;
@@ -4175,7 +4217,6 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
   
       } // if
       else if ( FindMap( temp->token, new_vector ) == true ) {
-
         if ( new_vector.size() == 1 
              && ( new_vector.at( 0 ).type == INT 
                   || new_vector.at( 0 ).type == FLOAT ) ) {
@@ -4252,6 +4293,7 @@ void Functions::Arithmetic_Add_Sub_Mul_DIV( string whichOperator ) {  // arg >= 
         
       } // else if
       else {
+        
         throw new IncorrectArgumentException( whichOperator, *temp ) ; 
         noError = false ;
       } // else 
@@ -4425,6 +4467,7 @@ void Functions::Cdr() {
 
   if ( CheckNumOfArg( 1 ) ) {
     if ( FindMap( temp->token, new_vector ) == true ) {
+      // cout << "HERE : " << PrettyString( new_vector ) ; 
       ex.token = "(" ;
       ex.type = LEFT_PAREN ;
       emptyptr->vec.push_back( ex ) ;
@@ -4472,6 +4515,7 @@ void Functions::Cdr() {
               && temp->listPtr->next->type == QUOTE 
               && temp->listPtr->next->next->type == EMPTYPTR ) { 
       mexeNode = temp ;
+      // cout << "HERE" ; 
       Eval() ;
 
       ex.token = "(" ;
@@ -4645,6 +4689,7 @@ void Functions::Car() {
     else if ( temp->type == EMPTYPTR )
     {
       mexeNode = temp ;
+      // cout << "carHERE" ; 
       Eval() ;
       if ( temp->vec.size() <= 1 )
       {
@@ -4746,6 +4791,8 @@ void Functions::Cons() {
   EXP* temp = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   
+  // cout << "Cons :" ; PreOrderTraversal( mexeNode ) ; cout << endl ; 
+
   if ( CheckNumOfArg( 2 ) ) {
     ex.token = "(" ;
     ex.type = LEFT_PAREN ;
@@ -4757,6 +4804,8 @@ void Functions::Cons() {
         emptyptr->vec.push_back( ex ) ;
       } // if
       else if ( FindMap( temp->token, new_vector ) == true ) {
+
+        // cout << "new vec " << PrettyString( new_vector ) ; 
         for ( int i = 0; i < new_vector.size() ; i++ ) {
           emptyptr->vec.push_back( new_vector.at( i ) ) ;
         } // for
@@ -4811,7 +4860,7 @@ void DeleteTree( EXP* focusNode )
 } // DeleteTree() 
 
 void Functions::CallFunction() {
-  cout << "call function : " << mexeNode->token << endl ;
+  // PreOrderTraversal( gRoot ) ; cout << endl ; 
   string funcName = mexeNode->token ; 
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
   EXP* temp = mexeNode->next ;
@@ -4825,15 +4874,14 @@ void Functions::CallFunction() {
   mlocalsymbolMap.push_back( localMap ) ;  
   // PrintMap() ; 
   
-  // cout << "s_exp : " << PrettyString( s_exp ) << endl ; 
-  
-
+  // cout << "s_exp : " << ExtentionFunction( s_exp )  << endl ; 
   if ( type == TYPELAMBDA ) 
   {
-    cout << "Is lambda " << endl ;
+    // cout << "Is lambda " << endl ;
+    // mlocalsymbolMap.pop_back() ; 
     int i = 0 ;
     vector<EXP> new_vector ;
-
+    // cout << "Size ; " << parameter.size() << endl ; 
     while ( i < parameter.size() ) {  
       new_vector.clear() ;
       if ( temp->type == EMPTYPTR ) {
@@ -4853,6 +4901,11 @@ void Functions::CallFunction() {
       i++ ;
 
     } // while
+
+    /*
+    cout << endl << "call function : " << funcName << " is lambda "<< endl ;
+    PrintMap() ;  
+    */
 
 
     new_vector.clear() ;
@@ -4934,7 +4987,7 @@ void Functions::CallFunction() {
 
     } // for
 
-    cout << "new s_exp : " << PrettyString( new_s_exp ) << endl ;
+    // cout << "new s_exp : " << PrettyString( new_s_exp ) << endl ;
     // ClearLocalMap() ; ///////////
     i = 0 ;
     temp = NULL ;
@@ -4950,59 +5003,66 @@ void Functions::CallFunction() {
     first -> pre_next = NULL ; 
     mexeNode = emptyptr->listPtr->next ; 
 
+    /*
+    cout << "New : " ; PreOrderTraversal( gRoot ) ; cout << endl ;  
+    cout << "---------------------------------------------------"  ; 
+    cout << "---------------------------------------------------"  ; 
+    cout << "---------------------------------------------------"  ;
+    cout << endl ;
+    */
 
   } // if 
   else 
   {
     
-    if ( CheckNumOfArg( parameter.size() ) ) { 
+    if ( CheckNumOfArg( parameter.size() ) )
+    { 
       int i = 0 ;
       vector<EXP> new_vector ;
-
       vector<string> ss ; 
       FuncType ft ; 
-
-      // get parameter 
-
-      // PrintMap() ;
-      PreorderTransALLValue( temp ) ; 
-      /*cout << "exp : " ; 
-      PreOrderTraversal( gRoot ) ;
-      cout << endl ; */
       
-      while ( i < parameter.size() ) {  
-        new_vector.clear() ;
-        
-        if ( temp->type == EMPTYPTR && temp->listPtr->next->token == "lambda" )
-        {
 
-        } // if 
-        else if ( temp->type == EMPTYPTR && FindGlobalMap(  temp->listPtr->next->token, new_vector, ss, ft ) ) 
+      // get parameter value 
+      while ( i < parameter.size() ) {  
+        // get parameter value 
+        new_vector.clear() ;
+        // cout << "token : " << temp->token << "TYPE : " << PrintType( temp->type ) << endl ; 
+        if ( temp->type == EMPTYPTR ) 
         {     
-          
-          if ( ft == TYPEDEFINE )
+          // cout << "TYPE : " << PrintType( temp->type ) << endl ; 
+          if ( IsSystemPrimitive( temp->listPtr->next->type ) && temp->listPtr->next->type != QUOTE )
           {
-            mexeNode = temp ;
-            cout << "FF : "<< temp->listPtr->next->token << endl ; 
-            // GetPreOrderTraversalWithNoEmpty( temp->listPtr, new_vector ) ;
+            mexeNode = temp ; 
             Eval() ; 
-            // cout << endl << endl << "new_vector : " << PrettyString(new_vector)<< endl ;
             InsertLocalMap( parameter.at( i ), temp->vec ) ;
-            // PrintMap() ;
           } // if 
           else 
           {
             GetPreOrderTraversalWithNoEmpty( temp->listPtr, new_vector ) ;
             InsertLocalMap( parameter.at( i ), new_vector ) ;
-          } // else
-          
+          } // else 
         } // if
-        else if ( temp->type == EMPTYPTR )
+        else if ( FindGlobalMap( temp->token, new_vector, ss, ft ) )
         {
-          GetPreOrderTraversalWithNoEmpty( temp->listPtr, new_vector ) ;
-          InsertLocalMap( parameter.at( i ), new_vector ) ;
+          // cout << temp->token << endl ; 
+          if ( ft == TYPEDEFINE )
+          {
+            new_vector.clear() ;
+            ex.token = temp->token ; 
+            ex.type = temp->type ;
+            new_vector.push_back( ex ) ;
+            InsertLocalMap( parameter.at( i ), new_vector ) ;
+          } // if 
+          else 
+          {
+            InsertLocalMap( parameter.at( i ), new_vector ) ;
+          } // else 
+
+          
         } // else if 
-        else {
+        else
+        {
           ex.token = temp->token ; 
           ex.type = temp->type ;
           new_vector.push_back( ex ) ;
@@ -5013,16 +5073,23 @@ void Functions::CallFunction() {
         i++ ;
 
       } // while
-
       // end get parameter      
  
-
+      
+      /*
+      cout << endl << "call function : " << funcName << endl ;
+      PrintMap() ;  
+      */
+      
       new_vector.clear() ;
       vector<EXP> new_s_exp ; 
       // cout << "s_exp : " << PrettyString( s_exp ) << endl ; 
+
+      // put parameter value into function body 
       for ( int i = 0 ; i < s_exp.size() ; i++ ) { 
         // cout << s_exp.at( i ).token << endl ; 
-        if ( s_exp.at( i ).type == LET || s_exp.at( i ).type == LAMBDA ) {
+        if ( s_exp.at( i ).type == LET ) 
+        {
           i-- ;
           int count = 0 ;
           bool bbreak = false ; 
@@ -5209,13 +5276,37 @@ void Functions::CallFunction() {
           //  cout << checkMap.at( k ).str << endl ; 
           // } // for 
         } // if
+        else if ( s_exp.at( i ).type == LAMBDA )
+        {
+          int parNum = 1 ; 
+          
+
+          while ( parNum != 0 )
+          {
+            
+            if ( s_exp.at( i ).type == LEFT_PAREN )
+              parNum ++ ; 
+            else if ( s_exp.at( i ).type == RIGHT_PAREN )
+              parNum -- ; 
+
+            new_s_exp.push_back( s_exp.at( i ) ) ;
+            // cout << "push : " << new_s_exp.back().token << endl ;
+            i ++ ; 
+
+          } // while 
+
+          new_s_exp.push_back( s_exp.at( i ) ) ;
+          // cout << "push : " << new_s_exp.back().token << endl ;
+        } // else if 
         else if ( s_exp.at( i ).type == SYMBOL && FindLocalMap( s_exp.at( i ).token, new_vector ) ) {
           for ( int i = 0; i < new_vector.size() ; i++ ) {
             new_s_exp.push_back( new_vector.at( i ) ) ;
           } // for
 
         } // else if
-        else {
+        else 
+        {
+          // cout << s_exp.at( i ).token << endl ; 
           new_s_exp.push_back( s_exp.at( i ) ) ;
         } // else
 
@@ -5233,10 +5324,16 @@ void Functions::CallFunction() {
       root->listPtr = NULL ;
       emptyptr->listPtr->pre_listPtr = emptyptr ;
       mexeNode = emptyptr->listPtr->next ; // first argument 
+      
+      
+      /*
+      cout << "New : " ; PreOrderTraversal( gRoot ) ; cout << endl ;  
+      cout << "---------------------------------------------------"  ; 
+      cout << "---------------------------------------------------"  ; 
+      cout << "---------------------------------------------------"  ;
+      cout << endl ;
+      */ 
 
-      // cout << "Extention Function : " ; 
-      // PreOrderTraversal( gRoot ) ; 
-      // cout << endl ; 
     } // if
     else {
       
@@ -5250,9 +5347,12 @@ void Functions::CallFunction() {
 
 void Functions :: CallLambdaFunction() 
 { 
-  // cout << "CallLambdaFunction()" << endl ; 
+  EXP ex ;
+  InitExp( ex ) ;
+  // cout << endl << "CallLambdaFunction() " << mexeNode->token << endl ; 
 
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
+  // cout << "lambda exp : " ; PreOrderTraversal( emptyptr->listPtr ) ; cout << endl ; 
 
   // cout << emptyptr -> token << endl ; 
 
@@ -5287,24 +5387,48 @@ void Functions :: CallLambdaFunction()
     // cout << "HERE" << endl ; 
     int j = 0 ;
     vector<EXP> new_vector ;
-    while ( j < parameterSize ) {  
+    
+    vector<string> ss ; 
+    FuncType ft ;
+
+    while ( j < parameter.size() ) {  
+      // get parameter value 
       new_vector.clear() ;
-      if ( temp->type == EMPTYPTR ) {
-        GetPreOrderTraversalWithNoEmpty( temp->listPtr, new_vector ) ;
+      
+      if ( temp -> type == EMPTYPTR )
+      {
+        GetPreOrderTraversalWithNoEmpty( temp->listPtr, new_vector ) ; 
         InsertLocalMap( parameter.at( j ), new_vector ) ;
-      } // if
-      else {
-        EXP ex ; 
+      } // if 
+      else if ( FindGlobalMap( temp->token, new_vector, ss, ft ) )
+      {
+        if ( ft == TYPEDEFINE )
+        {
+          new_vector.clear() ; 
+          ex.token = temp->token ; 
+          ex.type = temp->type ;
+          new_vector.push_back( ex ) ;
+          InsertLocalMap( parameter.at( j ), new_vector ) ;
+        } // if 
+        else 
+        {
+          InsertLocalMap( parameter.at( j ), new_vector ) ;
+        } // else 
+      } // else if 
+      else
+      {
         ex.token = temp->token ; 
         ex.type = temp->type ;
         new_vector.push_back( ex ) ;
         InsertLocalMap( parameter.at( j ), new_vector ) ;
       } // else
 
-      temp = temp->next ;
-      j++ ;
+      j++ ; 
+      temp = temp -> next ; 
+
     } // while
 
+    // PrintMap() ; 
     new_vector.clear() ;
     vector<EXP> new_s_exp ;
     bool isLamdaOrLet = false ; 
@@ -5330,7 +5454,7 @@ void Functions :: CallLambdaFunction()
       } // if 
       else
       {
-        cout << s_exp.at( i ).token << endl ; 
+        // cout << s_exp.at( i ).token << endl ; 
         new_s_exp.push_back( s_exp.at( i ) ) ;
       } // else
 
@@ -5381,7 +5505,11 @@ void Functions :: CallLambdaFunction()
     mexeNode = emptyptr->listPtr->next ; // first argument
     
     // cout << "New :" ; PreOrderTraversal( gRoot ) ; cout << endl ; 
-    // cout << endl ; 
+    // cout << "-----------------------------------------------------------"; 
+    // cout << "-----------------------------------------------------------"; 
+    // cout << "-----------------------------------------------------------";
+    // cout << endl ;  
+
   } // if 
   else
   {
@@ -5499,6 +5627,27 @@ void Functions::Lambda()
 
 } // Functions::Lambda()
 
+
+string GetFuncType( FuncType type ) 
+{
+  string str ; 
+  if ( type == TYPENONE )
+  {
+    str = "Symbol" ;
+  } // if 
+  else if ( type == TYPEDEFINE )
+  {
+    str = "Function" ;
+  } // else if 
+  else if ( type == TYPELAMBDA )
+  {
+    str = "Lambda Function" ;
+  } // else if 
+
+  return str ; 
+
+} // GetFuncType() 
+
 void Functions::Define() { 
   memNum++ ;
   string str = "\0" ;
@@ -5524,15 +5673,30 @@ void Functions::Define() {
       { 
         if ( temp->listPtr->next->token == "lambda" )
         {
+          type = TYPELAMBDA ; 
           MAP mm ; 
           mm.funcType = TYPELAMBDA ; 
           mm.str = str ; 
           vector<EXP> lambda_exp ; 
           GetPreOrderTraversalWithNoEmpty( temp->listPtr, lambda_exp ) ; 
           mm.vec.assign( lambda_exp.begin(), lambda_exp.end() ) ; 
+          mm.vec.at( 0 ).memSpace = memNum ; 
           // cout << "Define Lambda : " << mm.str << endl ; 
           Inserting( mm, msymbolMap ) ; 
         } // if
+        else if ( temp->listPtr->next->type == QUOTE )
+        {
+          type = TYPENONE ; 
+          MAP mm ; 
+          mm.funcType = type ; 
+          mm.str = str ; 
+          vector<EXP> exp ; 
+          GetPreOrderTraversalWithNoEmpty( temp->listPtr, exp ) ; 
+          mm.vec.assign( exp.begin(), exp.end() ) ; 
+          // cout << "Define Lambda : " << mm.str << endl ; 
+          mm.vec.at( 0 ).memSpace = memNum ; 
+          Inserting( mm, msymbolMap ) ;
+        } // else if 
         else 
         {
           mexeNode = temp ;
@@ -5551,7 +5715,8 @@ void Functions::Define() {
           InsertMapAndPar( str, new_vector, pp, TYPEDEFINE ) ; 
         } // if
         else {
-          InsertMap( str, new_vector ) ;
+          InsertMapAndPar( str, new_vector, pp, TYPENONE ) ;
+          // InsertMap( str, new_vector ) ;
         } // else
         
         
@@ -5560,17 +5725,22 @@ void Functions::Define() {
         throw new UnboundException( temp ) ; 
       } // else if
       else {
+        // cout << "HERE" << endl ; 
+        type = TYPENONE ; 
         ex.token = temp->token ;
         ex.type = temp->type ;
         ex.memSpace = memNum ;
         vs.push_back( ex ) ; 
-        InsertMap( str, vs ) ;
+        pp.clear() ; 
+        InsertMapAndPar( str, vs, pp, type ) ;
+        // InsertMap( str, vs ) ;
         
       } // else 
       
     } // if
     else if ( temp->type == EMPTYPTR ) { // new_vector.at( 0 ).memSpace = FindMemNum( temp->token ) ; 
       EXP* funcName = temp->listPtr->next ;
+      type = TYPEDEFINE ; 
       if ( IsSystemPrimitive( funcName->type ) || funcName->type != SYMBOL ) {
         mnonListVec.clear() ; 
         TraversalEmpty( gRoot ) ; 
@@ -5657,6 +5827,8 @@ void Functions::Define() {
   tt.type = SYMBOL ;
   mresult.push_back( tt ) ;
 
+  // cout << "Defined " << str << " and this is " << GetFuncType( type ) << endl ;  
+
 } // Functions::Define()
 
 bool Functions::IsSystemPrimitive( Type type ) {
@@ -5711,8 +5883,20 @@ void Functions::Eval() {
       // cout << "HERE : " << PrettyString( new_vector ) << endl ; 
       if ( tt == TYPENONE )
       {
-        mresult.clear() ; 
-        mresult.assign( new_vector.begin(), new_vector.end() ) ;
+        mresult.clear() ;
+        int i = 0 ; 
+        EXP * root = DynamicBuildTree( new_vector, i ) ; 
+        if ( root->type == EMPTYPTR && root->listPtr->next->type == QUOTE )
+        {
+          mexeNode = root ; 
+          Eval() ; 
+          mresult.assign( root->vec.begin(), root->vec.end() ) ;
+        } // if 
+        else 
+        {
+          mresult.assign( new_vector.begin(), new_vector.end() ) ;
+        } // else 
+        
       } // if 
       else if ( tt == TYPEDEFINE )
       {
@@ -5877,6 +6061,7 @@ void Functions::Eval() {
         } // else if
         else  
         {
+          // cout << "HERE" ; 
           mexeNode = firstArgument ; 
         } // else 
       } // if
@@ -6009,7 +6194,7 @@ void Functions::Eval() {
     {
       // cout << "CallLambdaFunction()" << endl ;
       CallLambdaFunction() ; 
-      // cout << "Extention function : " ;
+      // 2 "Extention function : " ;
       // PreOrderTraversal( gRoot ) ; 
       // cout << endl ; 
 
@@ -6046,9 +6231,9 @@ void Functions::Eval() {
 
    
   if ( hasError == false ) {
-    // cout << "Now Execute [ " << firstArgument->token << " ]" <<mexeNode -> token  << endl ;
+    // cout << "\nNow Execute [ " << firstArgument->token << " ]" <<mexeNode -> token  << endl ;
     Execute() ;    
-    // cout << "Execute Done [ " << firstArgument->token << " ]" << endl ;
+    // cout << "\nExecute Done [ " << firstArgument->token << " ]" << endl ;
     vector<EXP> v ; 
     vector<string> ss ; 
     FuncType ft ; 
@@ -6095,6 +6280,7 @@ bool PrintRoot()
 } // PrintRoot()
 
 static int uTestNum = -1 ; 
+
 
 int main() { 
   cin >> uTestNum ;
@@ -6272,7 +6458,8 @@ int main() {
             gHead = NULL ;
             DeleteTree( gRoot ) ; 
             gRoot = NULL ;
-            i = 0 ;
+            // cout << PrettyString( s_exp ) ; 
+            i = 0 ;        
             BuildTree( s_exp, i ) ;
             gHead = gRoot ; // new
             // cout << "This : " ; PreOrderTraversal( gRoot ) ; 
