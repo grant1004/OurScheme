@@ -1,8 +1,38 @@
 Welcome to OurScheme!
 
-> ERROR (unbound symbol) : y
+> environment cleaned
 
-> ERROR (unbound symbol) : y
+> x1 defined
 
-> ERROR (no more input) : END-OF-FILE encountered
+> x2 defined
+
+> x3 defined
+
+> Fcond defined
+
+> Fif defined
+
+> Fbegin defined
+
+> Fand defined
+
+> For defined
+
+> For defined
+
+> Flambda defined
+
+> #<procedure Flambda>
+
+> 
+LETLOCAL
+======= LOCAL =======
+Stack level : 1
+x: 6
+y: 5
+a: lambda
+=====================
+ERROR (unbound symbol) : x
+
+> 
 Thanks for using OurScheme!

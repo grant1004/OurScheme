@@ -2776,6 +2776,9 @@ void Functions::Let() {
       cout << "ERROR (LET format)" << endl ; // pretty print
     } // if
     else {
+
+
+      // define local value 
       if ( temp->type == EMPTYPTR ) {
         EXP* local = temp->listPtr->next ;
 
@@ -2789,43 +2792,44 @@ void Functions::Let() {
             throw new DefineFormatException( mnonListVec ) ;
           } // if
           else { // mlocalsymbolMap InsertLocalMap(str, vec) 
-            EXP* localTP = local->listPtr->next ;
+            EXP* localTP = local->listPtr->next ; // localTP = local parameter name 
             // cout << "local : " << localTP->token ;
             string str = "\0" ;
-            if ( IsSystemPrimitive( localTP->type ) || localTP->type != SYMBOL ) {
+
+            if ( IsSystemPrimitive( localTP->type ) || localTP->type != SYMBOL ) { // parameter can not be a primitive type and symbol type 
               cout << "ERROR (LET format)" << endl ; // pretty print
               mnonListVec.clear() ; 
               TraversalEmpty( gRoot ) ; 
               throw new DefineFormatException( mnonListVec ) ;
             } // if
             else {
-              str = localTP->token ;
+              str = localTP->token ; // str = parameter name 
             } // else
 
-            localTP = localTP->next ;
+            localTP = localTP->next ; // localTP = parameter value
             // cout << "  value : " ;
-            if ( FindGlobalMap( localTP->token, new_vector, ss, type ) == true ) { // FindGlobalMap
+            if ( FindGlobalMap( localTP->token, new_vector, ss, type ) == true ) { // when value is a define symbol 
               InsertLocalMap( str, new_vector ) ;
               // cout << PrettyString( new_vector ) ;  
             } // if
             else if ( localTP->type == SYMBOL ) {
               throw new UnboundException( localTP ) ; 
             } // else if 
-            else if ( localTP->type == EMPTYPTR && localTP->listPtr->next->type == QUOTE )
+            else if ( localTP->type == EMPTYPTR && localTP->listPtr->next->type == QUOTE ) // when value is '( a b c ) 
             {
               new_vector.clear() ; 
               GetPreOrderTraversalWithNoEmpty( localTP->listPtr, new_vector ) ;
               InsertLocalMap( str, new_vector ) ;
               // cout << PrettyString( new_vector ) ; 
             } // else if 
-            else if (  localTP->type == EMPTYPTR ) {
+            else if (  localTP->type == EMPTYPTR ) { // when value is a exp -> ( ... ) 
               mexeNode = localTP ;
               Eval() ;
               // cout << PrettyString( localTP->vec ) ; 
               InsertLocalMap( str, localTP->vec ) ;
               
             } // else if 
-            else {
+            else { // when value is not a symbol type , ex: INT FLOAT STRING ... 
               
               ex.token = localTP->token ;
               ex.type = localTP->type ;
@@ -2841,13 +2845,19 @@ void Functions::Let() {
           
         } // while 
         
-         // cout << "\nLETLOCAL" << endl ; 
-         // PrintMap() ; 
+          cout << "\nLETLOCAL" << endl ; 
+          PrintMap() ; 
       } // if
+      
+      // define local value end 
+
+
 
       temp = temp->next ; 
 
-      EXP* let_exp_start = temp ;  
+      EXP* let_exp_start = temp ;
+
+
 
 
       // run let exp 
@@ -2856,7 +2866,7 @@ void Functions::Let() {
         new_vector.clear() ;
         
         if ( temp->type == SYMBOL ) {
-          cout << "here" ; 
+          // cout << "here" ; 
           throw new UnboundException( temp ) ; 
         } // else if 
         else if (  temp->type == EMPTYPTR ) {
