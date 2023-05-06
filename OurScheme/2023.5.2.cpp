@@ -2849,11 +2849,14 @@ void Functions::Let() {
 
       EXP* let_exp_start = temp ;  
 
+
+      // run let exp 
       while ( temp->type != RIGHT_PAREN ) {
         // PreOrderTraversal( temp->listPtr ) ; 
         new_vector.clear() ;
         
         if ( temp->type == SYMBOL ) {
+          cout << "here" ; 
           throw new UnboundException( temp ) ; 
         } // else if 
         else if (  temp->type == EMPTYPTR ) {
