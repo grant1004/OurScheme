@@ -110,15 +110,24 @@
 );define
 Flambda
 
+( define ( cons-clone  a b ) ( cons a b ) ) 
+( define ( add1  a  ) ( + 1 a ) ) 
+
 (let (
-       (x 6)
-       (y 5)
-       (a ( Flambda x1 ) )
+       (x 10 ) 
+       (y ( cons 3  4 ) )
+       (a cons-clone )
      )
-       
+
      (
-       a x  
+       a y ( + ( add1 x ) x1 x2 x3 )  
      )
+     
+     y 
+     
+     x 
+     
+     
 )
   
   

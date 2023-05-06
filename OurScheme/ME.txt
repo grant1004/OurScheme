@@ -24,15 +24,45 @@ Welcome to OurScheme!
 
 > #<procedure Flambda>
 
+> cons-clone defined
+
+> add1 defined
+
 > 
 LETLOCAL
 ======= LOCAL =======
 Stack level : 1
-x: 6
-y: 5
-a: lambda
+x: 10
+y: (cons34)
+a: cons-clone
 =====================
-ERROR (unbound symbol) : x
+( begin
+  ( cons-clone
+    ( cons
+      3
+      4
+    )
+    ( +
+      ( add1
+        10
+      )
+      x1
+      x2
+      x3
+    )
+  )
+  ( cons
+    3
+    4
+  )
+  10
+)
+Begin :begin
+EX cons-clone
+ERROR (non-list) : ( 3
+  .
+  4
+)
 
 > 
 Thanks for using OurScheme!

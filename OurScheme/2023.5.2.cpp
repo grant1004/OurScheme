@@ -2809,13 +2809,26 @@ void Functions::Let() {
             localTP = localTP->next ; // localTP = parameter value
             // cout << "  value : " ;
             if ( FindGlobalMap( localTP->token, new_vector, ss, type ) == true ) { // when value is a define symbol 
-              InsertLocalMap( str, new_vector ) ;
+              
+              if ( type == TYPENONE ) 
+              {
+                InsertLocalMap( str, new_vector ) ;
+              } // if 
+              else 
+              {
+                new_vector.clear() ; 
+                ex.token = localTP->token ;
+                ex.type = localTP->type ;
+                new_vector.push_back( ex ) ;
+                InsertLocalMap( str, new_vector ) ;
+                // cout << PrettyString( new_vector ) ; 
+              } // else 
               // cout << PrettyString( new_vector ) ;  
             } // if
             else if ( localTP->type == SYMBOL ) {
               throw new UnboundException( localTP ) ; 
             } // else if 
-            else if ( localTP->type == EMPTYPTR && localTP->listPtr->next->type == QUOTE ) // when value is '( a b c ) 
+            else if ( localTP->type == EMPTYPTR ) // && localTP->listPtr->next->type == QUOTE ) // when value is '( a b c ) 
             {
               new_vector.clear() ; 
               GetPreOrderTraversalWithNoEmpty( localTP->listPtr, new_vector ) ;
@@ -2856,37 +2869,94 @@ void Functions::Let() {
       temp = temp->next ; 
 
       EXP* let_exp_start = temp ;
-
-
-
-
-      // run let exp 
-      while ( temp->type != RIGHT_PAREN ) {
-        // PreOrderTraversal( temp->listPtr ) ; 
-        new_vector.clear() ;
+      vector<EXP> let_exp_vector ; 
+      GetPreOrderTraversalWithNoEmpty( let_exp_start, let_exp_vector ) ;
+       
+      let_exp_vector.pop_back() ; 
+      vector<EXP> new_let_exp_vector ; 
+      // give parameter value 
+      int parnum = 0 ; 
+      for( int i = 0 ; i < let_exp_vector.size() ; i ++ )
+      {
+        EXP now = let_exp_vector.at( i ) ;
+        vector<EXP> value ; 
+        if ( FindLocalMap( now.token, value ) ) // now is local parameter extention it 
+        {
+          for ( int a = 0 ; a < value.size() ; a ++ )
+          {
+            new_let_exp_vector.push_back( value.at( a ) ) ; 
+          } // for
+          
+        } // if 
+        else 
+        {
+          new_let_exp_vector.push_back( let_exp_vector.at( i ) ) ; 
+        } // else 
         
-        if ( temp->type == SYMBOL ) {
-          // cout << "here" ; 
-          throw new UnboundException( temp ) ; 
-        } // else if 
-        else if (  temp->type == EMPTYPTR ) {
-          mexeNode = temp ;
-          Eval() ;
-          new_vector.assign( temp->vec.begin(), temp->vec.end() ) ;
-        
-        } // else if
-        else {
-          ex.token = temp->token ;
-          ex.type = temp->type ;
-          new_vector.push_back( ex ) ;
-           
-        } // else
-        
-        temp = temp->next ;
-        
-      } // while
+      } // for 
+
       
-      emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
+
+      EXP tt ; 
+      tt.token = "begin" ; 
+      tt.type = BEGIN ; 
+      new_let_exp_vector.insert( new_let_exp_vector.begin(), tt ) ; 
+
+
+      tt.token = "(" ; 
+      tt.type = LEFT_PAREN ; 
+      new_let_exp_vector.insert( new_let_exp_vector.begin(), tt ) ; 
+
+
+      tt.token = ")" ; 
+      tt.type = RIGHT_PAREN ; 
+      new_let_exp_vector.push_back( tt ) ; 
+
+      cout << PrettyString( new_let_exp_vector ) ;
+
+      EXP * root ; 
+      int k = 0 ; 
+      root = DynamicBuildTree( new_let_exp_vector, k ) ; 
+
+      mexeNode = root ; 
+      Eval() ; 
+      mexeNode = emptyptr->listPtr->next ; 
+      emptyptr->vec.assign( root->vec.begin(), root->vec.end() ) ;
+      
+      // run let exp 
+      //while ( temp->type != RIGHT_PAREN ) {
+      //  // PreOrderTraversal( temp->listPtr ) ; 
+      //  new_vector.clear() ;
+      //  
+      //  
+      //  if ( FindMap( temp->token, new_vector ) ) 
+      //  {
+      //  } // if 
+      //  else if ( temp->type == SYMBOL ) {
+      //    // cout << "here" ; 
+      //    throw new UnboundException( temp ) ; 
+      //  } // else if 
+      //  else if (  temp->type == EMPTYPTR ) {
+      //    mexeNode = temp ;
+      //    EXP * first = mexeNode -> listPtr -> next ; 
+      //    cout << "Execute : " << first->token << endl ; 
+      //    Eval() ;
+      //    cout << "Execute Done : " << first->token << endl ; 
+      //    new_vector.assign( temp->vec.begin(), temp->vec.end() ) ;
+      //  
+      //  } // else if
+      //  else {
+      //    ex.token = temp->token ;
+      //    ex.type = temp->type ;
+      //    new_vector.push_back( ex ) ;
+      //     
+      //  } // else
+      //  
+      //  temp = temp->next ;
+      //  
+      //} // while
+      
+      // emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
       // cout << "Let EMPTY.VEC : " << PrettyString( new_vector )  << endl ; 
 
     } // else 
@@ -3269,18 +3339,20 @@ void Functions::Cond()
 void Functions::Begin()
 {
   // mexeNode : begin 
-  // now : �ܼ� 
+  // now : first exp start 
   // emptyptr : root 
+  cout << "Begin :" << mexeNode->token << endl ;
   EXP* now = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
 
   if ( NOT CheckNumOfArg( 0 ) ) // >= 1 
   {
     while ( now->type != RIGHT_PAREN )
-    {
+    { 
       if ( now->type == EMPTYPTR )
       {
         mexeNode = now ; 
+        cout << "EX " << now->listPtr->next->token << endl ; 
         Eval() ; 
         emptyptr->vec.clear() ; 
         emptyptr->vec = CopyVector( now->vec ) ;
