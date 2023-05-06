@@ -2605,30 +2605,30 @@ void Functions::PrintMap() {
   
 
 
-  //cout << endl << "======= GLOBAL =======" << endl ;
-  //i = 0 ;
-  //while ( i < msymbolMap.size() ) {
-  //  cout << msymbolMap.at( i ).str << ": " ;
-  //  k = 0 ;
-  //  // cout << endl << "memSpace: " << msymbolMap.at( i ).vec.at( 0 ).memSpace << endl ;
-  //  while ( k < msymbolMap.at( i ).vec.size() ) {
-  //    cout << msymbolMap.at( i ).vec.at( k ).token << " " ;
-  //    k++ ;
-  //  } // while
-  //
-  //  cout << ", par_name: " ;
-  //  k = 0 ;
-  //  while ( k < msymbolMap.at( i ).par_name.size() ) {
-  //    cout << msymbolMap.at( i ).par_name.at( k ) << " " ;
-  //    k++ ;
-  //  } // while
-  //  
-  //  cout << ", FuncType : " << msymbolMap.at( i ).funcType ; 
-  //  cout << endl ;
-  //  i++ ;
-  //} // while
-  //   
-  //cout << endl << "================" << endl ;
+  cout << endl << "======= GLOBAL =======" << endl ;
+  i = 0 ;
+  while ( i < msymbolMap.size() ) {
+    cout << msymbolMap.at( i ).str << ": " ;
+    k = 0 ;
+    // cout << endl << "memSpace: " << msymbolMap.at( i ).vec.at( 0 ).memSpace << endl ;
+    while ( k < msymbolMap.at( i ).vec.size() ) {
+      cout << msymbolMap.at( i ).vec.at( k ).token << " " ;
+      k++ ;
+    } // while
+  
+    cout << ", par_name: " ;
+    k = 0 ;
+    while ( k < msymbolMap.at( i ).par_name.size() ) {
+      cout << msymbolMap.at( i ).par_name.at( k ) << " " ;
+      k++ ;
+    } // while
+    
+    cout << ", FuncType : " << msymbolMap.at( i ).funcType ; 
+    cout << endl ;
+    i++ ;
+  } // while
+     
+  cout << endl << "================" << endl ;
 
 } // Functions::PrintMap()
 
@@ -2764,8 +2764,11 @@ void Functions::Let() {
   FuncType type ;
   LOCAL localMap ; 
   mlocalsymbolMap.push_back( localMap ) ;   
+  // cout << "EXP: " ; 
+  // PreOrderTraversal( emptyptr ) ; 
+  // cout << endl ; 
   if ( CheckNumOfArg( 1 ) || CheckNumOfArg( 0 ) ) {
-    cout << "ERROR (LET format)" << endl ; // pretty print
+    cout << "1-----ERROR (LET format)" << endl ; // pretty print
     mnonListVec.clear() ; 
     TraversalEmpty( gRoot ) ; 
     throw new DefineFormatException( mnonListVec ) ;
@@ -2773,7 +2776,7 @@ void Functions::Let() {
   } // if
   else { 
     if ( temp->type != EMPTYPTR && temp->type != NIL ) {
-      cout << "ERROR (LET format)" << endl ; // pretty print
+      cout << "2-----ERROR (LET format)" << endl ; // pretty print
     } // if
     else {
 
@@ -2786,7 +2789,7 @@ void Functions::Let() {
            
           new_vector.clear() ;
           if ( local->type != EMPTYPTR ) {
-            cout << "ERROR (LET format)" << endl ; // pretty print
+            cout << "3-----ERROR (LET format)" << endl ; // pretty print
             mnonListVec.clear() ; 
             TraversalEmpty( gRoot ) ; 
             throw new DefineFormatException( mnonListVec ) ;
@@ -2795,11 +2798,16 @@ void Functions::Let() {
             EXP* localTP = local->listPtr->next ; // localTP = local parameter name 
             // cout << "local : " << localTP->token ;
             string str = "\0" ;
+             cout << "local parameter name : " << localTP->token ; 
 
-            if ( IsSystemPrimitive( localTP->type ) || localTP->type != SYMBOL ) { // parameter can not be a primitive type and symbol type 
-              cout << "ERROR (LET format)" << endl ; // pretty print
+            if ( IsSystemPrimitive( localTP->type ) || localTP->type != SYMBOL ) { 
+              // parameter can not be a primitive type and symbol type 
+              cout << "4-----ERROR (LET format)" << endl ; // pretty print
               mnonListVec.clear() ; 
-              TraversalEmpty( gRoot ) ; 
+              // TraversalEmpty( gRoot ) ;
+              EXP emp ; 
+              emp.token = "LET ERROR" ; 
+              mnonListVec.push_back( emp ) ; 
               throw new DefineFormatException( mnonListVec ) ;
             } // if
             else {
@@ -2808,28 +2816,35 @@ void Functions::Let() {
 
             localTP = localTP->next ; // localTP = parameter value
             // cout << "  value : " ;
-            if ( FindGlobalMap( localTP->token, new_vector, ss, type ) == true ) { // when value is a define symbol 
+            if ( FindGlobalMap( localTP->token, 
+                                new_vector, 
+                                ss, 
+                                type ) == true ) { // when value is a define symbol 
               
-              if ( type == TYPENONE ) 
-              {
-                InsertLocalMap( str, new_vector ) ;
-              } // if 
-              else 
+              if ( type == TYPEDEFINE ) 
               {
                 new_vector.clear() ; 
                 ex.token = localTP->token ;
                 ex.type = localTP->type ;
                 new_vector.push_back( ex ) ;
                 InsertLocalMap( str, new_vector ) ;
-                // cout << PrettyString( new_vector ) ; 
+                // cout << PrettyString( new_vector ) ;
+                
+              } // if 
+              else 
+              {
+                InsertLocalMap( str, new_vector ) ;
               } // else 
+
               // cout << PrettyString( new_vector ) ;  
             } // if
             else if ( localTP->type == SYMBOL ) {
               throw new UnboundException( localTP ) ; 
             } // else if 
-            else if ( localTP->type == EMPTYPTR ) // && localTP->listPtr->next->type == QUOTE ) // when value is '( a b c ) 
+            else if ( localTP->type == EMPTYPTR ) 
             {
+              // && localTP->listPtr->next->type == QUOTE ) 
+              // when value is '( a b c ) 
               new_vector.clear() ; 
               GetPreOrderTraversalWithNoEmpty( localTP->listPtr, new_vector ) ;
               InsertLocalMap( str, new_vector ) ;
@@ -2858,8 +2873,8 @@ void Functions::Let() {
           
         } // while 
         
-          cout << "\nLETLOCAL" << endl ; 
-          PrintMap() ; 
+         // cout << "\nLETLOCAL" << endl ; 
+         // PrintMap() ; 
       } // if
       
       // define local value end 
@@ -2874,26 +2889,236 @@ void Functions::Let() {
        
       let_exp_vector.pop_back() ; 
       vector<EXP> new_let_exp_vector ; 
+
+
       // give parameter value 
       int parnum = 0 ; 
-      for( int i = 0 ; i < let_exp_vector.size() ; i ++ )
-      {
-        EXP now = let_exp_vector.at( i ) ;
-        vector<EXP> value ; 
-        if ( FindLocalMap( now.token, value ) ) // now is local parameter extention it 
+      for ( int i = 0 ; i < let_exp_vector.size() ; i++ ) { 
+        // cout << let_exp_vector.at( i ).token << endl ; 
+        if ( let_exp_vector.at( i ).type == LET ) 
         {
-          for ( int a = 0 ; a < value.size() ; a ++ )
+          i-- ;
+          int count = 0 ;
+          bool bbreak = false ; 
+          vector<MAP> checkMap ; 
+          int cnt = 0 ;
+          int cntPar = 0 ; 
+          // ( define ( a b ) ( let (( a b )(b b ) ( c b )) ( + a b c ) ) )
+          while ( bbreak == false ) {
+
+            // << let_exp_vector.at( i ).token << endl ; 
+            // cout << let_exp_vector.at( i ).token << "  " ; 
+            if ( let_exp_vector.at( i ).type == LEFT_PAREN ) 
+            {
+              count++;
+            } // if
+            else if ( let_exp_vector.at( i ).type == RIGHT_PAREN ) 
+            {
+              count--;
+              if ( count == 0 ) {
+                bbreak = true ;
+              } // if
+
+            } // else if
+
+
+            if ( count == 1 )
+            {
+              cntPar ++ ; 
+            } // if 
+
+
+            if ( bbreak == false ) {
+
+              // cout << "\ncount : " << count << "  : "
+              // << let_exp_vector.at( i+1 ).token << "  cnt : " << cnt  << "  " << cntPar << endl ;
+
+              bool isPush = false ;
+              if ( count >= 3 )
+              {  
+                // cout << "count : " << count << "  : "
+                // << let_exp_vector.at( i ).token << "  cnt : " << cnt  << "  " << cntPar << endl ;
+                cnt ++ ;
+                if ( cnt >= 2 && cntPar == 2 ) 
+                {
+
+                  if ( FindLocalMap( let_exp_vector.at( i + 1 ).token, new_vector ) )
+                  {
+                    isPush = true ; 
+
+                    for ( int i = 0; i < new_vector.size() ; i++ ) 
+                    {
+                      new_let_exp_vector.push_back( new_vector.at( i ) ) ;
+                    } // for
+
+                  } // if  
+
+                } // if  
+                else if ( cnt == 1 && cntPar == 2 )
+                {
+                  MAP m ; 
+                  m.funcType = TYPENONE ; 
+                  m.str = let_exp_vector.at( i + 1 ).token ; 
+                  Inserting( m, checkMap ) ; 
+                } // else if 
+                else if ( cntPar >= 3 )
+                {
+                  MAP value ; 
+                  // cout << endl << "now Check \'" 
+                  // << let_exp_vector.at( i + 1 ).token << "\' is in CheckMap or not " << endl ; 
+                  if ( Finding( let_exp_vector.at( i + 1 ).token, checkMap, value  ) == false )
+                  {
+                    // cout << "Not in CheckMap" ; 
+                    if ( FindLocalMap( let_exp_vector.at( i + 1 ).token, new_vector ) )
+                    {
+                      // cout << " and it is local parametet -> [ extention ] it to "
+                      // << PrettyString( new_vector ) << endl ; 
+                      isPush = true ; 
+
+                      for ( int i = 0; i < new_vector.size() ; i++ ) 
+                      {
+                        new_let_exp_vector.push_back( new_vector.at( i ) ) ;
+                      } // for
+
+                    } // if
+                    else 
+                    {
+                      // cout << " and it is NOT a local parametet -> [ Ignore ] it " << endl ; 
+                    } // else 
+                  } // if
+                  else 
+                  {
+                    // cout << "Yes, it is in CheckMap" ;
+                    // if ( FindLocalMap( let_exp_vector.at( i + 1 ).token, new_vector ) )
+                    // {
+                    //   cout << " and it is local parametet -> [ extention ] it to "
+                    //   << PrettyString( new_vector ) << endl ; 
+                    //  isPush = true ; 
+
+                    //  for ( int i = 0; i < new_vector.size() ; i++ ) 
+                    //  {
+                    //    new_let_exp_vector.push_back( new_vector.at( i ) ) ;
+                    //  } // for
+
+                    // } // if
+                    // else 
+                    // { 
+                    //   cout << " but not a local parameter -> [ Ignore ] it " << endl ; 
+                    // } // else
+                  } // else 
+
+                } // if
+              } // if
+              else if ( count >= 1 )
+              {
+                 // cout << "count : " << count << "  : "<< let_exp_vector.at( i ).token 
+                 // << "  cnt : " << cnt  << "  " << cntPar << endl ;
+                if ( cntPar >= 3 )
+                {
+                  MAP value ; 
+                   // cout << endl << "now Check \'" << let_exp_vector.at( i + 1 ).token 
+                   // << "\' is in CheckMap or not " << endl ; 
+                  if ( Finding( let_exp_vector.at( i + 1 ).token, checkMap, value  ) == false )
+                  {
+                     // cout << "Not in CheckMap" ; 
+                    if ( FindLocalMap( let_exp_vector.at( i + 1 ).token, new_vector ) )
+                    {
+                       // cout << " and it is local parametet -> [ extention ] it to "
+                       // << PrettyString( new_vector ) << endl ; 
+                      isPush = true ; 
+
+                      for ( int i = 0; i < new_vector.size() ; i++ ) 
+                      {
+                        new_let_exp_vector.push_back( new_vector.at( i ) ) ;
+                      } // for
+
+                    } // if
+                    else 
+                    {
+                      // cout << " and it is NOT a local parametet -> [ Ignore ] it " << endl ; 
+                    } // else 
+                  } // if
+                  else 
+                  {
+                    // cout << "Yes, it is in CheckMap " ;
+                    // if ( FindLocalMap( let_exp_vector.at( i + 1 ).token, new_vector ) )
+                    // {
+                    //   cout << " and it is local parametet -> [ extention ] it to "
+                    //   << PrettyString( new_vector ) << endl ; 
+                    //  isPush = true ; 
+
+                    //  for ( int i = 0; i < new_vector.size() ; i++ ) 
+                    //  {
+                    //    new_let_exp_vector.push_back( new_vector.at( i ) ) ;
+                    //  } // for
+
+                    // } // if
+                    // else 
+                    // { 
+                    //   cout << "but not a local parameter -> [ Ignore ] it " << endl ;
+                    // } // else 
+                  } // else 
+
+                } // if 
+
+              } // else if 
+
+              if ( count == 2 )
+              {
+                cnt = 0 ; 
+              } // if 
+
+              i++ ;
+              if ( isPush == false )
+              {
+                new_let_exp_vector.push_back( let_exp_vector.at( i ) ) ;  
+              } // if 
+            } // if
+
+          } // while
+
+             // cout << "CHECKMAP :: " << endl ; 
+             // for ( int k = 0 ; k < checkMap.size() ; k ++ )
+             // {
+             //   cout << checkMap.at( k ).str << endl ; 
+             // } // for 
+        } // if
+        else if ( let_exp_vector.at( i ).type == LAMBDA )
+        {
+          int parNum = 1 ; 
+
+          bool done = false ; 
+          while ( parNum != 0 )
           {
-            new_let_exp_vector.push_back( value.at( a ) ) ; 
+
+            if ( let_exp_vector.at( i ).type == LEFT_PAREN )
+              parNum ++ ; 
+            else if ( let_exp_vector.at( i ).type == RIGHT_PAREN )
+              parNum -- ; 
+ 
+            // cout << "push : " << new_let_exp_vector.back().token << endl ;
+            i ++ ; 
+
+          } // while 
+
+          new_let_exp_vector.push_back( let_exp_vector.at( i ) ) ;
+          // cout << "push : " << new_let_exp_vector.back().token << endl ;
+        } // else if 
+        else if ( let_exp_vector.at( i ).type == SYMBOL && 
+                  FindLocalMap( 
+                  let_exp_vector.at( i ).token, new_vector ) ) {
+          for ( int i = 0; i < new_vector.size() ; i++ ) {
+            new_let_exp_vector.push_back( new_vector.at( i ) ) ;
           } // for
-          
-        } // if 
+
+        } // else if
         else 
         {
-          new_let_exp_vector.push_back( let_exp_vector.at( i ) ) ; 
-        } // else 
-        
-      } // for 
+          // cout << let_exp_vector.at( i ).token << endl ; 
+          new_let_exp_vector.push_back( let_exp_vector.at( i ) ) ;
+        } // else
+
+      } // for
 
       
 
@@ -2912,52 +3137,18 @@ void Functions::Let() {
       tt.type = RIGHT_PAREN ; 
       new_let_exp_vector.push_back( tt ) ; 
 
-      cout << PrettyString( new_let_exp_vector ) ;
+      cout << endl << "BEGIN LET : " << PrettyString( new_let_exp_vector ) ;
 
       EXP * root ; 
       int k = 0 ; 
       root = DynamicBuildTree( new_let_exp_vector, k ) ; 
 
+
+      // cout << endl << "BEGIN LET" << endl ; 
       mexeNode = root ; 
       Eval() ; 
       mexeNode = emptyptr->listPtr->next ; 
       emptyptr->vec.assign( root->vec.begin(), root->vec.end() ) ;
-      
-      // run let exp 
-      //while ( temp->type != RIGHT_PAREN ) {
-      //  // PreOrderTraversal( temp->listPtr ) ; 
-      //  new_vector.clear() ;
-      //  
-      //  
-      //  if ( FindMap( temp->token, new_vector ) ) 
-      //  {
-      //  } // if 
-      //  else if ( temp->type == SYMBOL ) {
-      //    // cout << "here" ; 
-      //    throw new UnboundException( temp ) ; 
-      //  } // else if 
-      //  else if (  temp->type == EMPTYPTR ) {
-      //    mexeNode = temp ;
-      //    EXP * first = mexeNode -> listPtr -> next ; 
-      //    cout << "Execute : " << first->token << endl ; 
-      //    Eval() ;
-      //    cout << "Execute Done : " << first->token << endl ; 
-      //    new_vector.assign( temp->vec.begin(), temp->vec.end() ) ;
-      //  
-      //  } // else if
-      //  else {
-      //    ex.token = temp->token ;
-      //    ex.type = temp->type ;
-      //    new_vector.push_back( ex ) ;
-      //     
-      //  } // else
-      //  
-      //  temp = temp->next ;
-      //  
-      //} // while
-      
-      // emptyptr->vec.assign( new_vector.begin(), new_vector.end() ) ;
-      // cout << "Let EMPTY.VEC : " << PrettyString( new_vector )  << endl ; 
 
     } // else 
     
@@ -3341,7 +3532,7 @@ void Functions::Begin()
   // mexeNode : begin 
   // now : first exp start 
   // emptyptr : root 
-  cout << "Begin :" << mexeNode->token << endl ;
+  // cout << "Begin :" << mexeNode->token << endl ;
   EXP* now = mexeNode->next ;
   EXP* emptyptr = mexeNode->pre_next->pre_listPtr ;
 
@@ -3352,7 +3543,7 @@ void Functions::Begin()
       if ( now->type == EMPTYPTR )
       {
         mexeNode = now ; 
-        cout << "EX " << now->listPtr->next->token << endl ; 
+        // cout << "EX " << now->listPtr->next->token << endl ; 
         Eval() ; 
         emptyptr->vec.clear() ; 
         emptyptr->vec = CopyVector( now->vec ) ;
@@ -5115,18 +5306,39 @@ void Functions::CallFunction() {
         // cout << "token : " << temp->token << "TYPE : " << PrintType( temp->type ) << endl ; 
         if ( temp->type == EMPTYPTR ) 
         {     
-          // cout << "TYPE : " << PrintType( temp->type ) << endl ; 
-          if ( IsSystemPrimitive( temp->listPtr->next->type ) && temp->listPtr->next->type != QUOTE )
+          vector<EXP> parBody ; 
+
+          GetPreOrderTraversalWithNoEmpty( temp->listPtr, parBody ) ;
+
+          for ( int j = 0 ; j < parBody.size() ; j ++ )
           {
-            mexeNode = temp ; 
-            Eval() ; 
-            InsertLocalMap( parameter.at( i ), temp->vec ) ;
-          } // if 
-          else 
-          {
-            GetPreOrderTraversalWithNoEmpty( temp->listPtr, new_vector ) ;
-            InsertLocalMap( parameter.at( i ), new_vector ) ;
-          } // else 
+            EXP now = parBody.at( j ) ; 
+            vector<EXP> value ; 
+            if ( FindGlobalMap( now.token, value, ss, ft ) ) 
+            {
+              if ( ft != TYPEDEFINE )
+              {
+                for ( int k = 0 ; k < value.size() ; k ++ )
+                {
+                  new_vector.push_back( value.at( k ) ) ; 
+                } // for 
+              } // if 
+              else 
+              {
+                new_vector.push_back( now ) ;
+              } // else 
+              
+
+            } // if 
+            else 
+            {
+              new_vector.push_back( now ) ; 
+            } // else
+          } // for 
+
+          // cout << "parameter value : " << PrettyString( new_vector ) << endl ; 
+          InsertLocalMap( parameter.at( i ), new_vector ) ;
+          
         } // if
         else if ( FindGlobalMap( temp->token, new_vector, ss, ft ) )
         {
@@ -5161,10 +5373,10 @@ void Functions::CallFunction() {
       // end get parameter      
  
       
-      /*
-      cout << endl << "call function : " << funcName << endl ;
-      PrintMap() ;  
-      */
+      
+      // cout << endl << "call function : " << funcName << endl ;
+      // PrintMap() ;  
+      
       
       new_vector.clear() ;
       vector<EXP> new_s_exp ; 
@@ -5267,22 +5479,22 @@ void Functions::CallFunction() {
                   else 
                   {
                     // cout << "Yes, it is in CheckMap" ;
-                    if ( FindLocalMap( s_exp.at( i + 1 ).token, new_vector ) )
-                    {
-                      // cout << " and it is local parametet -> [ extention ] it to "
-                      // << PrettyString( new_vector ) << endl ; 
-                      isPush = true ; 
+                    // if ( FindLocalMap( s_exp.at( i + 1 ).token, new_vector ) )
+                    // {
+                    //  // cout << " and it is local parametet -> [ extention ] it to "
+                    //  // << PrettyString( new_vector ) << endl ; 
+                    //  isPush = true ; 
 
-                      for ( int i = 0; i < new_vector.size() ; i++ ) 
-                      {
-                        new_s_exp.push_back( new_vector.at( i ) ) ;
-                      } // for
+                    //  for ( int i = 0; i < new_vector.size() ; i++ ) 
+                    //  {
+                    //    new_s_exp.push_back( new_vector.at( i ) ) ;
+                    //  } // for
 
-                    } // if
-                    else 
-                    { 
-                      // cout << " but not a local parameter -> [ Ignore ] it " << endl ; 
-                    } // else
+                    // } // if
+                    // else 
+                    // { 
+                    //  // cout << " but not a local parameter -> [ Ignore ] it " << endl ; 
+                    // } // else
                   } // else 
 
                 } // if
@@ -5319,22 +5531,22 @@ void Functions::CallFunction() {
                   else 
                   {
                     // cout << "Yes, it is in CheckMap " ;
-                    if ( FindLocalMap( s_exp.at( i + 1 ).token, new_vector ) )
-                    {
-                      // cout << " and it is local parametet -> [ extention ] it to "
-                      // << PrettyString( new_vector ) << endl ; 
-                      isPush = true ; 
+                    // if ( FindLocalMap( s_exp.at( i + 1 ).token, new_vector ) )
+                    // {
+                    //  // cout << " and it is local parametet -> [ extention ] it to "
+                    //  // << PrettyString( new_vector ) << endl ; 
+                    //  isPush = true ; 
 
-                      for ( int i = 0; i < new_vector.size() ; i++ ) 
-                      {
-                        new_s_exp.push_back( new_vector.at( i ) ) ;
-                      } // for
+                    //  for ( int i = 0; i < new_vector.size() ; i++ ) 
+                    //  {
+                    //    new_s_exp.push_back( new_vector.at( i ) ) ;
+                    //  } // for
 
-                    } // if
-                    else 
-                    { 
-                      // cout << "but not a local parameter -> [ Ignore ] it " << endl ;
-                    } // else 
+                    // } // if
+                    // else 
+                    // { 
+                    //  // cout << "but not a local parameter -> [ Ignore ] it " << endl ;
+                    // } // else 
                   } // else 
 
                 } // if 
@@ -6316,9 +6528,9 @@ void Functions::Eval() {
 
    
   if ( hasError == false ) {
-    // cout << "\nNow Execute [ " << firstArgument->token << " ]" <<mexeNode -> token  << endl ;
+     cout << "\nNow Execute [ " << firstArgument->token << " ]" <<mexeNode -> token  << endl ;
     Execute() ;    
-    // cout << "\nExecute Done [ " << firstArgument->token << " ]" << endl ;
+     cout << "\nExecute Done [ " << firstArgument->token << " ]" << endl ;
     vector<EXP> v ; 
     vector<string> ss ; 
     FuncType ft ; 
@@ -6370,10 +6582,10 @@ static int uTestNum = -1 ;
 int main() { 
   cin >> uTestNum ;
 
-  // if ( uTestNum == 2 ) 
+  // if ( uTestNum == 3 ) 
   // {
-  //  cout << "2" ; 
-  //  return 0 ; 
+  //   cout << "3" ; 
+  //   return 0 ; 
   // } // if 
 
   int i = 0 ;
@@ -6542,9 +6754,8 @@ int main() {
             funcClass->ResetLevel() ; 
             gHead = NULL ;
             DeleteTree( gRoot ) ; 
-            gRoot = NULL ;
-            // cout << PrettyString( s_exp ) ; 
-            i = 0 ;        
+            gRoot = NULL  ;
+            i = 0 ;
             BuildTree( s_exp, i ) ;
             gHead = gRoot ; // new
             // cout << "This : " ; PreOrderTraversal( gRoot ) ; 

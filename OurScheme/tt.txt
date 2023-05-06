@@ -1,157 +1,36 @@
 1
-
-(clean-environment) ; first round, no error.
-
-(define x1 3)(define x2 4)(define x3 5)
-(define (Fcond x4 x1) 
-        (cond ( (> x4 x1) 
-                (+ x4 x1)
-                ( if (< x4 x1)
-                     (+ x4 x1 22)
-                     (+ x4 x1 33)
-                )
-              ) 
-              ( (< x4 x1) 
-                (* x4 x1)
-                ( if (< x4 x1)
-                     (* x4 x1 2)
-                     (* x4 x1 3)
-                )
-              )
-              ( else 
-                (- x4 x1)
-                (if (= x4 x1)
-                    (- x4 x1 20)
-                    (- x4 x1 30)
-                )
-              );else
-        );cond
-);define
-(define (Fif x1 x4 x3) 
-        (if (>= x2 x3) 
-            ( begin 
-              (+ x1 x3) 
-              ( if ( and ( > x1 50 ) ( > x4 50 ) )
-                   (+ x1 x3 33)
-                   (+ x1 x3 44)
-              );if
-            );begin
-            ( begin 
-              (- x3 x4)
-              ( if ( and ( > x1 50 ) ( > x4 50 ) )
-                   (- x3 x4 33)
-                   (- x3 x4 44)
-              );if
-            );begin
-        );if
-);define
-(define (Fbegin x3) 
-        ( begin 
-          ( begin (+ x1 x3) )
-          ( begin (- x2 x3) )
-          ( cond ( (> x3 x1) (+ x3 x1) ) 
-                 ( (< x3 x1) (* x3 x1) )
-                 ( else      (- x3 x1) )
-          );cond
-        );begin
-);define
-(define (Fand x4 x2 x5) 
-        (and ( if ( > x1 0 )
-                  ( < x1 40 )
-                  ( > (- x1 x5) 27)
-             )
-             (> x4 x2) 
-             (> x2 x5) 
-             (> x5 0)
-        );and
-);define
-(define (For x1 x4 x3) 
-        (or (and 
-              (> x1 50)
-              (> x4 170)
-            )
-            (> x1 x4) 
-            (> x4 x3) 
-            (> x1 100) 
-            (> x4 100) 
-            (> x3 100)
-        );or
-);define
-
-(define (For x1 x4 x3) 
-        (or (and 
-              (> (Fif x1 x2 x3) 50)
-              (> (Fif x2 x2 80) 170)
-            )
-            (> (Fif x1 x2 x3) (Fif x2 x2 80)) 
-            (> x4 x3) 
-            (> x1 100) 
-            (> x4 100) 
-            (> x3 100)
-        );or
-);define
-
-( define ( Flambda x1 )
-         ( if ( > x1 0 )
-              ( lambda ( x2 ) ( * ( Fcond x2 x3 
-                                  );Fcond
-                                  3 
-                              );*
-              );lambda
-              ( lambda ( x3 ) ( * ( Fif ( Fcond x3 x1 
-                                        );Fcond 
-                                        x2 
-                                        x3 
-                                  );Fif
-                                  2 
-                              );*
-              );lambda
-         );if
-);define
-Flambda
-
-( define ( cons-clone  a b ) ( cons a b ) ) 
-( define ( add1  a  ) ( + 1 a ) ) 
-
-(let (
-       (x 10 ) 
-       (y ( cons 3  4 ) )
-       (a cons-clone )
-     )
-
-     (
-       a y ( + ( add1 x ) x1 x2 x3 )  
-     )
-     
-     y 
-     
-     x 
-     
-     
-)
   
-  
-  
-  
-    ( exit ) 
-    
-    
-    
-    
-    
 (let ( (x 6) (y '(1 2 3))
          (a 7)
        )
        (+ a x (car (cdr (cdr y)))
        )
-       (let ( (a 17) (x 11) 
-            )
-            (- a x (car (cdr (cdr y)))
-               (let ( (x 21) )
-                    (+ a x 5)
-                    (- 0 a x)
-               )
-            )
+       
+       ( 
+         ( lambda ( a x ) ( + a x ) ) 
+         a x 
        )
   )
+  ( exit ) 
   
+  
+  
+  
+  (let ( (x 6) (y '(1 2 3))
+         (a 7)
+       )
+       (
+        + a x (car (cdr (cdr y)))
+       )
+       (
+         let ( (a 17) (x 11) )
+             (- a x (car (cdr (cdr y))) )
+             ( 
+               ( lambda ( a x ) ( + a x ) ) 
+               a x 
+             )
+       )
+
+  )
+  
+( exit ) 
