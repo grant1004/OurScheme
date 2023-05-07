@@ -13,6 +13,7 @@
 # include <stdio.h>
 # include <stdlib.h> 
 # include <stack>
+# include <ctime>
 
 using namespace std ;
 
@@ -2798,7 +2799,7 @@ void Functions::Let() {
             EXP* localTP = local->listPtr->next ; // localTP = local parameter name 
             // cout << "local : " << localTP->token ;
             string str = "\0" ;
-             cout << "local parameter name : " << localTP->token ; 
+            // cout << "local parameter name : " << localTP->token ; 
 
             if ( IsSystemPrimitive( localTP->type ) || localTP->type != SYMBOL ) { 
               // parameter can not be a primitive type and symbol type 
@@ -2841,9 +2842,9 @@ void Functions::Let() {
             else if ( localTP->type == SYMBOL ) {
               throw new UnboundException( localTP ) ; 
             } // else if 
-            else if ( localTP->type == EMPTYPTR ) 
+            else if ( localTP->type == EMPTYPTR && localTP->listPtr->next->type == QUOTE ) 
             {
-              // && localTP->listPtr->next->type == QUOTE ) 
+              //  
               // when value is '( a b c ) 
               new_vector.clear() ; 
               GetPreOrderTraversalWithNoEmpty( localTP->listPtr, new_vector ) ;
@@ -2894,7 +2895,7 @@ void Functions::Let() {
       // give parameter value 
       int parnum = 0 ; 
       for ( int i = 0 ; i < let_exp_vector.size() ; i++ ) { 
-        // cout << let_exp_vector.at( i ).token << endl ; 
+        
         if ( let_exp_vector.at( i ).type == LET ) 
         {
           i-- ;
@@ -3085,23 +3086,27 @@ void Functions::Let() {
         } // if
         else if ( let_exp_vector.at( i ).type == LAMBDA )
         {
-          int parNum = 1 ; 
-
-          bool done = false ; 
-          while ( parNum != 0 )
-          {
+          i -- ; 
+          int parnum = 0 ; 
+          int start = i + 1 ; 
+          do {
+            // cout << let_exp_vector.at( i ).token << endl ; 
 
             if ( let_exp_vector.at( i ).type == LEFT_PAREN )
-              parNum ++ ; 
+              parnum ++ ; 
             else if ( let_exp_vector.at( i ).type == RIGHT_PAREN )
-              parNum -- ; 
- 
-            // cout << "push : " << new_let_exp_vector.back().token << endl ;
+              parnum -- ; 
+
+            if ( i >= start )
+            {
+              new_let_exp_vector.push_back( let_exp_vector.at( i ) )  ; 
+            } // if 
+
             i ++ ; 
+          } while ( parnum != 0 ); 
 
-          } // while 
-
-          new_let_exp_vector.push_back( let_exp_vector.at( i ) ) ;
+          i -- ;
+          // new_let_exp_vector.push_back( let_exp_vector.at( i ) ) ;
           // cout << "push : " << new_let_exp_vector.back().token << endl ;
         } // else if 
         else if ( let_exp_vector.at( i ).type == SYMBOL && 
@@ -3137,14 +3142,14 @@ void Functions::Let() {
       tt.type = RIGHT_PAREN ; 
       new_let_exp_vector.push_back( tt ) ; 
 
-      cout << endl << "BEGIN LET : " << PrettyString( new_let_exp_vector ) ;
+      // cout << endl << "BEGIN LET : " << PrettyString( new_let_exp_vector ) ;
 
       EXP * root ; 
       int k = 0 ; 
       root = DynamicBuildTree( new_let_exp_vector, k ) ; 
 
 
-      // cout << endl << "BEGIN LET" << endl ; 
+      
       mexeNode = root ; 
       Eval() ; 
       mexeNode = emptyptr->listPtr->next ; 
@@ -6528,9 +6533,9 @@ void Functions::Eval() {
 
    
   if ( hasError == false ) {
-     cout << "\nNow Execute [ " << firstArgument->token << " ]" <<mexeNode -> token  << endl ;
+    // cout << "\nNow Execute [ " << firstArgument->token << " ]" <<mexeNode -> token  << endl ;
     Execute() ;    
-     cout << "\nExecute Done [ " << firstArgument->token << " ]" << endl ;
+    // cout << "\nExecute Done [ " << firstArgument->token << " ]" << endl ;
     vector<EXP> v ; 
     vector<string> ss ; 
     FuncType ft ; 
@@ -6580,6 +6585,14 @@ static int uTestNum = -1 ;
 
 
 int main() { 
+
+  double START,END;
+  
+  
+
+
+
+
   cin >> uTestNum ;
 
   // if ( uTestNum == 3 ) 
@@ -6611,6 +6624,7 @@ int main() {
 
   while ( NOT quit )
   {
+    START = clock();
     cout << endl << "> " ; 
     readEXP = true ; 
     gNowColumn = 0 ; 
@@ -6623,7 +6637,7 @@ int main() {
     gHead = NULL ;
     DeleteTree( gRoot ) ; 
     gRoot = NULL ;
-    
+
     while ( readEXP == true )
     {
        
@@ -6904,6 +6918,10 @@ int main() {
       
     } // while ( readEXP )
     
+
+    END = clock();
+    cout << endl << "程式執行所花費：" << (double)clock()/CLOCKS_PER_SEC << " s";
+    cout << endl << "進行運算所花費的時間：" << (END - START) / CLOCKS_PER_SEC << " s" << endl;
   } // while ( NOT quit )  
   
   printf( "\nThanks for using OurScheme!" ) ;
